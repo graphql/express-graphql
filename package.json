@@ -44,7 +44,7 @@
     "cover": "babel-node node_modules/.bin/isparta cover --root src --report html node_modules/.bin/_mocha -- $npm_package_options_mocha",
     "cover:lcov": "babel-node node_modules/.bin/isparta cover --root src --report lcovonly node_modules/.bin/_mocha -- $npm_package_options_mocha",
     "preversion": "npm test",
-    "prepublish": ". ./scripts/prepublish.sh"
+    "prepublish": ". ./resources/prepublish.sh"
   },
   "dependencies": {
     "content-type": "~1.0.1",

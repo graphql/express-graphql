@@ -1,3 +1,11 @@
+*.swp
+*~
+*.iml
+.*.haste_cache.*
+.DS_Store
+.idea
+npm-debug.log
+
 dist
 node_modules
 coverage
