@@ -2,7 +2,7 @@ GraphQL Express Middleware
 ==========================
 
 [![Build Status](https://travis-ci.org/graphql/express-graphql.svg)](https://travis-ci.org/graphql/express-graphql)
-[![Coverage Status](https://coveralls.io/repos/graphql/express-graphql/badge.svg?branch=master)](https://coveralls.io/r/graphql/express-graphql?branch=master)
+[![Coverage Status](https://coveralls.io/repos/graphql/express-graphql/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql/express-graphql?branch=master)
 
 Create a GraphQL HTTP server with [Express](http://expressjs.com).
 

@@ -55,6 +55,18 @@ function urlString(urlParams?: ?Object) {
   return string;
 }
 
+function catchError(p: any): Promise<any> {
+  return p.then(
+    () => { throw new Error('Expected to catch error.'); },
+    error => {
+      if (!error) {
+        throw new Error('Expected to catch error.');
+      }
+      return error;
+    }
+  );
+}
+
 [[ express4, 'modern' ], [ express3, 'old' ]].forEach(([ express, version ]) => {
   describe(`GraphQL-HTTP tests for ${version} mocha`, () => {
     describe('GET functionality', () => {
@@ -428,17 +440,14 @@ function urlString(urlParams?: ?Object) {
           pretty: true
         }));
 
-        try {
-          await request(app).get(urlString());
-        } catch (error) {
-          expect(error.response.status).to.equal(400);
-          expect(JSON.parse(error.response.text)).to.deep.equal({
-            errors: [ {
-              message: 'Syntax Error GraphQL request (1:1) Unexpected EOF\n\n1: \n   ^\n',
-              locations: [ { line: 1, column: 1 } ]
-            } ]
-          });
-        }
+        var error = await catchError(
+          request(app).get(urlString())
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Must provide query string.' } ]
+        });
       });
 
       it('handles invalid JSON bodies', async () => {
@@ -449,17 +458,17 @@ function urlString(urlParams?: ?Object) {
           pretty: true
         }));
 
-        try {
-          await request(app)
+        var error = await catchError(
+          request(app)
             .post(urlString())
             .set('Content-Type', 'application/json')
-            .send('[]');
-        } catch (error) {
-          expect(error.response.status).to.equal(400);
-          expect(JSON.parse(error.response.text)).to.deep.equal({
-            errors: [ { message: 'POST body sent invalid JSON.' } ]
-          });
-        }
+            .send('[]')
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'POST body sent invalid JSON.' } ]
+        });
       });
 
       it('handles incomplete JSON bodies', async () => {
@@ -470,36 +479,57 @@ function urlString(urlParams?: ?Object) {
           pretty: true
         }));
 
-        try {
-          await request(app)
+        var error = await catchError(
+          request(app)
             .post(urlString())
             .set('Content-Type', 'application/json')
-            .send('{"query":');
-        } catch (error) {
-          expect(error.response.status).to.equal(400);
-          expect(JSON.parse(error.response.text)).to.deep.equal({
-            errors: [ { message: 'POST body sent invalid JSON.' } ]
-          });
-        }
+            .send('{"query":')
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'POST body sent invalid JSON.' } ]
+        });
       });
 
+      it('handles untyped POST text', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema
+        }));
+
+        var error = await catchError(
+          // Note: no Content-Type header.
+          request(app)
+            .post(urlString({
+              variables: JSON.stringify({ who: 'Dolly' })
+            }))
+            .send('query helloWho($who: String){ test(who: $who) }')
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Must provide query string.' } ]
+        });
+      });
       it('handles poorly formed variables', async () => {
         var app = express();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
-        try {
-          await request(app)
+        var error = await catchError(
+          request(app)
             .get(urlString({
               variables: 'who:You',
               query: 'query helloWho($who: String){ test(who: $who) }'
-            }));
-        } catch (error) {
-          expect(error.response.status).to.equal(400);
-          expect(JSON.parse(error.response.text)).to.deep.equal({
-            errors: [ { message: 'Variables are invalid JSON.' } ]
-          });
-        }
+            }))
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Variables are invalid JSON.' } ]
+        });
       });
     });
   });

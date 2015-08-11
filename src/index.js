@@ -135,6 +135,9 @@ type GraphQLParams = {
 function getGraphQLParams(request: Request, data: Object): GraphQLParams {
   // GraphQL Query string.
   var query = request.query.query || data.query;
+  if (!query) {
+    throw httpError(400, 'Must provide query string.');
+  }
 
   // Parse the variables if needed.
   var variables = request.query.variables || data.variables;
