@@ -1,7 +1,7 @@
 GraphQL Express Middleware
 ==========================
 
-Create a GraphQL HTTP server with Express.
+Create a GraphQL HTTP server with [Express](http://expressjs.com).
 
 ```sh
 npm install --save express-graphql
