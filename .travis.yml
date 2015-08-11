@@ -1,0 +1,34 @@
+language: node_js
+
+node_js:
+  - "iojs"
+  - "0.12"
+  - "0.10"
+
+notifications:
+  slack:
+    secure: eFMk+9i9G0F8VYd0cd+qfBXEcngR1odYzGapdSSPH0Ag6Ck1sjK64n0iFwz+RDV2sSVnjnAA5qbXNcltBhEe1DkNsZVXOp4cDxKiFQOH1NJu9m29rYx+dZ4H93JjuDtH0u2o2op/PhtXlwAjr8GBcdGgFNTUbiJv9nIj4sYudQJFL8VUQwYviRO28xx12hG7cmKvQ7YZ/OKz52oGnIOM4yoQgPKFRY4ztMr6OrHwDwWMAxptZjKYY0i2hE3ot+OkWeWteZvE9E2Q0OJI7C6XlZg+bR6Mu7VS5s6jjL21luJJBgwihLuWVNMXxxEfoUCldo0s/RX8lObuFocKpnAtqVimr1rPZtUYZzy/Jjd1fxa27TgONZUgibWoRbAFDCdKhJOsBSLGfvQw+a3sxkV5zD5DKpgaNavT+GbOZJn4KGw3i1M/5Gp1tqB+RsTMjRvXQH5rsc+9z/flys1K9sNrc7O0NS2sVPayf4U5ECgT6t0y6NM1hQNepNHbvPSU/I/dUPYQEMcWMtdgtApAeUcbsRFUgFejNwp4hhTz0MS6k9AtmLJ79mNQBqDgZ3/pnW/YjW7BsK8/f6xOabxJjwIdLJvAifxRy/oj8wd5ttx8u+qKZ547PhdNJiMV7H60tGqkJshqbphlvWr48l0EV0A635uY24VefYoTeMIXZSeueME=
+
+before_install:
+  - npm config set spin false --global
+
+script:
+  - npm run lint && npm run check && (if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]]; then npm run cover:lcov; else npm run testonly; fi)
+
+after_failure:
+  - (cd resources; python travis_after_all.py)
+
+after_success:
+  - (cd resources; python travis_after_all.py)
+  - export $(cat resources/.to_export_back)
+  - if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]]; then cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js; fi
+
+deploy:
+  provider: npm
+  email: "lee@leebyron.com"
+  api_key:
+    secure: s+jc2FTPP3bRDZ9ihtf1FouVgfGccOxeuiGZZUnz8OCaI3rAKM6+Vngz73PCp9/iiVbc9OJFok6FngHQbDqTuCvrpuZsqpKzXC4EkVsYonc956IMLMUqsqi0CngQLPgRDdma91SRl+oLgBzQ/cZVB1J96tOs+1vQd7wq6XMJ8VygN3Bd9/G96bNnHna4oGt8P3iLlUwSRBuJJZ2gh266uML00I7GBUqUF/UDOjEXXsNOJujswHzQat4mL2PcHAhAb0C04OcNChQQqKCkpHDSlQt9NhgFBS3pS1ALii+KeMe5ap2eeL85RjNoTqEDFQybd+B54WcCELEwhN7gbakc7coGf6XqI0Nf/GDr4pHChOGzPI/1J5IgPrhl1LR7oR0aYiirtm6xXpiE+IYzctnCSfVlo1a93/rsDM5DBU2GDH9CSaQor7atvg2hse/rlFepDOty5EZ12IPJrG7Jp9Dbw18bTfh/OvQSkZoRd5MOdMiOpvQohQEIyWjUVEBDO24xmo/HzSCt2sMLcJlcmLXDp/X4/ipLHVO1qEZc4SlQI0CP3knKLWnQDhpx4qdDu/7nHnkBhFbAF6z+h22N5NCyecm23DHg3eOZkFg/pJ2ECeD5nJ8Gtkuq8v3iOW33YLzXBsOhpm5a8WnEw6Rs2pCe/yNsF59iKz+V2+B2ZNdCYdw=
+  on:
+    tags: true
+    branch: master
+    condition: "$BUILD_LEADER$BUILD_AGGREGATE_STATUS = YESothers_succeeded"
