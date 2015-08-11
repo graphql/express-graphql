@@ -34,7 +34,7 @@
     "mocha": "--require resources/mocha-bootload src/**/__tests__/**/*.js"
   },
   "scripts": {
-    "prepublish": "npm test && npm run build",
+    "prepublish": ". ./resources/prepublish.sh",
     "test": "npm run lint && npm run check && npm run testonly",
     "testonly": "mocha $npm_package_options_mocha",
     "lint": "eslint src",
@@ -43,8 +43,7 @@
     "watch": "babel --optional runtime resources/watch.js | node",
     "cover": "babel-node node_modules/.bin/isparta cover --root src --report html node_modules/.bin/_mocha -- $npm_package_options_mocha",
     "cover:lcov": "babel-node node_modules/.bin/isparta cover --root src --report lcovonly node_modules/.bin/_mocha -- $npm_package_options_mocha",
-    "preversion": "npm test",
-    "prepublish": ". ./resources/prepublish.sh"
+    "preversion": "npm test"
   },
   "dependencies": {
     "content-type": "~1.0.1",
@@ -68,6 +67,7 @@
     "graphql": "~0.2.2",
     "isparta": "3.0.3",
     "mocha": "2.2.5",
+    "multer": "^1.0.3",
     "sane": "1.1.3",
     "supertest": "1.0.1",
     "supertest-as-promised": "2.0.2"

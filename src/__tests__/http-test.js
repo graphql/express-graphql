@@ -15,6 +15,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { stringify } from 'querystring';
 import zlib from 'zlib';
+import multer from 'multer';
 import request from 'supertest-as-promised';
 import express4 from 'express'; // modern
 import express3 from 'express3'; // old but commonly still used
@@ -94,6 +95,23 @@ describe('test harness', () => {
       caught = error;
     }
     expect(caught && caught.message).to.equal('Expected to catch error.');
+  });
+
+  it('resolves callback promises', async () => {
+    var resolveValue = {};
+    var result = await promiseTo(cb => cb(null, resolveValue));
+    expect(result).to.equal(resolveValue);
+  });
+
+  it('rejects callback promises with errors', async () => {
+    var rejectError = new Error();
+    var caught;
+    try {
+      await promiseTo(cb => cb(rejectError));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).to.equal(rejectError);
   });
 
 });
@@ -432,6 +450,33 @@ describe('test harness', () => {
           .set('Content-Encoding', 'deflate');
         req.write(deflatedJson);
         var response = await req;
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World'
+          }
+        });
+      });
+
+      it('allows for pre-parsed POST bodies', async () => {
+        var app = express();
+
+        // Multer provides multipart form data parsing.
+        var storage = multer.memoryStorage();
+        app.use(urlString(), multer({ storage }).single('file'));
+
+        app.use(urlString(), graphqlHTTP(req => {
+          expect(req.file.originalname).to.equal('http-test.js');
+          return {
+            schema: TestSchema,
+            rootObject: { request: req }
+          };
+        }));
+
+        var response = await request(app)
+          .post(urlString())
+          .field('query', '{ test(who: "World") }')
+          .attach('file', __filename);
 
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
