@@ -370,6 +370,26 @@ describe('test harness', () => {
         });
       });
 
+      it('allows other UTF charsets', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema
+        })));
+
+        var req = request(app)
+          .post(urlString())
+          .set('Content-Type', 'application/graphql; charset=utf-16');
+        req.write(new Buffer('{ test(who: "World") }', 'utf16le'));
+        var response = await req;
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World'
+          }
+        });
+      });
+
       it('allows gzipped POST bodies', async () => {
         var app = express();
 
@@ -491,7 +511,7 @@ describe('test harness', () => {
     });
 
     describe('Error handling functionality', () => {
-      it('handles errors caught by GraphQL', async () => {
+      it('handles field errors caught by GraphQL', async () => {
         var app = express();
 
         app.use(urlString(), graphqlHTTP({
@@ -510,6 +530,31 @@ describe('test harness', () => {
           errors: [ {
             message: 'Throws!',
             locations: [ { line: 1, column: 2 } ]
+          } ]
+        });
+      });
+
+      it('handles syntax errors caught by GraphQL', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          pretty: true
+        }));
+
+        var error = await catchError(
+          request(app)
+            .get(urlString({
+              query: 'syntaxerror',
+            }))
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ {
+            message: 'Syntax Error GraphQL request (1:1) ' +
+              'Unexpected Name \"syntaxerror\"\n\n1: syntaxerror\n   ^\n',
+            locations: [ { line: 1, column: 1 } ]
           } ]
         });
       });
@@ -613,6 +658,26 @@ describe('test harness', () => {
         expect(error.response.status).to.equal(415);
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [ { message: 'Unsupported charset "ASCII".' } ]
+        });
+      });
+
+      it('handles unsupported utf charset', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema
+        })));
+
+        var error = await catchError(
+          request(app)
+            .post(urlString())
+            .set('Content-Type', 'application/graphql; charset=utf-53')
+            .send('{ test(who: "World") }')
+        );
+
+        expect(error.response.status).to.equal(415);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Unsupported charset "UTF-53".' } ]
         });
       });
 

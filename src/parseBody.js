@@ -9,7 +9,6 @@
  */
 
 import contentType from 'content-type';
-import { decode } from 'iconv-lite';
 import getBody from 'raw-body';
 import httpError from 'http-errors';
 import querystring from 'querystring';
@@ -109,8 +108,7 @@ function read(req, typeInfo, parseFn, next) {
 
     try {
       // Decode and parse body.
-      var bodyString = typeof body === 'string' ? body : decode(body, charset);
-      return next(null, parseFn(bodyString));
+      return next(null, parseFn(body));
     } catch (error) {
       return next(error);
     }
