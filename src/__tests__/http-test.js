@@ -14,6 +14,7 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { stringify } from 'querystring';
+import zlib from 'zlib';
 import request from 'supertest-as-promised';
 import express4 from 'express'; // modern
 import express3 from 'express3'; // old but commonly still used
@@ -59,13 +60,43 @@ function catchError(p: any): Promise<any> {
   return p.then(
     () => { throw new Error('Expected to catch error.'); },
     error => {
-      if (!error) {
+      if (!(error instanceof Error)) {
         throw new Error('Expected to catch error.');
       }
       return error;
     }
   );
 }
+
+function promiseTo(fn) {
+  return new Promise((resolve, reject) => {
+    fn((error, result) => error ? reject(error) : resolve(result));
+  });
+}
+
+describe('test harness', () => {
+
+  it('expects to catch errors', async () => {
+    var caught;
+    try {
+      await catchError(Promise.resolve());
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught && caught.message).to.equal('Expected to catch error.');
+  });
+
+  it('expects to catch actual errors', async () => {
+    var caught;
+    try {
+      await catchError(Promise.reject('not a real error'));
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught && caught.message).to.equal('Expected to catch error.');
+  });
+
+});
 
 [[ express4, 'modern' ], [ express3, 'old' ]].forEach(([ express, version ]) => {
   describe(`GraphQL-HTTP tests for ${version} mocha`, () => {
@@ -338,6 +369,57 @@ function catchError(p: any): Promise<any> {
           }
         });
       });
+
+      it('allows gzipped POST bodies', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema
+        })));
+
+        var data = { query: '{ test(who: "World") }' };
+        var json = JSON.stringify(data);
+        var gzippedJson = await promiseTo(cb => zlib.gzip(json, cb));
+
+        var req = request(app)
+          .post(urlString())
+          .set('Content-Type', 'application/json')
+          .set('Content-Encoding', 'gzip');
+        req.write(gzippedJson);
+        var response = await req;
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World'
+          }
+        });
+      });
+
+      it('allows deflated POST bodies', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema
+        })));
+
+        var data = { query: '{ test(who: "World") }' };
+        var json = JSON.stringify(data);
+        var deflatedJson = await promiseTo(cb => zlib.deflate(json, cb));
+
+        var req = request(app)
+          .post(urlString())
+          .set('Content-Type', 'application/json')
+          .set('Content-Encoding', 'deflate');
+        req.write(deflatedJson);
+        var response = await req;
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World'
+          }
+        });
+      });
+
     });
 
     describe('Pretty printing', () => {
@@ -492,7 +574,7 @@ function catchError(p: any): Promise<any> {
         });
       });
 
-      it('handles untyped POST text', async () => {
+      it('handles plain POST text', async () => {
         var app = express();
 
         app.use(urlString(), graphqlHTTP({
@@ -500,17 +582,57 @@ function catchError(p: any): Promise<any> {
         }));
 
         var error = await catchError(
-          // Note: no Content-Type header.
           request(app)
             .post(urlString({
               variables: JSON.stringify({ who: 'Dolly' })
             }))
+            .set('Content-Type', 'text/plain')
             .send('query helloWho($who: String){ test(who: $who) }')
         );
 
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [ { message: 'Must provide query string.' } ]
+        });
+      });
+
+      it('handles unsupported charset', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema
+        })));
+
+        var error = await catchError(
+          request(app)
+            .post(urlString())
+            .set('Content-Type', 'application/graphql; charset=ascii')
+            .send('{ test(who: "World") }')
+        );
+
+        expect(error.response.status).to.equal(415);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Unsupported charset "ASCII".' } ]
+        });
+      });
+
+      it('handles unknown encoding', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema
+        })));
+
+        var error = await catchError(
+          request(app)
+            .post(urlString())
+            .set('Content-Encoding', 'garbage')
+            .send('!@#$%^*(&^$%#@')
+        );
+
+        expect(error.response.status).to.equal(415);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Unsupported content-encoding "garbage".' } ]
         });
       });
 

@@ -154,7 +154,7 @@ function getGraphQLParams(request: Request, data: Object): GraphQLParams {
 /**
  * Helper for formatting errors
  */
-function sendError(response: Response, error: Error, pretty: Boolean): void {
+function sendError(response: Response, error: Error, pretty?: ?boolean): void {
   var errorResponse = { errors: [ formatError(error) ] };
   response
     .status(error.status || 500)

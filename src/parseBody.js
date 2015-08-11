@@ -103,7 +103,7 @@ function read(req, typeInfo, parseFn, next) {
       return next(
         err.type === 'encoding.unsupported' ?
           httpError(415, `Unsupported charset "${charset.toUpperCase()}".`) :
-          setErrorHttpStatus(err, 400)
+          httpError(400, `Invalid body: ${err.message}.`)
       );
     }
 
@@ -112,7 +112,7 @@ function read(req, typeInfo, parseFn, next) {
       var bodyString = typeof body === 'string' ? body : decode(body, charset);
       return next(null, parseFn(bodyString));
     } catch (error) {
-      return next(setErrorHttpStatus(error, 400));
+      return next(error);
     }
   });
 }
@@ -125,12 +125,4 @@ function decompressed(req, encoding) {
     case 'gzip': return req.pipe(zlib.createGunzip());
   }
   throw httpError(415, `Unsupported content-encoding "${encoding}".`);
-}
-
-// Set an http status on an error object, if one does not exist.
-function setErrorHttpStatus(error, status) {
-  if (!error.status && !error.statusCode) {
-    error.status = error.statusCode = status;
-  }
-  return error;
 }
