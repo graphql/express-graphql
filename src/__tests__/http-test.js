@@ -513,6 +513,7 @@ function catchError(p: any): Promise<any> {
           errors: [ { message: 'Must provide query string.' } ]
         });
       });
+
       it('handles poorly formed variables', async () => {
         var app = express();
 
@@ -531,6 +532,26 @@ function catchError(p: any): Promise<any> {
           errors: [ { message: 'Variables are invalid JSON.' } ]
         });
       });
+
+      it('handles unsupported HTTP methods', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var error = await catchError(
+          request(app)
+            .put(urlString({ query: '{test}' }))
+        );
+
+        expect(error.response.status).to.equal(405);
+        expect(error.response.headers.allow).to.equal('GET, POST');
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'GraphQL only supports GET and POST requests.' }
+          ]
+        });
+      });
+
     });
   });
 });

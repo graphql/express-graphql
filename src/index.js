@@ -48,33 +48,29 @@ export default function graphqlHTTP(options: Options): Middleware {
   }
 
   return (request: Request, response: Response) => {
-
-    // GraphQL HTTP only supports GET and POST methods.
-    if (request.method !== 'GET' && request.method !== 'POST') {
-      return response.status(405).set('Allow', 'GET, POST');
-    }
-
     // Get GraphQL options given this request.
     var { schema, rootValue, pretty } = getOptions(options, request);
 
+    // GraphQL HTTP only supports GET and POST methods.
+    if (request.method !== 'GET' && request.method !== 'POST') {
+      response.set('Allow', 'GET, POST');
+      return sendError(
+        response,
+        httpError(405, 'GraphQL only supports GET and POST requests.'),
+        pretty
+      );
+    }
+
     // Parse the Request body.
-    parseBody(request, (error, data) => {
+    parseBody(request, (error, data = {}) => {
 
       // Format any request errors the same as GraphQL errors.
       if (error) {
-        var errorResponse = { errors: [ formatError(error) ] };
-        return response
-          .status(error.status || 500)
-          .set('Content-Type', 'text/json')
-          .send(JSON.stringify(errorResponse, null, pretty ? 2 : 0));
+        return sendError(response, error, pretty);
       }
 
       // Get GraphQL params from the request and POST body data.
-      var {
-        query,
-        variables,
-        operationName
-      } = getGraphQLParams(request, data || {});
+      var { query, variables, operationName } = getGraphQLParams(request, data);
 
       // Run GraphQL query.
       graphql(
@@ -153,4 +149,15 @@ function getGraphQLParams(request: Request, data: Object): GraphQLParams {
   var operationName = request.query.operationName || data.operationName;
 
   return { query, variables, operationName };
+}
+
+/**
+ * Helper for formatting errors
+ */
+function sendError(response: Response, error: Error, pretty: Boolean): void {
+  var errorResponse = { errors: [ formatError(error) ] };
+  response
+    .status(error.status || 500)
+    .set('Content-Type', 'text/json')
+    .send(JSON.stringify(errorResponse, null, pretty ? 2 : 0));
 }
