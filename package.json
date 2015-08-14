@@ -51,7 +51,7 @@
     "raw-body": "~2.1.2"
   },
   "peerDependencies": {
-    "graphql": "~0.3.0"
+    "graphql": "~0.4.2"
   },
   "devDependencies": {
     "babel": "5.8.21",
@@ -59,12 +59,12 @@
     "babel-eslint": "4.0.5",
     "babel-runtime": "5.8.20",
     "chai": "3.2.0",
-    "coveralls": "2.11.3",
+    "coveralls": "2.11.4",
     "eslint": "1.1.0",
-    "express": "4.0.0",
+    "express": "4.13.3",
     "express3": "*",
     "flow-bin": "0.14.0",
-    "graphql": "0.3.0",
+    "graphql": "0.4.2",
     "isparta": "3.0.3",
     "mocha": "2.2.5",
     "multer": "1.0.3",
