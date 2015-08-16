@@ -90,7 +90,7 @@ export default function graphqlHTTP(options: Options): Middleware {
         // Otherwise 400:BadRequest if only errors exist.
         response
           .status(result.hasOwnProperty('data') ? 200 : 400)
-          .set('Content-Type', 'text/json')
+          .set('Content-Type', 'application/json')
           .send(JSON.stringify(result, null, pretty ? 2 : 0));
       });
     });
