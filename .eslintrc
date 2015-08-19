@@ -35,7 +35,7 @@
 
   "rules": {
     "array-bracket-spacing": [2, "always", {"arraysInArrays": false}],
-    "arrow-parens": [0, "as-needed"],
+    "arrow-parens": [2, "as-needed"],
     "arrow-spacing": 2,
     "block-scoped-var": 0,
     "brace-style": [2, "1tbs", {"allowSingleLine": true}],
