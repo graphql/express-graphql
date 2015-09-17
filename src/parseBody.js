@@ -23,6 +23,10 @@ export function parseBody(req: Request, next: NodeCallback): void {
       return next(null, req.body);
     }
 
+    if (typeof req.body === 'string') {
+      return next(null, { query: req.body });
+    }
+
     // Skip requests without content types.
     if (req.headers['content-type'] === undefined) {
       return next();
