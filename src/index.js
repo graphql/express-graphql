@@ -158,6 +158,6 @@ function sendError(response: Response, error: Error, pretty?: ?boolean): void {
   var errorResponse = { errors: [ formatError(error) ] };
   response
     .status(error.status || 500)
-    .set('Content-Type', 'text/json')
+    .set('Content-Type', 'application/json')
     .send(JSON.stringify(errorResponse, null, pretty ? 2 : 0));
 }
