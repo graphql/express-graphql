@@ -460,28 +460,70 @@ describe('test harness', () => {
       });
 
       it('allows for pre-parsed POST bodies', async () => {
+        // Note: this is not the only way to handle file uploads with GraphQL,
+        // but it is terse and illustrative of using express-graphql and multer
+        // together.
+
+        // A simple schema which includes a mutation.
+        var UploadedFileType = new GraphQLObjectType({
+          name: 'UploadedFile',
+          fields: {
+            originalname: { type: GraphQLString },
+            mimetype: { type: GraphQLString }
+          }
+        });
+
+        var TestMutationSchema = new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'QueryRoot',
+            fields: {
+              test: { type: GraphQLString }
+            }
+          }),
+          mutation: new GraphQLObjectType({
+            name: 'MutationRoot',
+            fields: {
+              uploadFile: {
+                type: UploadedFileType,
+                resolve(rootValue) {
+                  // For this test demo, we're just returning the uploaded
+                  // file directly, but presumably you might return a Promise
+                  // to go store the file somewhere first.
+                  return rootValue.request.file;
+                }
+              }
+            }
+          })
+        });
+
         var app = express();
 
         // Multer provides multipart form data parsing.
         var storage = multer.memoryStorage();
         app.use(urlString(), multer({ storage }).single('file'));
 
+        // Providing the request as part of `rootValue` allows it to
+        // be accessible from within Schema resolve functions.
         app.use(urlString(), graphqlHTTP(req => {
-          expect(req.file.originalname).to.equal('http-test.js');
           return {
-            schema: TestSchema,
-            rootObject: { request: req }
+            schema: TestMutationSchema,
+            rootValue: { request: req }
           };
         }));
 
         var response = await request(app)
           .post(urlString())
-          .field('query', '{ test(who: "World") }')
+          .field('query', `mutation TestMutation {
+            uploadFile { originalname, mimetype }
+          }`)
           .attach('file', __filename);
 
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
-            test: 'Hello World'
+            uploadFile: {
+              originalname: 'http-test.js',
+              mimetype: 'application/javascript'
+            }
           }
         });
       });
