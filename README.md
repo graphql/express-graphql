@@ -17,7 +17,7 @@ var graphqlHTTP = require('express-graphql');
 
 var app = express();
 
-app.use('/graphql', graphqlHTTP({ schema: MyGraphQLSchema }));
+app.use('/graphql', graphqlHTTP({ schema: MyGraphQLSchema, graphiql: true }));
 ```
 
 
@@ -32,6 +32,9 @@ The `graphqlHTTP` function accepts the following options:
     function from [`graphql-js`][].
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
+
+  * **`graphiql`**: If `true`, may present [GraphiQL][] when loaded directly
+    from a browser (a useful tool for debugging and exploration).
 
 
 ### HTTP Usage
@@ -48,6 +51,10 @@ the parameters:
     operations, this specifies which operation should be executed. If not
     provided, a 400 error will be returned if the `query` contains multiple
     named operations.
+
+  * **`raw`**: If the `graphiql` option is enabled and the `raw` parameter is
+    provided raw JSON will always be returned instead of GraphiQL even when
+    loaded from a browser.
 
 GraphQL will first look for each parameter in the URL's query-string:
 
@@ -95,10 +102,12 @@ app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
 
 app.use('/graphql', graphqlHTTP(request => ({
   schema: MySessionAwareGraphQLSchema,
-  rootValue: request.session
+  rootValue: request.session,
+  graphiql: true
 })));
 ```
 
 [`graphql-js`]: https://github.com/graphql/graphql-js
+[GraphiQL]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session
