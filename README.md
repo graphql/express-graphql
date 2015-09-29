@@ -46,7 +46,7 @@ the parameters:
 
   * **`operationName`**: If the provided `query` contains multiple named
     operations, this specifies which operation should be executed. If not
-    provided, an 400 error will be returned if the `query` contains multiple
+    provided, a 400 error will be returned if the `query` contains multiple
     named operations.
 
 GraphQL will first look for each parameter in the URL's query-string:
