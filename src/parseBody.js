@@ -18,7 +18,7 @@ import type { Request } from 'express';
 
 export function parseBody(req: Request, next: NodeCallback): void {
   try {
-    // If express has already parsed a body, use it.
+    // If express has already parsed a body as an object, use it.
     if (typeof req.body === 'object') {
       return next(null, req.body);
     }
@@ -29,6 +29,18 @@ export function parseBody(req: Request, next: NodeCallback): void {
     }
 
     var typeInfo = contentType.parse(req);
+
+    // If express has already parsed a body as a string, and the content-type
+    // was application/graphql, parse the string body.
+    if (typeof req.body === 'string' &&
+        typeInfo.type === 'application/graphql') {
+      return next(null, graphqlParser(req.body));
+    }
+
+    // Already parsed body we didn't recognise? Parse nothing.
+    if (req.body) {
+      return next();
+    }
 
     // Use the correct body parser based on Content-Type header.
     switch (typeInfo.type) {
