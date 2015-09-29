@@ -18,10 +18,12 @@ import type { Request } from 'express';
 
 export function parseBody(req: Request, next: NodeCallback): void {
   try {
+
     // If express has already parsed a body, use it.
     if (typeof req.body === 'object') {
       return next(null, req.body);
     }
+
 
     // Skip requests without content types.
     if (req.headers['content-type'] === undefined) {
@@ -29,6 +31,12 @@ export function parseBody(req: Request, next: NodeCallback): void {
     }
 
     var typeInfo = contentType.parse(req);
+
+    if (typeof req.body === 'string') {
+      return typeInfo.type === 'application/graphql'
+             ? next(null, { query: req.body })
+             : next();
+    }
 
     // Use the correct body parser based on Content-Type header.
     switch (typeInfo.type) {

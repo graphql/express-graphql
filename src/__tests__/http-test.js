@@ -16,6 +16,7 @@ import { describe, it } from 'mocha';
 import { stringify } from 'querystring';
 import zlib from 'zlib';
 import multer from 'multer';
+import bodyParser from 'body-parser';
 import request from 'supertest-as-promised';
 import express4 from 'express'; // modern
 import express3 from 'express3'; // old but commonly still used
@@ -477,6 +478,31 @@ describe('test harness', () => {
           .post(urlString())
           .field('query', '{ test(who: "World") }')
           .attach('file', __filename);
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World'
+          }
+        });
+      });
+
+      it('allows for pre-parsed POST using application/graphql', async () => {
+        var app = express();
+
+        app.use(urlString(), bodyParser.text({ type: 'application/graphql' }));
+
+        app.use(urlString(), graphqlHTTP(req => {
+          return {
+            schema: TestSchema,
+            rootObject: { request: req }
+          };
+        }));
+
+        var req = request(app)
+          .post(urlString())
+          .set('Content-Type', 'application/graphql');
+        req.write(new Buffer('{ test(who: "World") }'));
+        var response = await req;
 
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
