@@ -18,8 +18,8 @@ import type { Request } from 'express';
 
 export function parseBody(req: Request, next: NodeCallback): void {
   try {
-    // If express has already parsed a body as an object, use it.
-    if (typeof req.body === 'object') {
+    // If express has already parsed a body as a keyed object, use it.
+    if (typeof req.body === 'object' && !(req.body instanceof Buffer)) {
       return next(null, req.body);
     }
 

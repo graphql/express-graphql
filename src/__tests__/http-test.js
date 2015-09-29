@@ -522,6 +522,23 @@ describe('test harness', () => {
         });
       });
 
+      it('does not accept unknown pre-parsed POST raw Buffer', async () => {
+        var app = express();
+        app.use(bodyParser.raw({ type: '*/*' }));
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var req = request(app)
+          .post(urlString())
+          .set('Content-Type', 'application/graphql');
+        req.write(new Buffer('{ test(who: "World") }'));
+        var error = await catchError(req);
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [ { message: 'Must provide query string.' } ]
+        });
+      });
     });
 
     describe('Pretty printing', () => {
