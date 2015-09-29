@@ -881,5 +881,176 @@ describe('test harness', () => {
       });
 
     });
+
+    describe('Built-in GraphiQL support', () => {
+      it('does not renders GraphiQL if no opt-in', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('presents GraphiQL when accepting HTML', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include('graphiql.min.js');
+      });
+
+      it('contains a pre-run response within GraphiQL', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include(
+          'response: ' + JSON.stringify(
+            JSON.stringify({ data: { test: 'Hello World' } }, null, 2)
+          )
+        );
+      });
+
+      it('GraphiQL renders provided variables', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({
+            query: 'query helloWho($who: String) { test(who: $who) }',
+            variables: JSON.stringify({ who: 'Dolly' })
+          }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include(
+          'variables: ' + JSON.stringify(
+            JSON.stringify({ who: 'Dolly' }, null, 2)
+          )
+        );
+      });
+
+      it('GraphiQL accepts an empty query', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString())
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include('response: null');
+      });
+
+      it('returns HTML if preferred', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}' }))
+          .set('Accept', 'text/html,application/json');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include('graphiql.min.js');
+      });
+
+      it('returns JSON if preferred', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}' }))
+          .set('Accept', 'application/json,text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('prefers JSON if unknown accept', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}' }))
+          .set('Accept', 'unknown');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('prefers JSON if explicitly requested raw response', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({ query: '{test}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+    });
   });
 });
