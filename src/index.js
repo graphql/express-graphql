@@ -9,8 +9,11 @@
  */
 
 import httpError from 'http-errors';
-import { graphql } from 'graphql';
 import { formatError } from 'graphql/error';
+import { execute } from 'graphql/execution';
+import { parse, Source } from 'graphql/language';
+import { validate } from 'graphql/validation';
+import { getOperationAST } from 'graphql/utilities/getOperationAST';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 import type { Request, Response } from 'express';
@@ -68,11 +71,11 @@ export default function graphqlHTTP(options: Options): Middleware {
     }
 
     // Parse the Request body.
-    parseBody(request, (error, data = {}) => {
+    parseBody(request, (parseError, data = {}) => {
 
       // Format any request errors the same as GraphQL errors.
-      if (error) {
-        return sendError(response, error, pretty);
+      if (parseError) {
+        return sendError(response, parseError, pretty);
       }
 
       // Get GraphQL params from the request and POST body data.
@@ -90,13 +93,56 @@ export default function graphqlHTTP(options: Options): Middleware {
       }
 
       // Run GraphQL query.
-      graphql(
-        schema,
-        query,
-        rootValue,
-        variables,
-        operationName
-      ).then(result => {
+      new Promise(resolve => {
+        var source = new Source(query, 'GraphQL request');
+        var documentAST = parse(source);
+        var validationErrors = validate(schema, documentAST);
+        if (validationErrors.length > 0) {
+          resolve({ errors: validationErrors });
+        } else {
+
+          // Only query operations are allowed on GET requests.
+          if (request.method === 'GET') {
+            // Determine if this GET request will perform a non-query.
+            var operationAST = getOperationAST(documentAST, operationName);
+            if (operationAST && operationAST.operation !== 'query') {
+              // If GraphiQL can be shown, do not perform this query, but
+              // provide it to GraphiQL so that the requester may perform it
+              // themselves if desired.
+              if (graphiql && canDisplayGraphiQL(request, data)) {
+                return response
+                  .set('Content-Type', 'text/html')
+                  .send(renderGraphiQL({ query, variables }));
+              }
+
+              // Otherwise, report a 405 Method Not Allowed error.
+              response.set('Allow', 'POST');
+              return sendError(
+                response,
+                httpError(
+                  405,
+                  `Can only perform a ${operationAST.operation} operation ` +
+                  `from a POST request.`
+                ),
+                pretty
+              );
+            }
+          }
+
+          // Perform the execution.
+          resolve(
+            execute(
+              schema,
+              documentAST,
+              rootValue,
+              variables,
+              operationName
+            )
+          );
+        }
+      }).catch(error => {
+        return { errors: [ error ] };
+      }).then(result => {
 
         // Format any encountered errors.
         if (result.errors) {

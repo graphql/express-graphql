@@ -28,23 +28,33 @@ import {
 } from 'graphql';
 import graphqlHTTP from '../';
 
+var QueryRootType = new GraphQLObjectType({
+  name: 'QueryRoot',
+  fields: {
+    test: {
+      type: GraphQLString,
+      args: {
+        who: {
+          type: GraphQLString
+        }
+      },
+      resolve: (root, { who }) => 'Hello ' + (who || 'World')
+    },
+    thrower: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve: () => { throw new Error('Throws!'); }
+    }
+  }
+});
 
 var TestSchema = new GraphQLSchema({
-  query: new GraphQLObjectType({
-    name: 'Root',
+  query: QueryRootType,
+  mutation: new GraphQLObjectType({
+    name: 'MutationRoot',
     fields: {
-      test: {
-        type: GraphQLString,
-        args: {
-          who: {
-            type: GraphQLString
-          }
-        },
-        resolve: (root, { who }) => 'Hello ' + (who || 'World')
-      },
-      thrower: {
-        type: new GraphQLNonNull(GraphQLString),
-        resolve: () => { throw new Error('Throws!'); }
+      writeTest: {
+        type: QueryRootType,
+        resolve: () => ({})
       }
     }
   })
@@ -168,7 +178,7 @@ describe('test harness', () => {
               query helloYou { test(who: "You"), ...shared }
               query helloWorld { test(who: "World"), ...shared }
               query helloDolly { test(who: "Dolly"), ...shared }
-              fragment shared on Root {
+              fragment shared on QueryRoot {
                 shared: test(who: "Everyone")
               }
             `,
@@ -179,6 +189,122 @@ describe('test harness', () => {
           data: {
             test: 'Hello World',
             shared: 'Hello Everyone',
+          }
+        });
+      });
+
+      it('Reports validation errors', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var error = await catchError(
+          request(app)
+            .get(urlString({
+              query: `{ test, unknownOne, unknownTwo }`
+            }))
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            {
+              message: 'Cannot query field "unknownOne" on "QueryRoot".',
+              locations: [ { line: 1, column: 9 } ]
+            },
+            {
+              message: 'Cannot query field "unknownTwo" on "QueryRoot".',
+              locations: [ { line: 1, column: 21 } ]
+            }
+          ]
+        });
+      });
+
+      it('Errors when missing operation name', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var error = await catchError(
+          request(app)
+            .get(urlString({
+              query: `
+                query TestQuery { test }
+                mutation TestMutation { writeTest { test } }
+              `
+            }))
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'Must provide operation name if query contains multiple operations.' }
+          ]
+        });
+      });
+
+      it('Errors when sending a mutation via GET', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var error = await catchError(
+          request(app)
+            .get(urlString({
+              query: 'mutation TestMutation { writeTest { test } }'
+            }))
+        );
+
+        expect(error.response.status).to.equal(405);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'Can only perform a mutation operation from a POST request.' }
+          ]
+        });
+      });
+
+      it('Errors when selecting a mutation within a GET', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var error = await catchError(
+          request(app)
+            .get(urlString({
+              operationName: 'TestMutation',
+              query: `
+                query TestQuery { test }
+                mutation TestMutation { writeTest { test } }
+              `
+            }))
+        );
+
+        expect(error.response.status).to.equal(405);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'Can only perform a mutation operation from a POST request.' }
+          ]
+        });
+      });
+
+      it('Allows a mutation to exist within a GET', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var response = await request(app)
+          .get(urlString({
+            operationName: 'TestQuery',
+            query: `
+              mutation TestMutation { writeTest { test } }
+              query TestQuery { test }
+            `
+          }));
+
+        expect(response.status).to.equal(200);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World'
           }
         });
       });
@@ -198,6 +324,21 @@ describe('test harness', () => {
 
         expect(response.text).to.equal(
           '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('Allows sending a mutation via POST', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+        var response = await request(app)
+          .post(urlString())
+          .send({ query: 'mutation TestMutation { writeTest { test } }' });
+
+        expect(response.status).to.equal(200);
+        expect(response.text).to.equal(
+          '{"data":{"writeTest":{"test":"Hello World"}}}'
         );
       });
 
@@ -345,7 +486,7 @@ describe('test harness', () => {
               query helloYou { test(who: "You"), ...shared }
               query helloWorld { test(who: "World"), ...shared }
               query helloDolly { test(who: "Dolly"), ...shared }
-              fragment shared on Root {
+              fragment shared on QueryRoot {
                 shared: test(who: "Everyone")
               }
             `,
@@ -376,7 +517,7 @@ describe('test harness', () => {
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloDolly { test(who: "Dolly"), ...shared }
-            fragment shared on Root {
+            fragment shared on QueryRoot {
               shared: test(who: "Everyone")
             }
           `);
@@ -975,6 +1116,28 @@ describe('test harness', () => {
 
         expect(response.status).to.equal(200);
         expect(response.type).to.equal('text/html');
+        expect(response.text).to.include('response: null');
+      });
+
+      it('GraphiQL accepts a mutation query - does not execute it', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({
+            query: 'mutation TestMutation { writeTest { test } }'
+          }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include(
+          'query: "mutation TestMutation { writeTest { test } }"'
+        );
         expect(response.text).to.include('response: null');
       });
 
