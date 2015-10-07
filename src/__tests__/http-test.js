@@ -27,6 +27,7 @@ import {
   GraphQLString
 } from 'graphql';
 import graphqlHTTP from '../';
+import session from 'express-session';
 
 var QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
@@ -43,7 +44,11 @@ var QueryRootType = new GraphQLObjectType({
     thrower: {
       type: new GraphQLNonNull(GraphQLString),
       resolve: () => { throw new Error('Throws!'); }
-    }
+    },
+    sessionId: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve: rootValue => rootValue.session.id
+    },
   }
 });
 
@@ -1213,6 +1218,37 @@ describe('test harness', () => {
         expect(response.text).to.equal(
           '{"data":{"test":"Hello World"}}'
         );
+      });
+    });
+    describe('Session available in Graphql', () => {
+
+      it('sessionId should be the same across requests', async () => {
+        var app = express();
+
+        app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }, saveUninitialized: true }));
+
+        app.use(urlString(), graphqlHTTP(req => ({
+          schema: TestSchema,
+          pretty: true,
+          rootValue: { session: req.session }
+        })));
+
+        var response = await request(app)
+          .get(urlString({
+            query: '{sessionId}',
+          }));
+
+        expect(response.status).to.equal(200);
+        var sessionIdFirstRequest = JSON.parse(response.text).data.sessionId;
+        expect(sessionIdFirstRequest).to.not.equal(null);
+
+        response = await request(app)
+          .get(urlString({
+            query: '{sessionId}',
+          }));
+
+        var sessionIdSecondRequest = JSON.parse(response.text).data.sessionId;
+        expect(sessionIdSecondRequest).to.equal(sessionIdFirstRequest);
       });
     });
   });
