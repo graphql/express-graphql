@@ -84,6 +84,7 @@ add "&raw" to the end of the URL within a browser.
       return fetch(fetchURL, {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(graphQLParams),
       }).then(function (response) {
         return response.json()
