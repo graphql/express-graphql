@@ -86,7 +86,7 @@ depending on the provided *Content-Type* header.
 
 In order to support advanced scenarios such as installing a GraphQL server on a
 dynamic endpoint or accessing the current authentication information,
-graphql-express allows options to be provided as a function of each
+express-graphql allows options to be provided as a function of each
 express request.
 
 This example uses [`express-session`][] to run GraphQL on a rootValue based on
