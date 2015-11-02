@@ -51,7 +51,7 @@
     "raw-body": "~2.1.2"
   },
   "peerDependencies": {
-    "graphql": "~0.4.5"
+    "graphql": "~0.4.7"
   },
   "devDependencies": {
     "babel": "5.8.21",
