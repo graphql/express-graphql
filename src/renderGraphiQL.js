@@ -11,7 +11,7 @@
 type GraphiQLData = { query: ?string, variables: ?Object, result?: Object };
 
 // Current latest version of GraphiQL.
-var GRAPHIQL_VERSION = '0.4.4';
+const GRAPHIQL_VERSION = '0.4.4';
 
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
@@ -20,12 +20,12 @@ var GRAPHIQL_VERSION = '0.4.4';
  * When shown, it will be pre-populated with the result of having executed the
  * requested query.
  */
-export function renderGraphiQL(data?: GraphiQLData): string {
-  var queryString = data ? data.query : null;
-  var variablesString =
-    data && data.variables ? JSON.stringify(data.variables, null, 2) : null;
-  var resultString =
-    data && data.result ? JSON.stringify(data.result, null, 2) : null;
+export function renderGraphiQL(data: GraphiQLData): string {
+  const queryString = data.query;
+  const variablesString =
+    data.variables ? JSON.stringify(data.variables, null, 2) : null;
+  const resultString =
+    data.result ? JSON.stringify(data.result, null, 2) : null;
 
   /* eslint-disable max-len */
   return `<!--

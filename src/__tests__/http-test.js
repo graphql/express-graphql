@@ -1054,6 +1054,7 @@ describe('test harness', () => {
 
         expect(response.status).to.equal(200);
         expect(response.type).to.equal('text/html');
+        expect(response.text).to.include('{test}');
         expect(response.text).to.include('graphiql.min.js');
       });
 

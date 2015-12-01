@@ -86,8 +86,8 @@ export default function graphqlHTTP(options: Options): Middleware {
       }
 
       // Parse the Request body.
-      parseBody(request, (parseError, _data = {}) => {
-        if (parseError) { reject(parseError); } else { resolve(_data); }
+      parseBody(request, (parseError, data) => {
+        if (parseError) { reject(parseError); } else { resolve(data || {}); }
       });
     }).then(data => {
       showGraphiQL = graphiql && canDisplayGraphiQL(request, data);
@@ -183,7 +183,7 @@ export default function graphqlHTTP(options: Options): Middleware {
         // Otherwise, present JSON directly.
         response
           .set('Content-Type', 'application/json')
-          .send(JSON.stringify(result || {}, null, pretty ? 2 : 0));
+          .send(JSON.stringify(result, null, pretty ? 2 : 0));
       }
     });
   };
