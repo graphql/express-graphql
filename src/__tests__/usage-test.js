@@ -12,7 +12,6 @@
 
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { stringify } from 'querystring';
 import request from 'supertest-as-promised';
 import express from 'express';
 import graphqlHTTP from '../';
@@ -31,37 +30,42 @@ describe('Useful errors when incorrectly used', () => {
   it('requires option factory function to return object', async () => {
     var app = express();
 
-    var error;
     app.use('/graphql', graphqlHTTP(() => null));
-    app.use(function (err, req, res, next) {
-      // Omitting next causes issues, but it can't be an unused var either
-      expect(next).to.not.equal(null);
-      error = err;
-      res.status(200).send();
-    });
 
-    await request(app).get('/graphql?' + stringify({ query: '{test}' }));
-    expect(error.message).to.equal(
-      'GraphQL middleware option function must return an options object.'
-    );
+    var caughtError;
+    try {
+      await request(app).get('/graphql?query={test}');
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError.response.status).to.equal(500);
+    expect(JSON.parse(caughtError.response.text)).to.deep.equal({
+      errors: [
+        { message:
+          'GraphQL middleware option function must return an options object.' }
+      ]
+    });
   });
 
   it('requires option factory function to return object with schema', async () => {
     var app = express();
 
-    var error;
     app.use('/graphql', graphqlHTTP(() => ({})));
-    app.use(function (err, req, res, next) {
-      // Omitting next causes issues, but it can't be an unused var either
-      expect(next).to.not.equal(null);
-      error = err;
-      res.status(200).send();
-    });
 
-    await request(app).get('/graphql?' + stringify({ query: '{test}' }));
-    expect(error.message).to.equal(
-      'GraphQL middleware options must contain a schema.'
-    );
+    var caughtError;
+    try {
+      await request(app).get('/graphql?query={test}');
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError.response.status).to.equal(500);
+    expect(JSON.parse(caughtError.response.text)).to.deep.equal({
+      errors: [
+        { message: 'GraphQL middleware options must contain a schema.' }
+      ]
+    });
   });
 
 });

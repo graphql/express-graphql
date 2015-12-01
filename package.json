@@ -65,7 +65,7 @@
     "eslint-plugin-babel": "2.1.1",
     "express": "4.13.3",
     "express3": "*",
-    "flow-bin": "0.14.0",
+    "flow-bin": "0.18.1",
     "graphql": "0.4.8",
     "isparta": "3.0.3",
     "mocha": "2.2.5",
