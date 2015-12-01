@@ -1,5 +1,6 @@
 /* @flow */
 /* Flow declarations for express requests and responses */
+/* eslint-disable no-unused-vars */
 declare class Request {
   method: String;
   body: Object;
