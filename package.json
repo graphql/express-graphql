@@ -21,7 +21,11 @@
     "api"
   ],
   "main": "dist/index.js",
+  "directories": {
+    "lib": "./dist"
+  },
   "files": [
+    "src",
     "dist",
     "README.md",
     "LICENSE",
