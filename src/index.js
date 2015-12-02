@@ -51,7 +51,7 @@ type Middleware = (request: Request, response: Response) => void;
  * Middleware for express; takes an options object or function as input to
  * configure behavior, and returns an express middleware.
  */
-export default function graphqlHTTP(options: Options): Middleware {
+export default function graphqlHTTP(options: Options, errorsCallback: ?Function): Middleware {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
   }
@@ -169,6 +169,11 @@ export default function graphqlHTTP(options: Options): Middleware {
       response.status(error.status || 500);
       return { errors: [ error ] };
     }).then(result => {
+      // Call errorsCallback if errors
+      if (errorsCallback) {
+        errorsCallback(result.errors);
+      }
+
       // Format any encountered errors.
       if (result && result.errors) {
         result.errors = result.errors.map(formatError);

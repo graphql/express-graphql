@@ -66,7 +66,7 @@
     "express": "4.13.3",
     "express3": "*",
     "flow-bin": "0.18.1",
-    "graphql": "0.4.8",
+    "graphql": "0.4.14",
     "isparta": "3.0.3",
     "mocha": "2.2.5",
     "multer": "1.0.3",

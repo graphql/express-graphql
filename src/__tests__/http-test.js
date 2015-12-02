@@ -793,6 +793,26 @@ describe('test harness', () => {
     });
 
     describe('Error handling functionality', () => {
+      it('call errorsCallback on errors', async done => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          pretty: true
+        }, errors => {
+          expect(errors).to.have.length(1);
+          let error = errors[0];
+          expect(error.message).to.equal('Throws!');
+          expect(error.originalError).to.be.an('object');
+          done();
+        }));
+
+        await request(app)
+        .get(urlString({
+          query: '{thrower}',
+        }));
+      });
+
       it('handles field errors caught by GraphQL', async () => {
         var app = express();
 
