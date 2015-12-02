@@ -169,13 +169,14 @@ export default function graphqlHTTP(options: Options, errorsCallback: ?Function)
       response.status(error.status || 500);
       return { errors: [ error ] };
     }).then(result => {
-      // Call errorsCallback if errors
-      if (errorsCallback) {
-        errorsCallback(result.errors);
-      }
 
       // Format any encountered errors.
       if (result && result.errors) {
+        // Call errorsCallback if errors
+        if (errorsCallback ) {
+          errorsCallback(result.errors);
+        }
+
         result.errors = result.errors.map(formatError);
       }
 
