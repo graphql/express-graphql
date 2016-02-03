@@ -46,7 +46,14 @@ export type OptionsObj = {
   pretty?: ?boolean,
 
   /**
-   * A boolean to optionally enable GraphiQL mode
+   * An optional function which will be used to format any errors produced by
+   * fulfilling a GraphQL operation. If no function is provided, GraphQL's
+   * default spec-compliant `formatError` function will be used.
+   */
+  formatError?: ?Function,
+
+  /**
+   * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
 };
@@ -69,6 +76,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let rootValue;
     let pretty;
     let graphiql;
+    let formatErrorFn;
     let showGraphiQL;
     let query;
     let variables;
@@ -84,6 +92,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       rootValue = optionsObj.rootValue;
       pretty = optionsObj.pretty;
       graphiql = optionsObj.graphiql;
+      formatErrorFn = optionsObj.formatError;
 
       // GraphQL HTTP only supports GET and POST methods.
       if (request.method !== 'GET' && request.method !== 'POST') {
@@ -177,7 +186,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     }).then(result => {
       // Format any encountered errors.
       if (result && result.errors) {
-        result.errors = result.errors.map(formatError);
+        result.errors = result.errors.map(formatErrorFn || formatError);
       }
 
       // If allowed to show GraphiQL, present it instead of JSON.
