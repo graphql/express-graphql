@@ -8,15 +8,21 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
+import {
+  Source,
+  parse,
+  validate,
+  execute,
+  formatError,
+  getOperationAST
+} from 'graphql';
 import httpError from 'http-errors';
-import { formatError } from 'graphql/error';
-import { execute } from 'graphql/execution';
-import { parse, Source } from 'graphql/language';
-import { validate } from 'graphql/validation';
-import { getOperationAST } from 'graphql/utilities/getOperationAST';
+
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
+
 import type { Request, Response } from 'express';
+
 
 /**
  * Used to configure the graphQLHTTP middleware by providing a schema

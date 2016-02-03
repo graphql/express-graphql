@@ -209,11 +209,11 @@ describe('test harness', () => {
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [
             {
-              message: 'Cannot query field "unknownOne" on "QueryRoot".',
+              message: 'Cannot query field "unknownOne" on type "QueryRoot".',
               locations: [ { line: 1, column: 9 } ]
             },
             {
-              message: 'Cannot query field "unknownTwo" on "QueryRoot".',
+              message: 'Cannot query field "unknownTwo" on type "QueryRoot".',
               locations: [ { line: 1, column: 21 } ]
             }
           ]
