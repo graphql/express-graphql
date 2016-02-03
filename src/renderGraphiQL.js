@@ -11,7 +11,7 @@
 type GraphiQLData = { query: ?string, variables: ?Object, result?: Object };
 
 // Current latest version of GraphiQL.
-const GRAPHIQL_VERSION = '0.4.9';
+const GRAPHIQL_VERSION = '0.5.0';
 
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
