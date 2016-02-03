@@ -11,7 +11,7 @@
 type GraphiQLData = { query: ?string, variables: ?Object, result?: Object };
 
 // Current latest version of GraphiQL.
-const GRAPHIQL_VERSION = '0.4.7';
+const GRAPHIQL_VERSION = '0.4.8';
 
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
@@ -40,7 +40,7 @@ add "&raw" to the end of the URL within a browser.
 <html>
 <head>
   <link href="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
-  <script src="//cdn.jsdelivr.net/fetch/1.0.0/fetch.min.js"></script>
+  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
   <script src="//cdn.jsdelivr.net/react/0.14.7/react.min.js"></script>
   <script src="//cdn.jsdelivr.net/react/0.14.7/react-dom.min.js"></script>
   <script src="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.min.js"></script>
