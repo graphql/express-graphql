@@ -33,6 +33,11 @@ The `graphqlHTTP` function accepts the following options:
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
 
+  * **`formatError`**: An optional function which will be used to format any
+    errors produced by fulfilling a GraphQL operation. If no function is
+    provided, GraphQL's default spec-compliant [`formatError`][] function will
+    be used. *To enable stack traces, provide the function: `error => error`.*
+
   * **`graphiql`**: If `true`, may present [GraphiQL][] when loaded directly
     from a browser (a useful tool for debugging and exploration).
 
@@ -124,6 +129,7 @@ new GraphQLObjectType({
 ```
 
 [`graphql-js`]: https://github.com/graphql/graphql-js
+[`formatError`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
 [GraphiQL]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session
