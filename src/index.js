@@ -87,22 +87,23 @@ export default function graphqlHTTP(options: Options): Middleware {
     new Promise((resolve, reject) => {
 
       // Get GraphQL options given this request.
-      const optionsObj = getOptions(options, request);
-      schema = optionsObj.schema;
-      rootValue = optionsObj.rootValue;
-      pretty = optionsObj.pretty;
-      graphiql = optionsObj.graphiql;
-      formatErrorFn = optionsObj.formatError;
-
-      // GraphQL HTTP only supports GET and POST methods.
-      if (request.method !== 'GET' && request.method !== 'POST') {
-        response.set('Allow', 'GET, POST');
-        throw httpError(405, 'GraphQL only supports GET and POST requests.');
-      }
-
-      // Parse the Request body.
-      parseBody(request, (parseError, data) => {
-        if (parseError) { reject(parseError); } else { resolve(data || {}); }
+      getOptions(options, request).then(optionsObj => {
+        schema = optionsObj.schema;
+        rootValue = optionsObj.rootValue;
+        pretty = optionsObj.pretty;
+        graphiql = optionsObj.graphiql;
+        formatErrorFn = optionsObj.formatError;
+  
+        // GraphQL HTTP only supports GET and POST methods.
+        if (request.method !== 'GET' && request.method !== 'POST') {
+          response.set('Allow', 'GET, POST');
+          throw httpError(405, 'GraphQL only supports GET and POST requests.');
+        }
+  
+        // Parse the Request body.
+        parseBody(request, (parseError, data) => {
+          if (parseError) { reject(parseError); } else { resolve(data || {}); }
+        });
       });
     }).then(data => {
       showGraphiQL = graphiql && canDisplayGraphiQL(request, data);
@@ -210,20 +211,22 @@ export default function graphqlHTTP(options: Options): Middleware {
  */
 function getOptions(options: Options, request: Request): OptionsObj {
   var optionsData = typeof options === 'function' ? options(request) : options;
-
+  
+  return Promise.resolve(optionsData).then(optionsData => {
   if (!optionsData || typeof optionsData !== 'object') {
-    throw new Error(
-      'GraphQL middleware option function must return an options object.'
-    );
-  }
-
-  if (!optionsData.schema) {
-    throw new Error(
-      'GraphQL middleware options must contain a schema.'
-    );
-  }
-
-  return optionsData;
+      throw new Error(
+        'GraphQL middleware option function must return an options object.'
+      );
+    }
+  
+    if (!optionsData.schema) {
+      throw new Error(
+        'GraphQL middleware options must contain a schema.'
+      );
+    }
+  
+    optionsData;
+  });
 }
 
 type GraphQLParams = {
