@@ -17,6 +17,7 @@ import {
   getOperationAST
 } from 'graphql';
 import httpError from 'http-errors';
+import Promise from 'bluebird';
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
