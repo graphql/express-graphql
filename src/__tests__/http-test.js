@@ -1269,7 +1269,7 @@ describe('test harness', () => {
     });
 
     describe('Custom validation rules', () => {
-      var AlwaysInvalidRule = function(context: ValidationContext): any {
+      var AlwaysInvalidRule = function(context) {
         return {
           enter(node) {
             context.reportError(new GraphQLError(

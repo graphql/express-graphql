@@ -15,7 +15,7 @@ import {
   execute,
   formatError,
   getOperationAST,
-  specifiedRules,
+  specifiedRules
 } from 'graphql';
 import httpError from 'http-errors';
 
@@ -54,7 +54,7 @@ export type OptionsObj = {
   formatError?: ?Function,
 
   /**
-   * An optional array of validation rules that will be validated on the document
+   * An optional array of validation rules that will be applied on the document
    * in aditional to the rules in the GraphQL spec
    */
    validationRules?: ?Array<any>,
