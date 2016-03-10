@@ -1269,9 +1269,9 @@ describe('test harness', () => {
     });
 
     describe('Custom validation rules', () => {
-      var AlwaysInvalidRule = function(context) {
+      var AlwaysInvalidRule = function (context) {
         return {
-          enter(node) {
+          enter() {
             context.reportError(new GraphQLError(
               'AlwaysInvalidRule was really invalid!'
             ));
@@ -1285,7 +1285,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          validationRules: [AlwaysInvalidRule],
+          validationRules: [ AlwaysInvalidRule ],
           pretty: true,
         }));
 
