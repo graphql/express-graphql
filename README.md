@@ -36,10 +36,24 @@ The `graphqlHTTP` function accepts the following options:
   * **`formatError`**: An optional function which will be used to format any
     errors produced by fulfilling a GraphQL operation. If no function is
     provided, GraphQL's default spec-compliant [`formatError`][] function will
-    be used. *To enable stack traces, provide the function: `error => error`.*
+    be used.
 
   * **`graphiql`**: If `true`, may present [GraphiQL][] when loaded directly
     from a browser (a useful tool for debugging and exploration).
+
+
+#### Debugging
+
+During development, it's useful to get more useful information from errors, for
+example stack traces. Providing a function to `formatError` enables this:
+
+```js
+formatError: error => ({
+  message: error.message,
+  locations: error.locations,
+  stack: error.stack
+})
+```
 
 
 ### HTTP Usage
