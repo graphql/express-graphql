@@ -55,9 +55,9 @@ export type OptionsObj = {
 
   /**
    * An optional array of validation rules that will be applied on the document
-   * in aditional to the rules in the GraphQL spec
+   * in additional to those defined by the GraphQL spec.
    */
-   validationRules?: ?Array<any>,
+  validationRules?: ?Array<any>,
 
   /**
    * A boolean to optionally enable GraphiQL mode.

@@ -38,6 +38,9 @@ The `graphqlHTTP` function accepts the following options:
     provided, GraphQL's default spec-compliant [`formatError`][] function will
     be used.
 
+  * **`validationRules`**: Optional additional validation rules queries must
+    satisfy in addition to those defined by the GraphQL spec.
+
   * **`graphiql`**: If `true`, may present [GraphiQL][] when loaded directly
     from a browser (a useful tool for debugging and exploration).
 
