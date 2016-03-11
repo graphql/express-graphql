@@ -44,8 +44,8 @@ The `graphqlHTTP` function accepts the following options:
 
 #### Debugging
 
-During development, it's useful to get more useful information from errors, for
-example stack traces. Providing a function to `formatError` enables this:
+During development, it's useful to get more information from errors, such as
+stack traces. Providing a function to `formatError` enables this:
 
 ```js
 formatError: error => ({
