@@ -154,7 +154,7 @@ add "&raw" to the end of the URL within a browser.
         onEditVariables: onEditVariables,
         query: ${safeSerialize(queryString)},
         response: ${safeSerialize(resultString)},
-        variables: ${JSON.stringify(variablesString)}
+        variables: ${safeSerialize(variablesString)}
       }),
       document.body
     );
