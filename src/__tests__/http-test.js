@@ -1130,6 +1130,24 @@ describe('test harness', () => {
         );
       });
 
+      it('escapes HTML in queries within GraphiQL', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var error = await catchError(
+          request(app).get(urlString({ query: '</script><script>alert(1)</script>' }))
+                      .set('Accept', 'text/html')
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(error.response.type).to.equal('text/html');
+        expect(error.response.text).to.not.include('</script><script>alert(1)</script>');
+      });
+
       it('GraphiQL renders provided variables', async () => {
         var app = express();
 

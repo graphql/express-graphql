@@ -13,6 +13,27 @@ type GraphiQLData = { query: ?string, variables: ?Object, result?: Object };
 // Current latest version of GraphiQL.
 const GRAPHIQL_VERSION = '0.6.0';
 
+const UNSAFE_REGEXP = /[<>\/\u2028\u2029]/g;
+const UNSAFE_ALTERNATIVES = {
+  '<': '\\u003C',
+  '>': '\\u003E',
+  '/': '\\u002F',
+  '\u2028': '\\u2028',
+  '\u2029': '\\u2029',
+};
+
+function safeSerialize(data) {
+  let str = JSON.stringify(data);
+
+  if (typeof str === 'string') {
+    str = JSON.stringify(data).replace(
+      UNSAFE_REGEXP, char => UNSAFE_ALTERNATIVES[char]
+    );
+  }
+
+  return str;
+}
+
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
  * Accept HTML, it may present GraphiQL, the in-browser GraphQL explorer IDE.
@@ -131,8 +152,8 @@ add "&raw" to the end of the URL within a browser.
         fetcher: graphQLFetcher,
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
-        query: ${JSON.stringify(queryString)},
-        response: ${JSON.stringify(resultString)},
+        query: ${safeSerialize(queryString)},
+        response: ${safeSerialize(resultString)},
         variables: ${JSON.stringify(variablesString)}
       }),
       document.body
