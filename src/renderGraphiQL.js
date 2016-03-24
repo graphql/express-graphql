@@ -11,7 +11,7 @@
 type GraphiQLData = { query: ?string, variables: ?Object, result?: Object };
 
 // Current latest version of GraphiQL.
-const GRAPHIQL_VERSION = '0.6.0';
+const GRAPHIQL_VERSION = '0.6.5';
 
 // Ensures string values are save to be used within a <script> tag.
 function safeSerialize(data) {
