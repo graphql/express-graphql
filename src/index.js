@@ -206,7 +206,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       if (showGraphiQL) {
         response
           .set('Content-Type', 'text/html')
-          .send(renderGraphiQL({ query, variables, result }));
+          .send(renderGraphiQL({ query, variables, operationName, result }));
       } else {
         // Otherwise, present JSON directly.
         response

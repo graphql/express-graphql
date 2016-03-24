@@ -1130,6 +1130,31 @@ describe('test harness', () => {
         );
       });
 
+      it('contains a pre-run operation name within GraphiQL', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          graphiql: true
+        }));
+
+        var response = await request(app)
+          .get(urlString({
+            query: 'query A{a:test} query B{b:test}',
+            operationName: 'B'
+          }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include(
+          'response: ' + JSON.stringify(
+            JSON.stringify({ data: { b: 'Hello World' } }, null, 2)
+          )
+        );
+        expect(response.text).to.include('operationName: "B"');
+      });
+
       it('escapes HTML in queries within GraphiQL', async () => {
         var app = express();
 
