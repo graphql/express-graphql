@@ -177,13 +177,13 @@ export default function graphqlHTTP(options: Options): Middleware {
           );
         }
       }
-
       // Perform the execution, reporting any errors creating the context.
       try {
         return execute(
           schema,
           documentAST,
           rootValue,
+          {},
           variables,
           operationName
         );
