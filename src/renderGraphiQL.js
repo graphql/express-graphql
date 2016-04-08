@@ -60,8 +60,8 @@ add "&raw" to the end of the URL within a browser.
   </style>
   <link href="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
   <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/0.14.7/react.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/0.14.7/react-dom.min.js"></script>
+  <script src="//cdn.jsdelivr.net/react/15.0.0/react.min.js"></script>
+  <script src="//cdn.jsdelivr.net/react/15.0.0/react-dom.min.js"></script>
   <script src="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.min.js"></script>
 </head>
 <body>
