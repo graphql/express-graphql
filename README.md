@@ -28,7 +28,10 @@ The `graphqlHTTP` function accepts the following options:
   * **`schema`**: A `GraphQLSchema` instance from [`graphql-js`][].
     A `schema` *must* be provided.
 
-  * **`rootValue`**: A value to pass as the rootValue to the `graphql()`
+  * **`context`**: A value to pass as the `context` to the `graphql()`
+    function from [`graphql-js`][].
+
+  * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
     function from [`graphql-js`][].
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
@@ -111,8 +114,8 @@ dynamic endpoint or accessing the current authentication information,
 express-graphql allows options to be provided as a function of each
 express request.
 
-This example uses [`express-session`][] to run GraphQL on a rootValue based on
-the currently logged-in session.
+This example uses [`express-session`][] to provide GraphQL with the currently
+logged-in session as the `context` of the query execution.
 
 ```js
 var session = require('express-session');
@@ -124,12 +127,13 @@ app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
 
 app.use('/graphql', graphqlHTTP(request => ({
   schema: MySessionAwareGraphQLSchema,
-  context: { session: request.session },
+  context: request.session,
   graphiql: true
 })));
 ```
 
-Then in your type definitions, access `session` from the context:
+Then in your type definitions, access via the third "context" argument in your
+`resolve` function:
 
 ```js
 new GraphQLObjectType({
@@ -137,7 +141,7 @@ new GraphQLObjectType({
   fields: {
     myField: {
       type: GraphQLString,
-      resolve(parentValue, _, { session }) {
+      resolve(parentValue, args, session) {
         // use `session` here
       }
     }
