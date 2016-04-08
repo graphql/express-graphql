@@ -124,12 +124,12 @@ app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
 
 app.use('/graphql', graphqlHTTP(request => ({
   schema: MySessionAwareGraphQLSchema,
-  rootValue: { session: request.session },
+  context: { session: request.session },
   graphiql: true
 })));
 ```
 
-Then in your type definitions, access `session` from the rootValue:
+Then in your type definitions, access `session` from the context:
 
 ```js
 new GraphQLObjectType({
@@ -137,7 +137,7 @@ new GraphQLObjectType({
   fields: {
     myField: {
       type: GraphQLString,
-      resolve(parentValue, _, { rootValue: { session } }) {
+      resolve(parentValue, _, { session }) {
         // use `session` here
       }
     }
