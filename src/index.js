@@ -28,9 +28,13 @@ import type { Request, Response } from 'express';
 /**
  * Used to configure the graphQLHTTP middleware by providing a schema
  * and other configuration options.
+ *
+ * Options can be provided as an Object, a Promise for an Object, or a Function
+ * that returns an Object or a Promise for an Object.
  */
-export type Options = ((req: Request) => OptionsObj) | OptionsObj
-export type OptionsObj = {
+export type Options = ((request: Request) => OptionsResult) | OptionsResult;
+export type OptionsResult = OptionsData | Promise<OptionsData>;
+export type OptionsData = {
   /**
    * A GraphQL schema from graphql-js.
    */
@@ -96,22 +100,38 @@ export default function graphqlHTTP(options: Options): Middleware {
     let operationName;
     let validationRules;
 
-    // Use promises as a mechanism for capturing any thrown errors during the
-    // asyncronous process.
-    new Promise((resolve, reject) => {
+    // Promises are used as a mechanism for capturing any thrown errors during
+    // the asyncronous process below.
 
-      // Get GraphQL options given this request.
-      const optionsObj = getOptions(options, request);
-      schema = optionsObj.schema;
-      context = optionsObj.context;
-      rootValue = optionsObj.rootValue;
-      pretty = optionsObj.pretty;
-      graphiql = optionsObj.graphiql;
-      formatErrorFn = optionsObj.formatError;
+    // Resolve the Options to get OptionsData.
+    new Promise(resolve => {
+      resolve(typeof options === 'function' ? options(request) : options);
+    }).then(optionsData => {
+      // Assert that optionsData is in fact an Object.
+      if (!optionsData || typeof optionsData !== 'object') {
+        throw new Error(
+          'GraphQL middleware option function must return an options object.'
+        );
+      }
+
+      // Assert that schema is required.
+      if (!optionsData.schema) {
+        throw new Error(
+          'GraphQL middleware options must contain a schema.'
+        );
+      }
+
+      // Collect information from the options data object.
+      schema = optionsData.schema;
+      context = optionsData.context;
+      rootValue = optionsData.rootValue;
+      pretty = optionsData.pretty;
+      graphiql = optionsData.graphiql;
+      formatErrorFn = optionsData.formatError;
 
       validationRules = specifiedRules;
-      if (optionsObj.validationRules) {
-        validationRules = validationRules.concat(optionsObj.validationRules);
+      if (optionsData.validationRules) {
+        validationRules = validationRules.concat(optionsData.validationRules);
       }
 
       // GraphQL HTTP only supports GET and POST methods.
@@ -121,9 +141,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       }
 
       // Parse the Request body.
-      parseBody(request, (parseError, data) => {
-        if (parseError) { reject(parseError); } else { resolve(data || {}); }
-      });
+      return parseBody(request);
     }).then(data => {
       showGraphiQL = graphiql && canDisplayGraphiQL(request, data);
 
@@ -224,28 +242,6 @@ export default function graphqlHTTP(options: Options): Middleware {
   };
 }
 
-/**
- * Get the options that the middleware was configured with, sanity
- * checking them.
- */
-function getOptions(options: Options, request: Request): OptionsObj {
-  var optionsData = typeof options === 'function' ? options(request) : options;
-
-  if (!optionsData || typeof optionsData !== 'object') {
-    throw new Error(
-      'GraphQL middleware option function must return an options object.'
-    );
-  }
-
-  if (!optionsData.schema) {
-    throw new Error(
-      'GraphQL middleware options must contain a schema.'
-    );
-  }
-
-  return optionsData;
-}
-
 type GraphQLParams = {
   query: ?string;
   variables: ?Object;
@@ -257,10 +253,10 @@ type GraphQLParams = {
  */
 function getGraphQLParams(request: Request, data: Object): GraphQLParams {
   // GraphQL Query string.
-  var query = request.query.query || data.query;
+  const query = request.query.query || data.query;
 
   // Parse the variables if needed.
-  var variables = request.query.variables || data.variables;
+  let variables = request.query.variables || data.variables;
   if (variables && typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
@@ -270,7 +266,7 @@ function getGraphQLParams(request: Request, data: Object): GraphQLParams {
   }
 
   // Name of GraphQL operation to execute.
-  var operationName = request.query.operationName || data.operationName;
+  const operationName = request.query.operationName || data.operationName;
 
   return { query, variables, operationName };
 }
@@ -280,7 +276,7 @@ function getGraphQLParams(request: Request, data: Object): GraphQLParams {
  */
 function canDisplayGraphiQL(request: Request, data: Object): boolean {
   // If `raw` exists, GraphiQL mode is not enabled.
-  var raw = request.query.raw !== undefined || data.raw !== undefined;
+  const raw = request.query.raw !== undefined || data.raw !== undefined;
   // Allowed to show GraphiQL if not requested as raw and this request
   // prefers HTML over JSON.
   return !raw && request.accepts([ 'json', 'html' ]) === 'html';

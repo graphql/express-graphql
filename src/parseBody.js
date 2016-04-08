@@ -16,51 +16,46 @@ import zlib from 'zlib';
 
 import type { Request } from 'express';
 
-
-export function parseBody(req: Request, next: NodeCallback): void {
-  try {
+export function parseBody(req: Request): Promise<Object> {
+  return new Promise((resolve, reject) => {
     // If express has already parsed a body as a keyed object, use it.
     if (typeof req.body === 'object' && !(req.body instanceof Buffer)) {
-      return next(null, req.body);
+      return resolve(req.body);
     }
 
     // Skip requests without content types.
     if (req.headers['content-type'] === undefined) {
-      return next();
+      return resolve({});
     }
 
-    var typeInfo = contentType.parse(req);
+    const typeInfo = contentType.parse(req);
 
     // If express has already parsed a body as a string, and the content-type
     // was application/graphql, parse the string body.
     if (typeof req.body === 'string' &&
         typeInfo.type === 'application/graphql') {
-      return next(null, graphqlParser(req.body));
+      return resolve(graphqlParser(req.body));
     }
 
     // Already parsed body we didn't recognise? Parse nothing.
     if (req.body) {
-      return next();
+      return resolve({});
     }
 
     // Use the correct body parser based on Content-Type header.
     switch (typeInfo.type) {
       case 'application/graphql':
-        return read(req, typeInfo, graphqlParser, next);
+        return read(req, typeInfo, graphqlParser, resolve, reject);
       case 'application/json':
-        return read(req, typeInfo, jsonEncodedParser, next);
+        return read(req, typeInfo, jsonEncodedParser, resolve, reject);
       case 'application/x-www-form-urlencoded':
-        return read(req, typeInfo, urlEncodedParser, next);
+        return read(req, typeInfo, urlEncodedParser, resolve, reject);
     }
 
     // If no Content-Type header matches, parse nothing.
-    return next();
-  } catch (error) {
-    return next(error);
-  }
+    return resolve({});
+  });
 }
-
-type NodeCallback = (error?: ?Error, data?: Object) => void;
 
 function jsonEncodedParser(body) {
   if (jsonObjRegex.test(body)) {
@@ -92,11 +87,11 @@ function graphqlParser(body) {
  *     x0A  Line feed or New line
  *     x0D  Carriage return
  */
-var jsonObjRegex = /^[\x20\x09\x0a\x0d]*\{/;
+const jsonObjRegex = /^[\x20\x09\x0a\x0d]*\{/;
 
 // Read and parse a request body.
-function read(req, typeInfo, parseFn, next) {
-  var charset = (typeInfo.parameters.charset || 'utf-8').toLowerCase();
+function read(req, typeInfo, parseFn, resolve, reject) {
+  const charset = (typeInfo.parameters.charset || 'utf-8').toLowerCase();
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
   if (charset.slice(0, 4) !== 'utf-') {
@@ -104,15 +99,16 @@ function read(req, typeInfo, parseFn, next) {
   }
 
   // Get content-encoding (e.g. gzip)
-  var encoding = (req.headers['content-encoding'] || 'identity').toLowerCase();
-  var length = encoding === 'identity' ? req.headers['content-length'] : null;
-  var limit = 100 * 1024; // 100kb
-  var stream = decompressed(req, encoding);
+  const encoding =
+    (req.headers['content-encoding'] || 'identity').toLowerCase();
+  const length = encoding === 'identity' ? req.headers['content-length'] : null;
+  const limit = 100 * 1024; // 100kb
+  const stream = decompressed(req, encoding);
 
   // Read body from stream.
   getBody(stream, { encoding: charset, length, limit }, function (err, body) {
     if (err) {
-      return next(
+      return reject(
         err.type === 'encoding.unsupported' ?
           httpError(415, `Unsupported charset "${charset.toUpperCase()}".`) :
           httpError(400, `Invalid body: ${err.message}.`)
@@ -121,9 +117,9 @@ function read(req, typeInfo, parseFn, next) {
 
     try {
       // Decode and parse body.
-      return next(null, parseFn(body));
+      return resolve(parseFn(body));
     } catch (error) {
-      return next(error);
+      return reject(error);
     }
   });
 }

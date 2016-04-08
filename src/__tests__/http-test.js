@@ -339,6 +339,23 @@ describe('test harness', () => {
         });
       });
 
+      it('Allows returning an options Promise', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP(() => Promise.resolve({
+          schema: TestSchema,
+        })));
+
+        var response = await request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
     });
 
     describe('POST functionality', () => {
