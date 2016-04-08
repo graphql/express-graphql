@@ -45,6 +45,10 @@ var QueryRootType = new GraphQLObjectType({
     thrower: {
       type: new GraphQLNonNull(GraphQLString),
       resolve: () => { throw new Error('Throws!'); }
+    },
+    context: {
+      type: GraphQLString,
+      resolve: (obj, args, context) => context,
     }
   }
 });
@@ -307,6 +311,30 @@ describe('test harness', () => {
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
             test: 'Hello World'
+          }
+        });
+      });
+
+      it('Allows passing in a context', async () => {
+        var app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          context: 'testValue'
+        }));
+
+        var response = await request(app)
+          .get(urlString({
+            operationName: 'TestQuery',
+            query: `
+              query TestQuery { context }
+            `
+          }));
+
+        expect(response.status).to.equal(200);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            context: 'testValue'
           }
         });
       });

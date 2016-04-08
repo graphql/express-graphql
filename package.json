@@ -50,9 +50,6 @@
     "http-errors": "~1.3.1",
     "raw-body": "~2.1.2"
   },
-  "peerDependencies": {
-    "graphql": "^0.4.16"
-  },
   "devDependencies": {
     "babel": "5.8.21",
     "babel-core": "5.8.22",
@@ -66,12 +63,15 @@
     "express": "4.13.3",
     "express3": "*",
     "flow-bin": "0.21.0",
-    "graphql": "0.4.16",
+    "graphql": "0.5.0",
     "isparta": "3.0.3",
     "mocha": "2.2.5",
     "multer": "1.0.3",
     "sane": "1.1.3",
     "supertest": "1.0.1",
     "supertest-as-promised": "2.0.2"
+  },
+  "peerDependencies": {
+    "graphql": "^0.5.0"
   }
 }
