@@ -356,6 +356,25 @@ describe('test harness', () => {
         );
       });
 
+      it('Catches errors thrown from options function', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP(() => {
+          throw new Error('I did something wrong');
+        }));
+
+        const req = request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        const error = await catchError(req);
+
+        expect(error.response.status).to.equal(500);
+        expect(error.response.text).to.equal(
+          '{"errors":[{"message":"I did something wrong"}]}'
+        );
+      });
     });
 
     describe('POST functionality', () => {
