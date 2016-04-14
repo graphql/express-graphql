@@ -51,7 +51,7 @@ add "&raw" to the end of the URL within a browser.
 <html>
 <head>
   <meta charset="utf-8" /> 
-  <title>GraphQL</title>
+  <title>GraphiQL</title>
   <meta name="robots" content="noindex" />
   <style>
     html, body {
