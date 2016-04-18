@@ -72,7 +72,7 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
-  
+
   /**
    * An option to set the max file size
    */
