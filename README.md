@@ -1,27 +1,33 @@
-GraphQL Express Middleware
-==========================
+GraphQL HTTP Server Middleware
+==============================
 
 [![Build Status](https://travis-ci.org/graphql/express-graphql.svg?branch=master)](https://travis-ci.org/graphql/express-graphql)
 [![Coverage Status](https://coveralls.io/repos/graphql/express-graphql/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql/express-graphql?branch=master)
 
-Create a GraphQL HTTP server with [Express](http://expressjs.com).
+Create a GraphQL HTTP server with any HTTP web framework that supports connect styled middleware include [Connect](https://github.com/senchalabs/connect) itself and [Express](http://expressjs.com).
+
+## Installation
 
 ```sh
 npm install --save express-graphql
 ```
 
-Install express-graphql as middleware in your express server:
+Then mount `express-graphql` at any point as middleware with your server framework of choice:
 
 ```js
-var graphqlHTTP = require('express-graphql');
+import graphqlHTTP from 'express-graphql';
 
-var app = express();
+const app = express();
 
-app.use('/graphql', graphqlHTTP({ schema: MyGraphQLSchema, graphiql: true }));
+app.use('/graphql', graphqlHTTP({
+  schema: MyGraphQLSchema,
+  graphiql: true
+}));
+
+app.listen(3000);
 ```
 
-
-### Options
+## Options
 
 The `graphqlHTTP` function accepts the following options:
 
@@ -48,7 +54,7 @@ The `graphqlHTTP` function accepts the following options:
     from a browser (a useful tool for debugging and exploration).
 
 
-#### Debugging
+## Debugging
 
 During development, it's useful to get more information from errors, such as
 stack traces. Providing a function to `formatError` enables this:
@@ -62,7 +68,7 @@ formatError: error => ({
 ```
 
 
-### HTTP Usage
+## HTTP Usage
 
 Once installed at a path, `express-graphql` will accept requests with
 the parameters:
@@ -107,11 +113,11 @@ depending on the provided *Content-Type* header.
     query string, which provides the `query` parameter.
 
 
-### Advanced Options
+## Advanced Options
 
 In order to support advanced scenarios such as installing a GraphQL server on a
 dynamic endpoint or accessing the current authentication information,
-express-graphql allows options to be provided as a function of each
+`express-graphql` allows options to be provided as a function of each
 express request, and that function may return either an options object, or a
 Promise for an options object.
 
@@ -119,10 +125,10 @@ This example uses [`express-session`][] to provide GraphQL with the currently
 logged-in session as the `context` of the query execution.
 
 ```js
-var session = require('express-session');
-var graphqlHTTP = require('express-graphql');
+import session from 'express-session';
+import graphqlHTTP from 'express-graphql';
 
-var app = express();
+const app = express();
 
 app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
 
