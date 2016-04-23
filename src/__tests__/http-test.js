@@ -133,7 +133,7 @@ describe('test harness', () => {
 
 });
 
-[[ express4, 'modern' ], [ express3, 'old' ]].forEach(([ express, version ]) => {
+[ [ express4, 'modern' ], [ express3, 'old' ] ].forEach(([ express, version ]) => {
   describe(`GraphQL-HTTP tests for ${version} mocha`, () => {
     describe('GET functionality', () => {
       it('allows GET with query param', async () => {
@@ -207,7 +207,7 @@ describe('test harness', () => {
         const error = await catchError(
           request(app)
             .get(urlString({
-              query: `{ test, unknownOne, unknownTwo }`
+              query: '{ test, unknownOne, unknownTwo }'
             }))
         );
 
