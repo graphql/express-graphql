@@ -199,7 +199,7 @@ export default function graphqlHTTP(options: Options): Middleware {
           throw httpError(
             405,
             `Can only perform a ${operationAST.operation} operation ` +
-            `from a POST request.`
+            'from a POST request.'
           );
         }
       }
