@@ -858,6 +858,28 @@ describe('test harness', () => {
       });
     });
 
+    it('will send request and response when using thunk', async () => {
+      const app = express();
+
+      let hasRequest = false;
+      let hasResponse = false;
+
+      app.use(urlString(), graphqlHTTP((req, res) => {
+        if (req) {
+          hasRequest = true;
+        }
+        if (res) {
+          hasResponse = true;
+        }
+        return { schema: TestSchema };
+      }));
+
+      await request(app).get(urlString({ query: '{test}' }));
+
+      expect(hasRequest).to.equal(true);
+      expect(hasResponse).to.equal(true);
+    });
+
     describe('Error handling functionality', () => {
       it('handles field errors caught by GraphQL', async () => {
         const app = express();
