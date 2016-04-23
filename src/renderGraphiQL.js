@@ -50,6 +50,9 @@ add "&raw" to the end of the URL within a browser.
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
+  <title>GraphiQL</title>
+  <meta name="robots" content="noindex" />
   <style>
     html, body {
       height: 100%;
