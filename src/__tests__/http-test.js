@@ -952,7 +952,7 @@ describe('test harness', () => {
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [ {
-            message: 'Syntax Error GraphQL request (1:1) ' +
+            message: 'Syntax Error GraphQL Request (1:1) ' +
               'Unexpected Name \"syntaxerror\"\n\n1: syntaxerror\n   ^\n',
             locations: [ { line: 1, column: 1 } ]
           } ]
@@ -1432,6 +1432,144 @@ describe('test harness', () => {
           ]
         });
 
+      });
+    });
+
+    describe('Prepared query', () => {
+      it('fails when validation rules are submitted', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          validationRules: [],
+          preparedQuery: '{test}',
+        }));
+
+        const error = await catchError(
+          request(app).get(urlString())
+        );
+
+        expect(error.response.status).to.equal(500);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'Can’t specify extra validation rules when using an allowed query.' },
+          ]
+        });
+      });
+
+      it('will not work with another query', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          preparedQuery: '{test}',
+        }));
+
+        const error = await catchError(
+          request(app).get(urlString({
+            query: '{test}',
+          }))
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            {
+              message:
+                'Query has been already defined by the server. Instead use ' +
+                '`operationName` to specify the operation to be run.',
+            },
+          ]
+        });
+      });
+
+      it('will run the prepared query', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          preparedQuery: '{test}',
+        }));
+
+        const response = await request(app).get(urlString());
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('can use variable values', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          preparedQuery: 'query helloWho($who: String){ test(who: $who) }',
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            variables: JSON.stringify({ who: 'Dolly' }),
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello Dolly"}}'
+        );
+      });
+
+      it('can differentiate between multiple prepared queries via operation name', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          preparedQuery: `
+            query helloYou { test(who: "You"), ...shared }
+            query helloWorld { test(who: "World"), ...shared }
+            query helloWho($who: String){ test(who: $who) }
+            query helloDolly { test(who: "Dolly"), ...shared }
+            fragment shared on QueryRoot {
+              shared: test(who: "Everyone")
+            }
+          `,
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            operationName: 'helloWorld',
+          }));
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World',
+            shared: 'Hello Everyone',
+          }
+        });
+      });
+
+      it('can use variable values in an operation', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          preparedQuery: `
+            query helloYou { test(who: "You"), ...shared }
+            query helloWorld { test(who: "World"), ...shared }
+            query helloWho($who: String){ test(who: $who) }
+            query helloDolly { test(who: "Dolly"), ...shared }
+            fragment shared on QueryRoot {
+              shared: test(who: "Everyone")
+            }
+          `,
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            operationName: 'helloWho',
+            variables: JSON.stringify({ who: 'Dolly' }),
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello Dolly"}}'
+        );
       });
     });
   });

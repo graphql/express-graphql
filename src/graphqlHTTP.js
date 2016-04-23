@@ -21,6 +21,7 @@ import httpError from 'http-errors';
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
+import { prepareQuery } from './prepareQuery';
 
 import type { Request, Response } from 'express';
 
@@ -72,6 +73,12 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * The GraphQL query of which to allow others to query against using
+   * `operationName`.
+   */
+  preparedQuery?: ?string,
 };
 
 type Middleware = (request: Request, response: Response) => void;
@@ -99,6 +106,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let variables;
     let operationName;
     let validationRules;
+    let preparedQueryAST;
 
     // Promises are used as a mechanism for capturing any thrown errors during
     // the asyncronous process below.
@@ -130,8 +138,21 @@ export default function graphqlHTTP(options: Options): Middleware {
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
 
+      // Actually prepare the query if defined. It will be parsed and
+      // validated against a schema.
+      if (optionsData.preparedQuery) {
+        preparedQueryAST = prepareQuery(optionsData.preparedQuery, schema);
+      }
+
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
+        // If the user has set an allowed query, we aren’t going to use
+        // validation rules, so throw an error.
+        if (preparedQueryAST) {
+          throw httpError(500,
+            'Can’t specify extra validation rules when using an allowed query.'
+          );
+        }
         validationRules = validationRules.concat(optionsData.validationRules);
       }
 
@@ -152,6 +173,28 @@ export default function graphqlHTTP(options: Options): Middleware {
       variables = params.variables;
       operationName = params.operationName;
 
+      // If an allowed query is defined, use it to execute the query.
+      if (preparedQueryAST) {
+        // The client can’t send a `query` if an `allowedQuery` is a defined
+        // option.
+        if (query) {
+          throw httpError(400,
+            'Query has been already defined by the server. Instead use ' +
+            '`operationName` to specify the operation to be run.'
+          );
+        }
+
+        // Execute the allowed query.
+        return execute(
+          schema,
+          preparedQueryAST,
+          rootValue,
+          context,
+          variables,
+          operationName
+        );
+      }
+
       // If there is no query, but GraphiQL will be displayed, do not produce
       // a result, otherwise return a 400: Bad Request.
       if (!query) {
@@ -162,7 +205,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       }
 
       // GraphQL source.
-      const source = new Source(query, 'GraphQL request');
+      const source = new Source(query, 'GraphQL Request');
 
       // Parse source to AST, reporting any syntax error.
       let documentAST;
