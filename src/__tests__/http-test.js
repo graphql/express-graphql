@@ -1443,6 +1443,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
+          validationRules: [],
           withDocument: parse(new Source('{test}')),
         }));
 
