@@ -23,6 +23,8 @@ import connect from 'connect';
 import express4 from 'express'; // modern
 import express3 from 'express3'; // old but commonly still used
 import {
+  parse,
+  Source,
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLNonNull,
@@ -1442,14 +1444,13 @@ describe('test harness', () => {
       });
     });
 
-    describe('Prepared query', () => {
+    describe('With document option', () => {
       it('fails when validation rules are submitted', async () => {
         const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          validationRules: [],
-          preparedQuery: '{test}',
+          withDocument: parse(new Source('{test}')),
         }));
 
         const error = await catchError(
@@ -1459,7 +1460,7 @@ describe('test harness', () => {
         expect(error.response.status).to.equal(500);
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [
-            { message: 'Can’t specify extra validation rules when using an allowed query.' },
+            { message: 'Can’t specify validation rules when using a set GraphQL document.' },
           ]
         });
       });
@@ -1469,7 +1470,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          preparedQuery: '{test}',
+          withDocument: parse(new Source('{test}')),
         }));
 
         const error = await catchError(
@@ -1495,7 +1496,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          preparedQuery: '{test}',
+          withDocument: parse(new Source('{test}')),
         }));
 
         const response = await request(app).get(urlString());
@@ -1510,7 +1511,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          preparedQuery: 'query helloWho($who: String){ test(who: $who) }',
+          withDocument: parse(new Source('query helloWho($who: String){ test(who: $who) }')),
         }));
 
         const response = await request(app)
@@ -1528,7 +1529,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          preparedQuery: `
+          withDocument: parse(new Source(`
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloWho($who: String){ test(who: $who) }
@@ -1536,7 +1537,7 @@ describe('test harness', () => {
             fragment shared on QueryRoot {
               shared: test(who: "Everyone")
             }
-          `,
+          `)),
         }));
 
         const response = await request(app)
@@ -1557,7 +1558,7 @@ describe('test harness', () => {
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
-          preparedQuery: `
+          withDocument: parse(new Source(`
             query helloYou { test(who: "You"), ...shared }
             query helloWorld { test(who: "World"), ...shared }
             query helloWho($who: String){ test(who: $who) }
@@ -1565,7 +1566,7 @@ describe('test harness', () => {
             fragment shared on QueryRoot {
               shared: test(who: "Everyone")
             }
-          `,
+          `)),
         }));
 
         const response = await request(app)
