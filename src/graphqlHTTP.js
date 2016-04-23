@@ -9,6 +9,7 @@
  */
 
 import {
+  Document,
   Source,
   parse,
   validate,
@@ -21,7 +22,6 @@ import httpError from 'http-errors';
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
-import { prepareQuery } from './prepareQuery';
 
 import type { Request, Response } from 'express';
 
@@ -75,10 +75,9 @@ export type OptionsData = {
   graphiql?: ?boolean,
 
   /**
-   * The GraphQL query of which to allow others to query against using
-   * `operationName`.
+   * The GraphQL document of which operations to be queried are defined.
    */
-  preparedQuery?: ?string,
+  withDocument?: ?Document,
 };
 
 type Middleware = (request: Request, response: Response) => void;
@@ -106,7 +105,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let variables;
     let operationName;
     let validationRules;
-    let preparedQueryAST;
+    let withDocument;
 
     // Promises are used as a mechanism for capturing any thrown errors during
     // the asyncronous process below.
@@ -137,20 +136,15 @@ export default function graphqlHTTP(options: Options): Middleware {
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
-
-      // Actually prepare the query if defined. It will be parsed and
-      // validated against a schema.
-      if (optionsData.preparedQuery) {
-        preparedQueryAST = prepareQuery(optionsData.preparedQuery, schema);
-      }
+      withDocument = optionsData.withDocument;
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
         // If the user has set an allowed query, we aren’t going to use
         // validation rules, so throw an error.
-        if (preparedQueryAST) {
+        if (withDocument) {
           throw httpError(500,
-            'Can’t specify extra validation rules when using an allowed query.'
+            'Can’t specify validation rules when using a set GraphQL document.'
           );
         }
         validationRules = validationRules.concat(optionsData.validationRules);
@@ -174,7 +168,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       operationName = params.operationName;
 
       // If an allowed query is defined, use it to execute the query.
-      if (preparedQueryAST) {
+      if (withDocument) {
         // The client can’t send a `query` if an `allowedQuery` is a defined
         // option.
         if (query) {
@@ -187,7 +181,7 @@ export default function graphqlHTTP(options: Options): Middleware {
         // Execute the allowed query.
         return execute(
           schema,
-          preparedQueryAST,
+          withDocument,
           rootValue,
           context,
           variables,
