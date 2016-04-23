@@ -18,6 +18,9 @@ import {
   specifiedRules
 } from 'graphql';
 import httpError from 'http-errors';
+import accepts from 'accepts';
+import url from 'url';
+import querystring from 'querystring';
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
@@ -137,7 +140,7 @@ export default function graphqlHTTP(options: Options): Middleware {
 
       // GraphQL HTTP only supports GET and POST methods.
       if (request.method !== 'GET' && request.method !== 'POST') {
-        response.set('Allow', 'GET, POST');
+        response.setHeader('Allow', 'GET, POST');
         throw httpError(405, 'GraphQL only supports GET and POST requests.');
       }
 
@@ -170,7 +173,7 @@ export default function graphqlHTTP(options: Options): Middleware {
         documentAST = parse(source);
       } catch (syntaxError) {
         // Return 400: Bad Request if any syntax errors errors exist.
-        response.status(400);
+        response.statusCode = 400;
         return { errors: [ syntaxError ] };
       }
 
@@ -178,7 +181,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       const validationErrors = validate(schema, documentAST, validationRules);
       if (validationErrors.length > 0) {
         // Return 400: Bad Request if any validation errors exist.
-        response.status(400);
+        response.statusCode = 400;
         return { errors: validationErrors };
       }
 
@@ -195,7 +198,7 @@ export default function graphqlHTTP(options: Options): Middleware {
           }
 
           // Otherwise, report a 405: Method Not Allowed error.
-          response.set('Allow', 'POST');
+          response.setHeader('Allow', 'POST');
           throw httpError(
             405,
             `Can only perform a ${operationAST.operation} operation ` +
@@ -227,17 +230,21 @@ export default function graphqlHTTP(options: Options): Middleware {
       if (result && result.errors) {
         result.errors = result.errors.map(formatErrorFn || formatError);
       }
-
       // If allowed to show GraphiQL, present it instead of JSON.
       if (showGraphiQL) {
-        response
-          .set('Content-Type', 'text/html')
-          .send(renderGraphiQL({ query, variables, operationName, result }));
+        const data = renderGraphiQL({
+          query, variables,
+          operationName, result
+        });
+        response.setHeader('Content-Type', 'text/html');
+        response.write(data);
+        response.end();
       } else {
         // Otherwise, present JSON directly.
-        response
-          .set('Content-Type', 'application/json')
-          .send(JSON.stringify(result, null, pretty ? 2 : 0));
+        const data = JSON.stringify(result, null, pretty ? 2 : 0);
+        response.setHeader('Content-Type', 'application/json');
+        response.write(data);
+        response.end();
       }
     });
   };
@@ -254,10 +261,10 @@ type GraphQLParams = {
  */
 function getGraphQLParams(request: Request, data: Object): GraphQLParams {
   // GraphQL Query string.
-  const query = request.query.query || data.query;
+  const query = getQuery(request).query || data.query;
 
   // Parse the variables if needed.
-  let variables = request.query.variables || data.variables;
+  let variables = getQuery(request).variables || data.variables;
   if (variables && typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
@@ -267,7 +274,7 @@ function getGraphQLParams(request: Request, data: Object): GraphQLParams {
   }
 
   // Name of GraphQL operation to execute.
-  const operationName = request.query.operationName || data.operationName;
+  const operationName = getQuery(request).operationName || data.operationName;
 
   return { query, variables, operationName };
 }
@@ -277,8 +284,23 @@ function getGraphQLParams(request: Request, data: Object): GraphQLParams {
  */
 function canDisplayGraphiQL(request: Request, data: Object): boolean {
   // If `raw` exists, GraphiQL mode is not enabled.
-  const raw = request.query.raw !== undefined || data.raw !== undefined;
+  const raw = getQuery(request).raw !== undefined || data.raw !== undefined;
   // Allowed to show GraphiQL if not requested as raw and this request
   // prefers HTML over JSON.
-  return !raw && request.accepts([ 'json', 'html' ]) === 'html';
+  return !raw && accepts(request).types([ 'json', 'html' ]) === 'html';
+}
+
+function getQuery(request: Request): Object {
+  if (request.query) {
+    // From the parsed Express query.
+    return request.query;
+  } else if (request._parsedQuery) {
+    // From the pre-parsed query which we might set :)
+    return request._parsedQuery;
+  } else if (request._parsedUrl) {
+    // Parse the query string of the pre-pared URL.
+    return (request._parsedQuery = querystring.parse(request._parsedUrl.query));
+  }
+  // Parse the url and the query string.
+  return (request._parsedQuery = url.parse(request.url, true).query || {});
 }
