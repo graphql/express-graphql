@@ -16,7 +16,7 @@ import zlib from 'zlib';
 
 import type { Request } from 'express';
 
-export function parseBody(req: Request): Promise<Object> {
+export function parseBody(req: Request, limit: number): Promise<Object> {
   return new Promise((resolve, reject) => {
     // If express has already parsed a body as a keyed object, use it.
     if (typeof req.body === 'object' && !(req.body instanceof Buffer)) {
@@ -45,11 +45,11 @@ export function parseBody(req: Request): Promise<Object> {
     // Use the correct body parser based on Content-Type header.
     switch (typeInfo.type) {
       case 'application/graphql':
-        return read(req, typeInfo, graphqlParser, resolve, reject);
+        return read(req, typeInfo, graphqlParser, resolve, reject, limit);
       case 'application/json':
-        return read(req, typeInfo, jsonEncodedParser, resolve, reject);
+        return read(req, typeInfo, jsonEncodedParser, resolve, reject, limit);
       case 'application/x-www-form-urlencoded':
-        return read(req, typeInfo, urlEncodedParser, resolve, reject);
+        return read(req, typeInfo, urlEncodedParser, resolve, reject, limit);
     }
 
     // If no Content-Type header matches, parse nothing.
@@ -90,7 +90,7 @@ function graphqlParser(body) {
 const jsonObjRegex = /^[\x20\x09\x0a\x0d]*\{/;
 
 // Read and parse a request body.
-function read(req, typeInfo, parseFn, resolve, reject) {
+function read(req, typeInfo, parseFn, resolve, reject, limit) {
   const charset = (typeInfo.parameters.charset || 'utf-8').toLowerCase();
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
@@ -102,7 +102,6 @@ function read(req, typeInfo, parseFn, resolve, reject) {
   const encoding =
     (req.headers['content-encoding'] || 'identity').toLowerCase();
   const length = encoding === 'identity' ? req.headers['content-length'] : null;
-  const limit = 100 * 1024; // 100kb
   const stream = decompressed(req, encoding);
 
   // Read body from stream.

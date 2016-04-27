@@ -72,6 +72,11 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * An option to set the max file size
+   */
+  limit?: ?number,
 };
 
 type Middleware = (request: Request, response: Response) => void;
@@ -142,7 +147,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       }
 
       // Parse the Request body.
-      return parseBody(request);
+      return parseBody(request, options.limit);
     }).then(data => {
       showGraphiQL = graphiql && canDisplayGraphiQL(request, data);
 
