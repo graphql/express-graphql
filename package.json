@@ -1,10 +1,11 @@
 {
   "name": "express-graphql",
   "version": "0.5.1",
-  "description": "Create a GraphQL HTTP server with Express.",
+  "description": "Production ready GraphQL HTTP middleware.",
   "contributors": [
     "Lee Byron <lee@leebyron.com> (http://leebyron.com/)",
-    "Daniel Schafer <dschafer@fb.com>"
+    "Daniel Schafer <dschafer@fb.com>",
+    "Caleb Meredith <calebmeredith8@gmail.com>"
   ],
   "license": "BSD-3-Clause",
   "bugs": {
@@ -16,6 +17,8 @@
   },
   "keywords": [
     "express",
+    "connect",
+    "http",
     "graphql",
     "middleware",
     "api"
@@ -46,6 +49,7 @@
     "preversion": "npm test"
   },
   "dependencies": {
+    "accepts": "~1.3.2",
     "content-type": "~1.0.1",
     "http-errors": "~1.3.1",
     "raw-body": "~2.1.2"
@@ -53,13 +57,14 @@
   "devDependencies": {
     "babel": "5.8.21",
     "babel-core": "5.8.22",
-    "babel-eslint": "4.1.8",
+    "babel-eslint": "6.0.3",
     "babel-runtime": "5.8.20",
     "body-parser": "^1.14.0",
     "chai": "3.2.0",
+    "connect": "^3.4.1",
     "coveralls": "2.11.4",
-    "eslint": "1.1.0",
-    "eslint-plugin-babel": "2.1.1",
+    "eslint": "2.8.0",
+    "eslint-plugin-babel": "3.2.0",
     "express": "4.13.3",
     "express3": "*",
     "flow-bin": "0.21.0",
