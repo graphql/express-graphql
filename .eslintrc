@@ -190,7 +190,7 @@
     "prefer-reflect": 0,
     "prefer-spread": 0,
     "quote-props": [2, "as-needed"],
-    "quotes": [2, "single"],
+    "quotes": [2, "single", {"allowTemplateLiterals": true}],
     "radix": 2,
     "require-yield": 2,
     "semi": [2, "always"],
