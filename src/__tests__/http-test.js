@@ -1439,7 +1439,7 @@ describe('test harness', () => {
 
     describe('With document option', () => {
       it('fails when validation rules are submitted', async () => {
-        const app = server();
+        const app = express();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1460,7 +1460,7 @@ describe('test harness', () => {
       });
 
       it('will not work with another query', async () => {
-        const app = server();
+        const app = express();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1486,7 +1486,7 @@ describe('test harness', () => {
       });
 
       it('will run the prepared query', async () => {
-        const app = server();
+        const app = express();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1501,7 +1501,7 @@ describe('test harness', () => {
       });
 
       it('can use variable values', async () => {
-        const app = server();
+        const app = express();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1519,7 +1519,7 @@ describe('test harness', () => {
       });
 
       it('can differentiate between multiple prepared queries via operation name', async () => {
-        const app = server();
+        const app = express();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1548,7 +1548,7 @@ describe('test harness', () => {
       });
 
       it('can use variable values in an operation', async () => {
-        const app = server();
+        const app = express();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
