@@ -8,8 +8,9 @@
  */
 /* eslint-disable no-console */
 
-require('babel/register')({
-  optional: [ 'es7.asyncFunctions' ]
+
+require('babel-core/register')({
+  plugins: ['transform-runtime', 'transform-async-to-generator']
 });
 
 process.on('unhandledRejection', function (error) {
