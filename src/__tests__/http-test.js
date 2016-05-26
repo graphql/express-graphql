@@ -866,7 +866,7 @@ describe('test harness', () => {
     });
 
     it('will send request and response when using thunk', async () => {
-      const app = express();
+      const app = server();
 
       let hasRequest = false;
       let hasResponse = false;
