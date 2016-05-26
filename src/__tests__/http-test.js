@@ -14,10 +14,12 @@
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { stringify } from 'querystring';
+import url from 'url';
 import zlib from 'zlib';
 import multer from 'multer';
 import bodyParser from 'body-parser';
 import request from 'supertest-as-promised';
+import connect from 'connect';
 import express4 from 'express'; // modern
 import express3 from 'express3'; // old but commonly still used
 import {
@@ -133,11 +135,16 @@ describe('test harness', () => {
 
 });
 
-[[ express4, 'modern' ], [ express3, 'old' ]].forEach(([ express, version ]) => {
-  describe(`GraphQL-HTTP tests for ${version} mocha`, () => {
+([
+  [ connect, 'connect' ],
+  [ express4, 'express-modern' ],
+  [ express3, 'express-old' ]
+])
+.forEach(([ server, name ]) => {
+  describe(`GraphQL-HTTP tests for ${name}`, () => {
     describe('GET functionality', () => {
       it('allows GET with query param', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -154,7 +161,7 @@ describe('test harness', () => {
       });
 
       it('allows GET with variable values', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -172,7 +179,7 @@ describe('test harness', () => {
       });
 
       it('allows GET with operation name', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -200,7 +207,7 @@ describe('test harness', () => {
       });
 
       it('Reports validation errors', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -227,7 +234,7 @@ describe('test harness', () => {
       });
 
       it('Errors when missing operation name', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -250,7 +257,7 @@ describe('test harness', () => {
       });
 
       it('Errors when sending a mutation via GET', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -270,7 +277,7 @@ describe('test harness', () => {
       });
 
       it('Errors when selecting a mutation within a GET', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -294,7 +301,7 @@ describe('test harness', () => {
       });
 
       it('Allows a mutation to exist within a GET', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -316,7 +323,7 @@ describe('test harness', () => {
       });
 
       it('Allows passing in a context', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -340,7 +347,7 @@ describe('test harness', () => {
       });
 
       it('Allows returning an options Promise', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => Promise.resolve({
           schema: TestSchema,
@@ -357,7 +364,7 @@ describe('test harness', () => {
       });
 
       it('Catches errors thrown from options function', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => {
           throw new Error('I did something wrong');
@@ -379,7 +386,7 @@ describe('test harness', () => {
 
     describe('POST functionality', () => {
       it('allows POST with JSON encoding', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -394,7 +401,7 @@ describe('test harness', () => {
       });
 
       it('Allows sending a mutation via POST', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -409,7 +416,7 @@ describe('test harness', () => {
       });
 
       it('allows POST with url encoding', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -425,7 +432,7 @@ describe('test harness', () => {
       });
 
       it('supports POST JSON query with string variables', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -444,7 +451,7 @@ describe('test harness', () => {
       });
 
       it('supports POST JSON query with JSON variables', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -463,7 +470,7 @@ describe('test harness', () => {
       });
 
       it('supports POST url encoded query with string variables', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -482,7 +489,7 @@ describe('test harness', () => {
       });
 
       it('supports POST JSON query with GET variable values', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -500,7 +507,7 @@ describe('test harness', () => {
       });
 
       it('supports POST url encoded query with GET variable values', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -520,7 +527,7 @@ describe('test harness', () => {
       });
 
       it('supports POST raw text query with GET variable values', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -539,7 +546,7 @@ describe('test harness', () => {
       });
 
       it('allows POST with operation name', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -568,7 +575,7 @@ describe('test harness', () => {
       });
 
       it('allows POST with GET operation name', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -597,7 +604,7 @@ describe('test harness', () => {
       });
 
       it('allows other UTF charsets', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -617,7 +624,7 @@ describe('test harness', () => {
       });
 
       it('allows gzipped POST bodies', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -642,7 +649,7 @@ describe('test harness', () => {
       });
 
       it('allows deflated POST bodies', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -703,7 +710,7 @@ describe('test harness', () => {
           })
         });
 
-        const app = express();
+        const app = server();
 
         // Multer provides multipart form data parsing.
         const storage = multer.memoryStorage();
@@ -736,7 +743,7 @@ describe('test harness', () => {
       });
 
       it('allows for pre-parsed POST using application/graphql', async () => {
-        const app = express();
+        const app = server();
         app.use(bodyParser.text({ type: 'application/graphql' }));
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -755,7 +762,7 @@ describe('test harness', () => {
       });
 
       it('does not accept unknown pre-parsed POST string', async () => {
-        const app = express();
+        const app = server();
         app.use(bodyParser.text({ type: '*/*' }));
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -772,7 +779,7 @@ describe('test harness', () => {
       });
 
       it('does not accept unknown pre-parsed POST raw Buffer', async () => {
-        const app = express();
+        const app = server();
         app.use(bodyParser.raw({ type: '*/*' }));
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -792,7 +799,7 @@ describe('test harness', () => {
 
     describe('Pretty printing', () => {
       it('supports pretty printing', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -814,12 +821,12 @@ describe('test harness', () => {
       });
 
       it('supports pretty printing configured by request', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(req => {
           return {
             schema: TestSchema,
-            pretty: req.query.pretty === '1'
+            pretty: ((url.parse(req.url, true) || {}).query || {}).pretty === '1'
           };
         }));
 
@@ -860,7 +867,7 @@ describe('test harness', () => {
 
     describe('Error handling functionality', () => {
       it('handles field errors caught by GraphQL', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -882,7 +889,7 @@ describe('test harness', () => {
       });
 
       it('allows for custom error formatting to sanitize', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -906,7 +913,7 @@ describe('test harness', () => {
       });
 
       it('allows for custom error formatting to elaborate', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -936,7 +943,7 @@ describe('test harness', () => {
       });
 
       it('handles syntax errors caught by GraphQL', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -960,7 +967,7 @@ describe('test harness', () => {
       });
 
       it('handles errors caused by a lack of query', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -977,7 +984,7 @@ describe('test harness', () => {
       });
 
       it('handles invalid JSON bodies', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -997,7 +1004,7 @@ describe('test harness', () => {
       });
 
       it('handles incomplete JSON bodies', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1017,7 +1024,7 @@ describe('test harness', () => {
       });
 
       it('handles plain POST text', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema
@@ -1039,7 +1046,7 @@ describe('test harness', () => {
       });
 
       it('handles unsupported charset', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -1059,7 +1066,7 @@ describe('test harness', () => {
       });
 
       it('handles unsupported utf charset', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -1079,7 +1086,7 @@ describe('test harness', () => {
       });
 
       it('handles unknown encoding', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP(() => ({
           schema: TestSchema
@@ -1099,7 +1106,7 @@ describe('test harness', () => {
       });
 
       it('handles poorly formed variables', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -1118,7 +1125,7 @@ describe('test harness', () => {
       });
 
       it('handles unsupported HTTP methods', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -1140,7 +1147,7 @@ describe('test harness', () => {
 
     describe('Built-in GraphiQL support', () => {
       it('does not renders GraphiQL if no opt-in', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({ schema: TestSchema }));
 
@@ -1156,7 +1163,7 @@ describe('test harness', () => {
       });
 
       it('presents GraphiQL when accepting HTML', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1174,7 +1181,7 @@ describe('test harness', () => {
       });
 
       it('contains a pre-run response within GraphiQL', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1195,7 +1202,7 @@ describe('test harness', () => {
       });
 
       it('contains a pre-run operation name within GraphiQL', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1220,7 +1227,7 @@ describe('test harness', () => {
       });
 
       it('escapes HTML in queries within GraphiQL', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1238,7 +1245,7 @@ describe('test harness', () => {
       });
 
       it('escapes HTML in variables within GraphiQL', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1258,7 +1265,7 @@ describe('test harness', () => {
       });
 
       it('GraphiQL renders provided variables', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1282,7 +1289,7 @@ describe('test harness', () => {
       });
 
       it('GraphiQL accepts an empty query', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1299,7 +1306,7 @@ describe('test harness', () => {
       });
 
       it('GraphiQL accepts a mutation query - does not execute it', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1321,7 +1328,7 @@ describe('test harness', () => {
       });
 
       it('returns HTML if preferred', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1338,7 +1345,7 @@ describe('test harness', () => {
       });
 
       it('returns JSON if preferred', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1357,7 +1364,7 @@ describe('test harness', () => {
       });
 
       it('prefers JSON if unknown accept', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1376,7 +1383,7 @@ describe('test harness', () => {
       });
 
       it('prefers JSON if explicitly requested raw response', async () => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
@@ -1408,7 +1415,7 @@ describe('test harness', () => {
       };
 
       it('Do not execute a query if it do not pass the custom validation.', async() => {
-        const app = express();
+        const app = server();
 
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
