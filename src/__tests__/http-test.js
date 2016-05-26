@@ -214,7 +214,7 @@ describe('test harness', () => {
         const error = await catchError(
           request(app)
             .get(urlString({
-              query: `{ test, unknownOne, unknownTwo }`
+              query: '{ test, unknownOne, unknownTwo }'
             }))
         );
 
