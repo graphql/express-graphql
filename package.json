@@ -41,6 +41,7 @@
       "es2015"
     ],
     "plugins": [
+      "add-module-exports",
       "transform-class-properties",
       "transform-flow-strip-types"
     ]
@@ -66,6 +67,7 @@
   "devDependencies": {
     "babel-cli": "^6.9.0",
     "babel-eslint": "6.0.4",
+    "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-async-to-generator": "6.8.0",
     "babel-plugin-transform-class-properties": "6.9.0",
     "babel-plugin-transform-flow-strip-types": "6.8.0",
