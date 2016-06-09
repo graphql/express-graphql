@@ -101,6 +101,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let variables;
     let operationName;
     let validationRules;
+    let logFn;
 
     // Promises are used as a mechanism for capturing any thrown errors during
     // the asyncronous process below.
@@ -135,6 +136,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
+      logFn = optionsData.logFn;
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
@@ -218,7 +220,8 @@ export default function graphqlHTTP(options: Options): Middleware {
           rootValue,
           context,
           variables,
-          operationName
+          operationName,
+          logFn
         );
       } catch (contextError) {
         // Return 400: Bad Request if any execution context errors exist.
