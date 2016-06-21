@@ -106,7 +106,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     // the asyncronous process below.
 
     // Resolve the Options to get OptionsData.
-    new Promise(resolve => {
+    return new Promise(resolve => {
       resolve(
         typeof options === 'function' ?
           options(request, response) :
