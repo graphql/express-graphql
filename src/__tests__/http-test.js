@@ -964,6 +964,28 @@ describe('test harness', () => {
         });
       });
 
+      it('allows for custom result formatting', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          context: { foo: 'bar' },
+          formatResult(response, context) {
+            return Object.assign(response, context);
+          }
+        }));
+
+
+        const response = await request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"},"foo":"bar"}'
+        );
+      });
+
       it('handles syntax errors caught by GraphQL', async () => {
         const app = server();
 

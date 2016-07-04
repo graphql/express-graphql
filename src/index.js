@@ -65,6 +65,12 @@ export type OptionsData = {
   formatError?: ?Function,
 
   /**
+   * An optional function which will be used to format the result of the
+   * GraphQL operation before it is sent to the client.
+   */
+  formatResult?: ?Function,
+
+  /**
    * An optional array of validation rules that will be applied on the document
    * in additional to those defined by the GraphQL spec.
    */
@@ -96,6 +102,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let pretty;
     let graphiql;
     let formatErrorFn;
+    let formatResultFn;
     let showGraphiQL;
     let query;
     let variables;
@@ -135,6 +142,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
+      formatResultFn = optionsData.formatResult;
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
@@ -234,18 +242,24 @@ export default function graphqlHTTP(options: Options): Middleware {
       if (result && result.errors) {
         result.errors = result.errors.map(formatErrorFn || formatError);
       }
+      // Format result if formatResultFn is passed
+      let formattedResult = result;
+      if (formatResultFn) {
+        formattedResult = formatResultFn(result, context);
+      }
       // If allowed to show GraphiQL, present it instead of JSON.
       if (showGraphiQL) {
         const data = renderGraphiQL({
           query, variables,
-          operationName, result
+          operationName,
+          result: formattedResult
         });
         response.setHeader('Content-Type', 'text/html');
         response.write(data);
         response.end();
       } else {
         // Otherwise, present JSON directly.
-        const data = JSON.stringify(result, null, pretty ? 2 : 0);
+        const data = JSON.stringify(formattedResult, null, pretty ? 2 : 0);
         response.setHeader('Content-Type', 'application/json');
         response.write(data);
         response.end();
