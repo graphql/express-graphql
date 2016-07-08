@@ -25,7 +25,7 @@ import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
 import type { Request, Response } from 'express';
-
+import type { Document, GraphQLSchema } from 'graphql';
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -74,6 +74,18 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * A function that resolves a persisted document by its ID.
+   * If supplied, allows execution by document ID.
+   */
+  loadPersistedDocument?: (id: string) => Promise<Document>,
+
+  /**
+   * A function that persists a validated document and returns an ID.
+   * If supplied, allows persisting via writes to the /persist subpath.
+   */
+  persistValidatedDocument?: (doc: Document) => Promise<string>
 };
 
 type Middleware = (request: Request, response: Response) => Promise<void>;
@@ -86,8 +98,13 @@ export default function graphqlHTTP(options: Options): Middleware {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
   }
-
   return (request: Request, response: Response) => {
+    // connect doesn't have Request.path
+    const path = request.path || request.url.split('?')[0];
+    if (options.persistValidatedDocument && path === '/persist') {
+      return persistDocument(options, request, response);
+    }
+
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let schema;
@@ -101,33 +118,12 @@ export default function graphqlHTTP(options: Options): Middleware {
     let variables;
     let operationName;
     let validationRules;
+    let documentID;
+    let loadPersistedDocument;
 
     // Promises are used as a mechanism for capturing any thrown errors during
     // the asynchronous process below.
-
-    // Resolve the Options to get OptionsData.
-    return new Promise(resolve => {
-      resolve(
-        typeof options === 'function' ?
-          options(request, response) :
-          options
-      );
-    }).then(optionsData => {
-      // Assert that optionsData is in fact an Object.
-      if (!optionsData || typeof optionsData !== 'object') {
-        throw new Error(
-          'GraphQL middleware option function must return an options object ' +
-          'or a promise which will be resolved to an options object.'
-        );
-      }
-
-      // Assert that schema is required.
-      if (!optionsData.schema) {
-        throw new Error(
-          'GraphQL middleware options must contain a schema.'
-        );
-      }
-
+    return resolveOptionsData(options, request, response).then(optionsData => {
       // Collect information from the options data object.
       schema = optionsData.schema;
       context = optionsData.context || request;
@@ -135,6 +131,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
+      loadPersistedDocument = optionsData.loadPersistedDocument;
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
@@ -158,35 +155,28 @@ export default function graphqlHTTP(options: Options): Middleware {
       query = params.query;
       variables = params.variables;
       operationName = params.operationName;
+      documentID = params.documentID;
 
       // If there is no query, but GraphiQL will be displayed, do not produce
       // a result, otherwise return a 400: Bad Request.
-      if (!query) {
+      if (!query && !documentID) {
         if (showGraphiQL) {
           return null;
         }
-        throw httpError(400, 'Must provide query string.');
+        throw httpError(400, 'Must provide query string or document ID.');
       }
-
-      // GraphQL source.
-      const source = new Source(query, 'GraphQL request');
-
-      // Parse source to AST, reporting any syntax error.
-      let documentAST;
-      try {
-        documentAST = parse(source);
-      } catch (syntaxError) {
-        // Return 400: Bad Request if any syntax errors errors exist.
-        response.statusCode = 400;
-        return { errors: [ syntaxError ] };
+      if (documentID) {
+        if (!loadPersistedDocument) {
+          throw httpError(400, 'Execution by document ID not supported.');
+        }
+        return loadPersistedDocument(documentID);
       }
-
-      // Validate AST, reporting any errors.
-      const validationErrors = validate(schema, documentAST, validationRules);
-      if (validationErrors.length > 0) {
-        // Return 400: Bad Request if any validation errors exist.
-        response.statusCode = 400;
-        return { errors: validationErrors };
+      if (query) {
+        return queryResolver(query, schema, validationRules);
+      }
+    }).then(documentAST => {
+      if (documentAST === null && showGraphiQL) {
+        return null;
       }
 
       // Only query operations are allowed on GET requests.
@@ -226,6 +216,11 @@ export default function graphqlHTTP(options: Options): Middleware {
         return { errors: [ contextError ] };
       }
     }).catch(error => {
+      // This was a rejection from the query or document resolver
+      if (error.errors) {
+        response.statusCode = 400;
+        return error;
+      }
       // If an error was caught, report the httpError status, or 500.
       response.statusCode = error.status || 500;
       return { errors: [ error ] };
@@ -254,6 +249,7 @@ export default function graphqlHTTP(options: Options): Middleware {
 
 type GraphQLParams = {
   query: ?string;
+  documentID: ?string;
   variables: ?Object;
   operationName: ?string;
 }
@@ -264,6 +260,17 @@ type GraphQLParams = {
 function getGraphQLParams(urlData: Object, bodyData: Object): GraphQLParams {
   // GraphQL Query string.
   const query = urlData.query || bodyData.query;
+
+  // GraphQL Document ID
+  const documentID = urlData.documentID || bodyData.documentID;
+
+  // Only query xor document id should be present
+  if (query && documentID) {
+    throw httpError(
+      400,
+      'Only one of "query" or "documentID" should be requested, recieved both.'
+    );
+  }
 
   // Parse the variables if needed.
   let variables = urlData.variables || bodyData.variables;
@@ -278,7 +285,7 @@ function getGraphQLParams(urlData: Object, bodyData: Object): GraphQLParams {
   // Name of GraphQL operation to execute.
   const operationName = urlData.operationName || bodyData.operationName;
 
-  return { query, variables, operationName };
+  return { query, variables, operationName, documentID};
 }
 
 /**
@@ -294,4 +301,127 @@ function canDisplayGraphiQL(
   // Allowed to show GraphiQL if not requested as raw and this request
   // prefers HTML over JSON.
   return !raw && accepts(request).types([ 'json', 'html' ]) === 'html';
+}
+
+/**
+ * Helper function to resolve the Options to OptionsData.
+ */
+function resolveOptionsData(
+  options: Options,
+  request: Request,
+  response: Response
+): Promise<OptionsData> {
+  return new Promise(resolve => {
+    resolve(
+      typeof options === 'function' ?
+        options(request, response) :
+        options
+    );
+  }).then(optionsData => {
+    // Assert that optionsData is in fact an Object.
+    if (!optionsData || typeof optionsData !== 'object') {
+      throw new Error(
+        'GraphQL middleware option function must return an options object ' +
+          'or a promise which will be resolved to an options object.'
+      );
+    }
+
+    // Assert that schema is required.
+    if (!optionsData.schema) {
+      throw new Error(
+        'GraphQL middleware options must contain a schema.'
+      );
+    }
+    return optionsData;
+  });
+}
+
+/**
+ * Helper function for calling in to persistValidatedDocument and
+ * sending the resulting id in a JSON payload.
+ */
+function persistDocument(
+  options: Options,
+  request: Request,
+  response: Response
+): Promise<void> {
+  let pretty;
+  let persistValidatedDocument;
+  return Promise.all([
+    resolveOptionsData(options, request, response),
+    parseBody(request)
+  ]).then(initData => {
+    const [ optionsData, bodyData ] = initData;
+    pretty = optionsData.pretty;
+    persistValidatedDocument = optionsData.persistValidatedDocument;
+
+    const urlData = request.url && url.parse(request.url, true).query || {};
+    const documentText = urlData.document || bodyData.document;
+
+    if (!documentText) {
+      throw httpError(400, 'Please provide param "document" to persist.');
+    }
+
+    let validationRules = specifiedRules;
+    if (optionsData.validationRules) {
+      validationRules = validationRules.concat(optionsData.validationRules);
+    }
+    return queryResolver(documentText, optionsData.schema, validationRules);
+
+  }).then(documentAST => {
+    if (persistValidatedDocument) {
+      return persistValidatedDocument(documentAST);
+    }
+    // Should not be possible to hit this.
+    throw new Error('Unexpected: persistValidatedDocument is undefined.');
+  }).then(id => {
+    const result = {documentID: id};
+    const data = JSON.stringify(result, null, pretty ? 2 : 0);
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+    response.end(data);
+  }).catch(error => {
+    // This was a rejection from the query or document resolver
+    let result;
+    if (error.errors) {
+      response.statusCode = 400;
+      result = error;
+    } else {
+      response.statusCode = error.status || 500;
+      result = { errors: [ error ] };
+    }
+    const data = JSON.stringify(result, null, pretty ? 2 : 0);
+    response.setHeader('Content-Type', 'application/json; charset=utf-8');
+    response.end(data);
+  });
+}
+
+/**
+ * Helper function for parsing and validating a string query
+ */
+function queryResolver(
+  query: string,
+  schema: GraphQLSchema,
+  validationRules: Array<any>
+): Promise<Document> {
+  return new Promise((resolve, reject) => {
+    // GraphQL source.
+    const source = new Source(query, 'GraphQL request');
+
+    // Parse source to AST, reporting any syntax error.
+    let documentAST;
+    try {
+      documentAST = parse(source);
+    } catch (syntaxError) {
+      // Return 400: Bad Request if any syntax errors errors exist.
+      reject({ errors: [ syntaxError ] });
+    }
+
+    // Validate AST, reporting any errors.
+    const validationErrors = validate(schema, documentAST, validationRules);
+    if (validationErrors.length > 0) {
+      // Return 400: Bad Request if any validation errors exist.
+      reject({ errors: validationErrors });
+    }
+    resolve(documentAST);
+  });
 }

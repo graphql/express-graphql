@@ -28,7 +28,8 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLError,
-  BREAK
+  BREAK,
+  parse
 } from 'graphql';
 import graphqlHTTP from '../';
 
@@ -76,6 +77,14 @@ const TestSchema = new GraphQLSchema({
 
 function urlString(urlParams?: ?Object) {
   let string = '/graphql';
+  if (urlParams) {
+    string += ('?' + stringify(urlParams));
+  }
+  return string;
+}
+
+function persistString(urlParams?: ?Object) {
+  let string = '/graphql/persist';
   if (urlParams) {
     string += ('?' + stringify(urlParams));
   }
@@ -212,6 +221,72 @@ describe('test harness', () => {
         });
       });
 
+      it('allows GET with documentID param', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          loadPersistedDocument: async () => parse('{test}')
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            documentID: '1'
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('allows GET with documentID and variable values', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          loadPersistedDocument: async() => parse('query helloWho($who: String){ test(who: $who) }')
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            documentID: '1',
+            variables: JSON.stringify({ who: 'Dolly' })
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello Dolly"}}'
+        );
+      });
+
+      it('allows GET with documentID and operation name', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP(() => ({
+          schema: TestSchema,
+          loadPersistedDocument: async() => parse(`
+              query helloYou { test(who: "You"), ...shared }
+              query helloWorld { test(who: "World"), ...shared }
+              query helloDolly { test(who: "Dolly"), ...shared }
+              fragment shared on QueryRoot {
+                shared: test(who: "Everyone")
+              }
+            `)
+        })));
+
+        const response = await request(app)
+          .get(urlString({
+            documentID: '1',
+            operationName: 'helloWorld'
+          }));
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World',
+            shared: 'Hello Everyone',
+          }
+        });
+      });
+
       it('Reports validation errors', async () => {
         const app = server();
 
@@ -325,6 +400,31 @@ describe('test harness', () => {
           data: {
             test: 'Hello World'
           }
+        });
+      });
+
+      it('Errors when sending a mutation via GET by documentID', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          loadPersistedDocument: async() => parse(`
+            mutation TestMutation { writeTest { test } }
+          `)
+        }));
+
+        const error = await catchError(
+          request(app)
+            .get(urlString({
+              documentID: '1'
+            }))
+        );
+
+        expect(error.response.status).to.equal(405);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'Can only perform a mutation operation from a POST request.' }
+          ]
         });
       });
 
@@ -809,7 +909,7 @@ describe('test harness', () => {
 
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
-          errors: [ { message: 'Must provide query string.' } ]
+          errors: [ { message: 'Must provide query string or document ID.' } ]
         });
       });
 
@@ -827,7 +927,7 @@ describe('test harness', () => {
 
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
-          errors: [ { message: 'Must provide query string.' } ]
+          errors: [ { message: 'Must provide query string or document ID.' } ]
         });
       });
     });
@@ -1036,7 +1136,7 @@ describe('test harness', () => {
 
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
-          errors: [ { message: 'Must provide query string.' } ]
+          errors: [ { message: 'Must provide query string or document ID.' } ]
         });
       });
 
@@ -1098,7 +1198,7 @@ describe('test harness', () => {
 
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
-          errors: [ { message: 'Must provide query string.' } ]
+          errors: [ { message: 'Must provide query string or document ID.' } ]
         });
       });
 
@@ -1496,6 +1596,48 @@ describe('test harness', () => {
           ]
         });
 
+      });
+    });
+
+    describe('Persisted document support', () => {
+
+      it('works when persistValidatedDocument and loadPersistedDocument are provided', async() => {
+        const app = server();
+
+        const documents = {};
+        let docID = 0;
+
+        const persist = async document => {
+          const key = 'key_' + docID++;
+          documents[key] = document;
+          return key;
+        };
+
+        const load = async key => {
+          return documents[key];
+        };
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          persistValidatedDocument: persist,
+          loadPersistedDocument: load
+        }));
+
+        let response = await request(app)
+          .post(persistString({
+            document: '{test}'
+          }));
+
+        const persistID = JSON.parse(response.text).documentID;
+
+        response = await request(app)
+          .get(urlString({
+            documentID: persistID
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
       });
     });
   });

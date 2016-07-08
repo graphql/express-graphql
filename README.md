@@ -56,6 +56,15 @@ The `graphqlHTTP` function accepts the following options:
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
 
+  * **`loadPersistedDocument`**: A function that takes an input id and returns a
+    valid Document. If provided, this will allow your GraphQL endpoint to execute
+    a document specified via `documentID`.
+
+  * **`persistValidatedDocument`**: A function that takes a validated Document and
+    returns an id that can be used to load it later. This is used in conjunction
+    with `loadPersistedDocument`. Providing this function will enable persisting
+    documents via the `document` parameter at the `/persist` subpath. It is
+    recommended that this option only be enabled in development deployments.
 
 ## HTTP Usage
 
@@ -140,6 +149,21 @@ new GraphQLObjectType({
 });
 ```
 
+## Persisted Documents
+
+Putting control of the query in to clients hands is one of the primary benefits
+of GraphQL. Though when this is deployed to production naively, it is possible to
+end up uploading and revalidating the same document text across all clients of a
+particular deployment. It can even be problematic within a single client, sending
+the exact same query repeatedly. Uploading and validating a large GraphQL document
+can be very costly, especially over a poor network connection from a mobile device
+with something large and complex such as Facebook's News Feed GraphQL query.
+
+One solution to this problem that was developed early in the use of GraphQL at
+Facebook was persisted documents. At build time, we take the GraphQL document and
+persist it on the server getting back an ID. Then at runtime, we only upload the
+ID of the document and the variables. When the server receives this request, it
+loads the query and executes it, knowing it was already validated.
 
 ## Debugging Tips
 
@@ -153,7 +177,6 @@ formatError: error => ({
   stack: error.stack
 })
 ```
-
 
 [`GraphQL.js`]: https://github.com/graphql/graphql-js
 [`formatError`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
