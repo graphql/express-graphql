@@ -47,6 +47,10 @@ The `graphqlHTTP` function accepts the following options:
     provided, GraphQL's default spec-compliant [`formatError`][] function will
     be used.
 
+  * **`formatResult`**: An optional function which will be used to format the
+    result of the GraphQL operation. Invoked with the result from graphql-js
+    and the context.
+
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
 
