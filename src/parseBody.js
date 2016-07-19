@@ -58,15 +58,25 @@ export function parseBody(req: Request): Promise<Object> {
 }
 
 function jsonEncodedParser(body) {
-  if (jsonObjRegex.test(body)) {
-    /* eslint-disable no-empty */
-    try {
-      return JSON.parse(body);
-    } catch (error) {
-      // Do nothing
+  /* eslint-disable no-empty */
+  try {
+    const bodyParsed = JSON.parse(body);
+
+    if (Array.isArray(bodyParsed)) {
+      // Ensure that every array element is an object.
+      if (bodyParsed.every(element => (
+        element instanceof Object && !Array.isArray(element)
+      ))) {
+        return bodyParsed;
+      }
+    } if (bodyParsed instanceof Object) {
+      return bodyParsed;
     }
-    /* eslint-enable no-empty */
+  } catch (error) {
+    // Do nothing
   }
+  /* eslint-enable no-empty */
+
   throw httpError(400, 'POST body sent invalid JSON.');
 }
 
@@ -77,17 +87,6 @@ function urlEncodedParser(body) {
 function graphqlParser(body) {
   return { query: body };
 }
-
-/**
- * RegExp to match an Object-opening brace "{" as the first non-space
- * in a string. Allowed whitespace is defined in RFC 7159:
- *
- *     x20  Space
- *     x09  Horizontal tab
- *     x0A  Line feed or New line
- *     x0D  Carriage return
- */
-const jsonObjRegex = /^[\x20\x09\x0a\x0d]*\{/;
 
 // Read and parse a request body.
 function read(req, typeInfo, parseFn, resolve, reject) {

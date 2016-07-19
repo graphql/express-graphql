@@ -400,6 +400,33 @@ describe('test harness', () => {
         );
       });
 
+      it('allows batched POST with JSON encoding', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema
+        }));
+
+        const response = await request(app)
+          .post(urlString()).send([
+            {
+              query: '{test}'
+            },
+            {
+              query: 'query helloWho($who: String){ test(who: $who) }',
+              variables: JSON.stringify({ who: 'Dolly' })
+            },
+            {
+              query: 'query helloWho($who: String){ test(who: $who) }',
+              variables: JSON.stringify({ who: 'Bob' })
+            }
+          ]);
+
+        expect(response.text).to.equal(
+          '[{"data":{"test":"Hello World"}},{"data":{"test":"Hello Dolly"}},{"data":{"test":"Hello Bob"}}]'
+        );
+      });
+
       it('Allows sending a mutation via POST', async () => {
         const app = server();
 
@@ -1016,7 +1043,7 @@ describe('test harness', () => {
           request(app)
             .post(urlString())
             .set('Content-Type', 'application/json')
-            .send('[]')
+            .send('3')
         );
 
         expect(error.response.status).to.equal(400);
