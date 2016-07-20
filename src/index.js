@@ -240,13 +240,13 @@ export default function graphqlHTTP(options: Options): Middleware {
           query, variables,
           operationName, result
         });
-        response.setHeader('Content-Type', 'text/html');
+        response.setHeader('Content-Type', 'text/html; charset=utf-8');
         response.write(data);
         response.end();
       } else {
         // Otherwise, present JSON directly.
         const data = JSON.stringify(result, null, pretty ? 2 : 0);
-        response.setHeader('Content-Type', 'application/json');
+        response.setHeader('Content-Type', 'application/json; charset=utf-8');
         response.write(data);
         response.end();
       }
