@@ -4,7 +4,7 @@ GraphQL HTTP Server Middleware
 [![Build Status](https://travis-ci.org/graphql/express-graphql.svg?branch=master)](https://travis-ci.org/graphql/express-graphql)
 [![Coverage Status](https://coveralls.io/repos/graphql/express-graphql/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql/express-graphql?branch=master)
 
-Create a GraphQL HTTP server with any HTTP web framework that supports connect styled middleware include [Connect](https://github.com/senchalabs/connect) itself and [Express](http://expressjs.com).
+Create a GraphQL HTTP server with any HTTP web framework that supports connect styled middleware, including [Connect](https://github.com/senchalabs/connect) itself and [Express](http://expressjs.com).
 
 ## Installation
 
@@ -12,10 +12,11 @@ Create a GraphQL HTTP server with any HTTP web framework that supports connect s
 npm install --save express-graphql
 ```
 
-Then mount `express-graphql` at any point as middleware with your server framework of choice:
+Then mount `express-graphql` as a route handler:
 
 ```js
-import graphqlHTTP from 'express-graphql';
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
 
 const app = express();
 
@@ -24,7 +25,7 @@ app.use('/graphql', graphqlHTTP({
   graphiql: true
 }));
 
-app.listen(3000);
+app.listen(4000);
 ```
 
 ## Options
@@ -34,38 +35,26 @@ The `graphqlHTTP` function accepts the following options:
   * **`schema`**: A `GraphQLSchema` instance from [`graphql-js`][].
     A `schema` *must* be provided.
 
-  * **`context`**: A value to pass as the `context` to the `graphql()`
-    function from [`graphql-js`][].
+  * **`graphiql`**: If `true`, presents [GraphiQL][] when the route with a
+    `/graphiql` appended is loaded in a browser. We recommend that you set
+    `graphiql` to `true` when your app is in development, because it's
+    quite useful. You may or may not want it in production.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
     function from [`graphql-js`][].
+
+  * **`context`**: A value to pass as the `context` to the `graphql()`
+    function from [`graphql-js`][]. If `context` is not provided, the
+    `request` object is passed as the context.
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
 
   * **`formatError`**: An optional function which will be used to format any
     errors produced by fulfilling a GraphQL operation. If no function is
-    provided, GraphQL's default spec-compliant [`formatError`][] function will
-    be used.
+    provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
 
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
-
-  * **`graphiql`**: If `true`, may present [GraphiQL][] when loaded directly
-    from a browser (a useful tool for debugging and exploration).
-
-
-## Debugging
-
-During development, it's useful to get more information from errors, such as
-stack traces. Providing a function to `formatError` enables this:
-
-```js
-formatError: error => ({
-  message: error.message,
-  locations: error.locations,
-  stack: error.stack
-})
-```
 
 
 ## HTTP Usage
@@ -113,34 +102,29 @@ depending on the provided *Content-Type* header.
     query string, which provides the `query` parameter.
 
 
-## Advanced Options
+## Combining with Other Express Middleware
 
-In order to support advanced scenarios such as installing a GraphQL server on a
-dynamic endpoint or accessing the current authentication information,
-`express-graphql` allows options to be provided as a function of each
-express request, and that function may return either an options object, or a
-Promise for an options object.
+By default, the express request is passed as the GraphQL `context`.
+Since most express middleware operates by adding extra data to the
+request object, this means you can use most express middleware just by inserting it before `graphqlHTTP` is mounted. This covers scenarios such as authenticating the user, handling file uploads, or mounting GraphQL on a dynamic endpoint.
 
-This example uses [`express-session`][] to provide GraphQL with the currently
-logged-in session as the `context` of the query execution.
+This example uses [`express-session`][] to provide GraphQL with the currently logged-in session.
 
 ```js
-import session from 'express-session';
-import graphqlHTTP from 'express-graphql';
+const session = require('express-session');
+const graphqlHTTP = require('express-graphql');
 
 const app = express();
 
 app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
 
-app.use('/graphql', graphqlHTTP(request => ({
+app.use('/graphql', graphqlHTTP({
   schema: MySessionAwareGraphQLSchema,
-  context: request.session,
   graphiql: true
-})));
+}));
 ```
 
-Then in your type definitions, access via the third "context" argument in your
-`resolve` function:
+Then in your type definitions, you can access the request via the third "context" argument in your `resolve` function:
 
 ```js
 new GraphQLObjectType({
@@ -148,13 +132,28 @@ new GraphQLObjectType({
   fields: {
     myField: {
       type: GraphQLString,
-      resolve(parentValue, args, session) {
-        // use `session` here
+      resolve(parentValue, args, request) {
+        // use `request.session` here
       }
     }
   }
 });
 ```
+
+
+## Debugging Tips
+
+During development, it's useful to get more information from errors, such as
+stack traces. Providing a function to `formatError` enables this:
+
+```js
+formatError: error => ({
+  message: error.message,
+  locations: error.locations,
+  stack: error.stack
+})
+```
+
 
 [`graphql-js`]: https://github.com/graphql/graphql-js
 [`formatError`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
