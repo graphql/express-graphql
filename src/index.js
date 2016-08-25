@@ -28,7 +28,7 @@ import type { Request, Response } from 'express';
 
 
 /**
- * Used to configure the graphQLHTTP middleware by providing a schema
+ * Used to configure the graphqlHTTP middleware by providing a schema
  * and other configuration options.
  *
  * Options can be provided as an Object, a Promise for an Object, or a Function
@@ -89,7 +89,7 @@ export default function graphqlHTTP(options: Options): Middleware {
 
   return (request: Request, response: Response) => {
     // Higher scoped variables are referred to at various stages in the
-    // asyncronous state machine below.
+    // asynchronous state machine below.
     let schema;
     let context;
     let rootValue;
@@ -103,7 +103,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let validationRules;
 
     // Promises are used as a mechanism for capturing any thrown errors during
-    // the asyncronous process below.
+    // the asynchronous process below.
 
     // Resolve the Options to get OptionsData.
     return new Promise(resolve => {
@@ -130,7 +130,7 @@ export default function graphqlHTTP(options: Options): Middleware {
 
       // Collect information from the options data object.
       schema = optionsData.schema;
-      context = optionsData.context;
+      context = optionsData.context || request;
       rootValue = optionsData.rootValue;
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
