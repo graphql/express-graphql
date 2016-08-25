@@ -53,6 +53,10 @@ The `graphqlHTTP` function accepts the following options:
   * **`graphiql`**: If `true`, may present [GraphiQL][] when loaded directly
     from a browser (a useful tool for debugging and exploration).
 
+  * **`handleErrors`**: An optional function which will be used to handle any errors
+    encountered by fulfilling a GraphQL operation. If no function is provided, Errors
+    will default to normal behavior and return in `errors` array.
+
 
 ## Debugging
 
