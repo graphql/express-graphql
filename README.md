@@ -32,19 +32,19 @@ app.listen(4000);
 
 The `graphqlHTTP` function accepts the following options:
 
-  * **`schema`**: A `GraphQLSchema` instance from [`graphql-js`][].
+  * **`schema`**: A `GraphQLSchema` instance from [`GraphQL.js`][].
     A `schema` *must* be provided.
 
-  * **`graphiql`**: If `true`, presents [GraphiQL][] when the route with a
-    `/graphiql` appended is loaded in a browser. We recommend that you set
+  * **`graphiql`**: If `true`, presents [GraphiQL][] when the GraphQL endpoint is
+    loaded in a browser. We recommend that you set
     `graphiql` to `true` when your app is in development, because it's
     quite useful. You may or may not want it in production.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
-    function from [`graphql-js`][].
+    function from [`GraphQL.js`][].
 
   * **`context`**: A value to pass as the `context` to the `graphql()`
-    function from [`graphql-js`][]. If `context` is not provided, the
+    function from [`GraphQL.js`][]. If `context` is not provided, the
     `request` object is passed as the context.
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
@@ -155,7 +155,7 @@ formatError: error => ({
 ```
 
 
-[`graphql-js`]: https://github.com/graphql/graphql-js
+[`GraphQL.js`]: https://github.com/graphql/graphql-js
 [`formatError`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
 [GraphiQL]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
