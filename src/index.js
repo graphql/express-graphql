@@ -10,6 +10,7 @@
 
 import accepts from 'accepts';
 import {
+  Document,
   Source,
   parse,
   validate,
@@ -18,6 +19,7 @@ import {
   getOperationAST,
   specifiedRules
 } from 'graphql';
+
 import httpError from 'http-errors';
 import url from 'url';
 
@@ -74,6 +76,11 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * The GraphQL document of which operations to be queried are defined.
+   */
+  withDocument?: ?Document,
 };
 
 type Middleware = (request: Request, response: Response) => Promise<void>;
@@ -101,6 +108,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let variables;
     let operationName;
     let validationRules;
+    let withDocument;
 
     // Promises are used as a mechanism for capturing any thrown errors during
     // the asynchronous process below.
@@ -135,9 +143,17 @@ export default function graphqlHTTP(options: Options): Middleware {
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
+      withDocument = optionsData.withDocument;
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
+        // If the user has set an allowed query, we aren’t going to use
+        // validation rules, so throw an error.
+        if (withDocument) {
+          throw httpError(500,
+            'Can’t specify validation rules when using a set GraphQL document.'
+          );
+        }
         validationRules = validationRules.concat(optionsData.validationRules);
       }
 
@@ -159,6 +175,28 @@ export default function graphqlHTTP(options: Options): Middleware {
       variables = params.variables;
       operationName = params.operationName;
 
+      // If an allowed query is defined, use it to execute the query.
+      if (withDocument) {
+        // The client can’t send a `query` if an `allowedQuery` is a defined
+        // option.
+        if (query) {
+          throw httpError(400,
+            'Query has been already defined by the server. Instead use ' +
+            '`operationName` to specify the operation to be run.'
+          );
+        }
+
+        // Execute the allowed query.
+        return execute(
+          schema,
+          withDocument,
+          rootValue,
+          context,
+          variables,
+          operationName
+        );
+      }
+
       // If there is no query, but GraphiQL will be displayed, do not produce
       // a result, otherwise return a 400: Bad Request.
       if (!query) {
@@ -169,7 +207,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       }
 
       // GraphQL source.
-      const source = new Source(query, 'GraphQL request');
+      const source = new Source(query, 'GraphQL Request');
 
       // Parse source to AST, reporting any syntax error.
       let documentAST;

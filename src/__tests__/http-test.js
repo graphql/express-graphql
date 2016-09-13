@@ -23,6 +23,8 @@ import connect from 'connect';
 import express4 from 'express'; // modern
 import express3 from 'express3'; // old but commonly still used
 import {
+  parse,
+  Source,
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLNonNull,
@@ -1016,7 +1018,7 @@ describe('test harness', () => {
         expect(error.response.status).to.equal(400);
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [ {
-            message: 'Syntax Error GraphQL request (1:1) ' +
+            message: 'Syntax Error GraphQL Request (1:1) ' +
               'Unexpected Name \"syntaxerror\"\n\n1: syntaxerror\n   ^\n',
             locations: [ { line: 1, column: 1 } ]
           } ]
@@ -1496,6 +1498,144 @@ describe('test harness', () => {
           ]
         });
 
+      });
+    });
+
+    describe('With document option', () => {
+      it('fails when validation rules are submitted', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          validationRules: [],
+          withDocument: parse(new Source('{test}')),
+        }));
+
+        const error = await catchError(
+          request(app).get(urlString())
+        );
+
+        expect(error.response.status).to.equal(500);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            { message: 'Can’t specify validation rules when using a set GraphQL document.' },
+          ]
+        });
+      });
+
+      it('will not work with another query', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          withDocument: parse(new Source('{test}')),
+        }));
+
+        const error = await catchError(
+          request(app).get(urlString({
+            query: '{test}',
+          }))
+        );
+
+        expect(error.response.status).to.equal(400);
+        expect(JSON.parse(error.response.text)).to.deep.equal({
+          errors: [
+            {
+              message:
+                'Query has been already defined by the server. Instead use ' +
+                '`operationName` to specify the operation to be run.',
+            },
+          ]
+        });
+      });
+
+      it('will run the prepared query', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          withDocument: parse(new Source('{test}')),
+        }));
+
+        const response = await request(app).get(urlString());
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+      });
+
+      it('can use variable values', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          withDocument: parse(new Source('query helloWho($who: String){ test(who: $who) }')),
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            variables: JSON.stringify({ who: 'Dolly' }),
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello Dolly"}}'
+        );
+      });
+
+      it('can differentiate between multiple prepared queries via operation name', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          withDocument: parse(new Source(`
+            query helloYou { test(who: "You"), ...shared }
+            query helloWorld { test(who: "World"), ...shared }
+            query helloWho($who: String){ test(who: $who) }
+            query helloDolly { test(who: "Dolly"), ...shared }
+            fragment shared on QueryRoot {
+              shared: test(who: "Everyone")
+            }
+          `)),
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            operationName: 'helloWorld',
+          }));
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: 'Hello World',
+            shared: 'Hello Everyone',
+          }
+        });
+      });
+
+      it('can use variable values in an operation', async () => {
+        const app = express();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          withDocument: parse(new Source(`
+            query helloYou { test(who: "You"), ...shared }
+            query helloWorld { test(who: "World"), ...shared }
+            query helloWho($who: String){ test(who: $who) }
+            query helloDolly { test(who: "Dolly"), ...shared }
+            fragment shared on QueryRoot {
+              shared: test(who: "Everyone")
+            }
+          `)),
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            operationName: 'helloWho',
+            variables: JSON.stringify({ who: 'Dolly' }),
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello Dolly"}}'
+        );
       });
     });
   });
