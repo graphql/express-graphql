@@ -151,7 +151,7 @@ new GraphQLObjectType({
 
 ## Persisted Documents
 
-Putting control of the query in to clients hands is one of the primary benefits
+Putting control of the query into clients' hands is one of the primary benefits
 of GraphQL. Though when this is deployed to production naively, it is possible to
 end up uploading and revalidating the same document text across all clients of a
 particular deployment. It can even be problematic within a single client, sending
