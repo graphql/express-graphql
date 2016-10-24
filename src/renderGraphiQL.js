@@ -19,8 +19,8 @@ type GraphiQLData = {
 const GRAPHIQL_VERSION = '0.7.1';
 
 // Ensures string values are save to be used within a <script> tag.
-function safeSerialize(data) {
-  return data ? JSON.stringify(data).replace(/\//g, '\\/') : null;
+function safeSerialize(data): string {
+  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'null';
 }
 
 /**
