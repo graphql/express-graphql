@@ -80,7 +80,7 @@
     "connect": "3.4.1",
     "content-type": "1.0.1",
     "coveralls": "2.11.9",
-    "eslint": "2.10.2",
+    "eslint": "3.9.1",
     "eslint-plugin-babel": "3.2.0",
     "express": "4.13.4",
     "express3": "*",
