@@ -26,6 +26,7 @@ import { renderGraphiQL } from './renderGraphiQL';
 
 import type { Request, Response } from 'express';
 
+export { parseBody };
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
