@@ -92,6 +92,7 @@
     "multer": "1.2.0",
     "raw-body": "2.1.6",
     "sane": "1.4.1",
+    "sinon": "1.17.6",
     "supertest": "1.0.1",
     "supertest-as-promised": "2.0.2"
   },
