@@ -56,6 +56,9 @@ The `graphqlHTTP` function accepts the following options:
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
 
+  * **`handleErrors`**: An optional function which will be used to handle any errors
+    encountered by fulfilling a GraphQL operation. If no function is provided, Errors
+    will default to normal behavior and return in `errors` array.
 
 ## HTTP Usage
 
