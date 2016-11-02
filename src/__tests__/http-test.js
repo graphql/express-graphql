@@ -74,7 +74,7 @@ const TestSchema = new GraphQLSchema({
   })
 });
 
-function urlString(urlParams?: ?Object) {
+function urlString(urlParams?: ?{[param: string]: mixed}) {
   let string = '/graphql';
   if (urlParams) {
     string += ('?' + stringify(urlParams));
@@ -1017,7 +1017,7 @@ describe('test harness', () => {
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [ {
             message: 'Syntax Error GraphQL request (1:1) ' +
-              'Unexpected Name \"syntaxerror\"\n\n1: syntaxerror\n   ^\n',
+              'Unexpected Name "syntaxerror"\n\n1: syntaxerror\n   ^\n',
             locations: [ { line: 1, column: 1 } ]
           } ]
         });

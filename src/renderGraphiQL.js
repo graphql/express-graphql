@@ -10,9 +10,9 @@
 
 type GraphiQLData = {
   query: ?string,
-  variables: ?Object,
+  variables: ?{[name: string]: mixed},
   operationName: ?string,
-  result?: Object
+  result?: mixed
 };
 
 // Current latest version of GraphiQL.
@@ -20,7 +20,7 @@ const GRAPHIQL_VERSION = '0.7.1';
 
 // Ensures string values are save to be used within a <script> tag.
 function safeSerialize(data) {
-  return data ? JSON.stringify(data).replace(/\//g, '\\/') : null;
+  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'null';
 }
 
 /**

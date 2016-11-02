@@ -16,7 +16,7 @@ import zlib from 'zlib';
 
 import type { Request } from 'express';
 
-export function parseBody(req: Request): Promise<Object> {
+export function parseBody(req: Request): Promise<{[param: string]: mixed}> {
   return new Promise((resolve, reject) => {
     // If express has already parsed a body as a keyed object, use it.
     if (typeof req.body === 'object' && !(req.body instanceof Buffer)) {
