@@ -241,12 +241,12 @@ export default function graphqlHTTP(options: Options): Middleware {
           operationName, result
         });
         response.setHeader('Content-Type', 'text/html; charset=utf-8');
-        response.end(data);
+        sendResponse(response, data);
       } else {
         // Otherwise, present JSON directly.
         const data = JSON.stringify(result, null, pretty ? 2 : 0);
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
-        response.end(data);
+        sendResponse(response, data);
       }
     });
   };
@@ -305,4 +305,16 @@ function canDisplayGraphiQL(
   // Allowed to show GraphiQL if not requested as raw and this request
   // prefers HTML over JSON.
   return !raw && accepts(request).types([ 'json', 'html' ]) === 'html';
+}
+
+/**
+ * Helper function for sending the response data. Use response.send it method
+ * exists (express), otherwise use response.end (connect).
+ */
+function sendResponse(response: Response, data: string): void {
+  if (typeof response.send === 'function') {
+    response.send(data);
+  } else {
+    response.end(data);
+  }
 }

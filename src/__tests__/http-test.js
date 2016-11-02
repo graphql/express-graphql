@@ -13,6 +13,7 @@
 
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
+import sinon from 'sinon';
 import { stringify } from 'querystring';
 import url from 'url';
 import zlib from 'zlib';
@@ -829,6 +830,42 @@ describe('test harness', () => {
         expect(JSON.parse(error.response.text)).to.deep.equal({
           errors: [ { message: 'Must provide query string.' } ]
         });
+      });
+    });
+
+    describe('Response functionality', () => {
+      it('uses send only for express', async () => {
+        const app = server();
+        let spyEnd = {};
+        let spySend = {};
+
+        // mount a middleware to spy on response methods
+        app.use(urlString(), (req, res, next) => {
+          spyEnd = sinon.spy(res, 'end');
+          try {
+            // res.send is undefined with connect
+            spySend = sinon.spy(res, 'send');
+          } catch (err) {
+            spySend = undefined;
+          }
+          next();
+        });
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema
+        }));
+
+        await request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        if (name === 'connect') {
+          expect(spyEnd.calledOnce);
+          expect(spySend).to.equal(undefined);
+        } else {
+          expect(spySend.calledOnce);
+        }
       });
     });
 
