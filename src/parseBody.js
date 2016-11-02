@@ -14,13 +14,19 @@ import httpError from 'http-errors';
 import querystring from 'querystring';
 import zlib from 'zlib';
 
-import type { Request } from 'express';
+import type { Request } from './index';
 
+/**
+ * Provided a "Request" provided by express or connect (typically a node style
+ * HTTPClientRequest), Promise the body data contained.
+ */
 export function parseBody(req: Request): Promise<{[param: string]: mixed}> {
   return new Promise((resolve, reject) => {
+    const body = req.body;
+
     // If express has already parsed a body as a keyed object, use it.
-    if (typeof req.body === 'object' && !(req.body instanceof Buffer)) {
-      return resolve(req.body);
+    if (typeof body === 'object' && !(body instanceof Buffer)) {
+      return resolve((body: any));
     }
 
     // Skip requests without content types.
@@ -32,13 +38,12 @@ export function parseBody(req: Request): Promise<{[param: string]: mixed}> {
 
     // If express has already parsed a body as a string, and the content-type
     // was application/graphql, parse the string body.
-    if (typeof req.body === 'string' &&
-        typeInfo.type === 'application/graphql') {
-      return resolve(graphqlParser(req.body));
+    if (typeof body === 'string' && typeInfo.type === 'application/graphql') {
+      return resolve(graphqlParser(body));
     }
 
     // Already parsed body we didn't recognise? Parse nothing.
-    if (req.body) {
+    if (body) {
       return resolve({});
     }
 
@@ -99,14 +104,16 @@ function read(req, typeInfo, parseFn, resolve, reject) {
   }
 
   // Get content-encoding (e.g. gzip)
-  const encoding =
-    (req.headers['content-encoding'] || 'identity').toLowerCase();
+  const contentEncoding = req.headers['content-encoding'];
+  const encoding = typeof contentEncoding === 'string' ?
+    contentEncoding.toLowerCase() :
+    'identity';
   const length = encoding === 'identity' ? req.headers['content-length'] : null;
   const limit = 100 * 1024; // 100kb
   const stream = decompressed(req, encoding);
 
   // Read body from stream.
-  getBody(stream, { encoding: charset, length, limit }, function (err, body) {
+  getBody(stream, { encoding: charset, length, limit }, (err, body) => {
     if (err) {
       return reject(
         err.type === 'encoding.unsupported' ?

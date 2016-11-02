@@ -141,6 +141,15 @@ new GraphQLObjectType({
 ```
 
 
+## Other Exports
+
+**`getGraphQLParams(request: Request): Promise<GraphQLParams>`**
+
+Given an HTTP Request, this returns a Promise for the parameters relevant to
+running a GraphQL request. This function is used internally to handle the
+incoming request, you may use it directly for building other similar services.
+
+
 ## Debugging Tips
 
 During development, it's useful to get more information from errors, such as

@@ -24,8 +24,15 @@ import url from 'url';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
+export type Request = {
+  method: string;
+  url: string;
+  body: mixed;
+  headers: {[header: string]: mixed};
+  pipe<T>(stream: T): T;
+};
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -147,17 +154,14 @@ export default function graphqlHTTP(options: Options): Middleware {
         throw httpError(405, 'GraphQL only supports GET and POST requests.');
       }
 
-      // Parse the Request body.
-      return parseBody(request);
-    }).then(bodyData => {
-      const urlData = request.url && url.parse(request.url, true).query || {};
-      showGraphiQL = graphiql && canDisplayGraphiQL(request, urlData, bodyData);
-
+      // Parse the Request to get GraphQL request parameters.
+      return getGraphQLParams(request);
+    }).then(params => {
       // Get GraphQL params from the request and POST body data.
-      const params = getGraphQLParams(urlData, bodyData);
       query = params.query;
       variables = params.variables;
       operationName = params.operationName;
+      showGraphiQL = graphiql && canDisplayGraphiQL(request, params);
 
       // If there is no query, but GraphiQL will be displayed, do not produce
       // a result, otherwise return a 400: Bad Request.
@@ -252,16 +256,28 @@ export default function graphqlHTTP(options: Options): Middleware {
   };
 }
 
-type GraphQLParams = {
+export type GraphQLParams = {
   query: ?string;
   variables: ?{[name: string]: mixed};
   operationName: ?string;
+  raw: ?boolean;
 };
+
+/**
+ * Provided a "Request" provided by express or connect (typically a node style
+ * HTTPClientRequest), Promise the GraphQL request parameters.
+ */
+export function getGraphQLParams(request: Request): Promise<GraphQLParams> {
+  return parseBody(request).then(bodyData => {
+    const urlData = request.url && url.parse(request.url, true).query || {};
+    return parseGraphQLParams(urlData, bodyData);
+  });
+}
 
 /**
  * Helper function to get the GraphQL params from the request.
  */
-function getGraphQLParams(
+function parseGraphQLParams(
   urlData: {[param: string]: mixed},
   bodyData: {[param: string]: mixed}
 ): GraphQLParams {
@@ -289,7 +305,9 @@ function getGraphQLParams(
     operationName = null;
   }
 
-  return { query, variables, operationName };
+  const raw = urlData.raw !== undefined || bodyData.raw !== undefined;
+
+  return { query, variables, operationName, raw };
 }
 
 /**
@@ -297,14 +315,12 @@ function getGraphQLParams(
  */
 function canDisplayGraphiQL(
   request: Request,
-  urlData: {[param: string]: mixed},
-  bodyData: {[param: string]: mixed}
+  params: GraphQLParams
 ): boolean {
   // If `raw` exists, GraphiQL mode is not enabled.
-  const raw = urlData.raw !== undefined || bodyData.raw !== undefined;
   // Allowed to show GraphiQL if not requested as raw and this request
   // prefers HTML over JSON.
-  return !raw && accepts(request).types([ 'json', 'html' ]) === 'html';
+  return !params.raw && accepts(request).types([ 'json', 'html' ]) === 'html';
 }
 
 /**
