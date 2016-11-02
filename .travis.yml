@@ -1,13 +1,27 @@
 language: node_js
 
+# https://github.com/nodejs/LTS
 node_js:
+  - "7"
   - "6"
-  - "5"
   - "4"
-  - "iojs"
   - "0.12"
 
+git:
+  depth: 5
+
+cache:
+  directories:
+    - ~/.npm
+
 notifications:
+  irc:
+    use_notice: true
+    on_success: change
+    on_failure: change
+    skip_join: true
+    channels:
+      - "chat.freenode.net#graphql"
   slack:
     secure: eFMk+9i9G0F8VYd0cd+qfBXEcngR1odYzGapdSSPH0Ag6Ck1sjK64n0iFwz+RDV2sSVnjnAA5qbXNcltBhEe1DkNsZVXOp4cDxKiFQOH1NJu9m29rYx+dZ4H93JjuDtH0u2o2op/PhtXlwAjr8GBcdGgFNTUbiJv9nIj4sYudQJFL8VUQwYviRO28xx12hG7cmKvQ7YZ/OKz52oGnIOM4yoQgPKFRY4ztMr6OrHwDwWMAxptZjKYY0i2hE3ot+OkWeWteZvE9E2Q0OJI7C6XlZg+bR6Mu7VS5s6jjL21luJJBgwihLuWVNMXxxEfoUCldo0s/RX8lObuFocKpnAtqVimr1rPZtUYZzy/Jjd1fxa27TgONZUgibWoRbAFDCdKhJOsBSLGfvQw+a3sxkV5zD5DKpgaNavT+GbOZJn4KGw3i1M/5Gp1tqB+RsTMjRvXQH5rsc+9z/flys1K9sNrc7O0NS2sVPayf4U5ECgT6t0y6NM1hQNepNHbvPSU/I/dUPYQEMcWMtdgtApAeUcbsRFUgFejNwp4hhTz0MS6k9AtmLJ79mNQBqDgZ3/pnW/YjW7BsK8/f6xOabxJjwIdLJvAifxRy/oj8wd5ttx8u+qKZ547PhdNJiMV7H60tGqkJshqbphlvWr48l0EV0A635uY24VefYoTeMIXZSeueME=
 
