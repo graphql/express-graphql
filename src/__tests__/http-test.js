@@ -1563,5 +1563,84 @@ describe('test harness', () => {
 
       });
     });
+
+    describe('Custom result extensions', () => {
+
+      it('allows for adding extensions', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP(() => {
+          const startTime = 1000000000; /* Date.now(); */
+          return {
+            schema: TestSchema,
+            extensions() {
+              return { runTime: 1000000010 /* Date.now() */ - startTime };
+            }
+          };
+        }));
+
+        const response = await request(app)
+          .get(urlString({ query: '{test}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"},"extensions":{"runTime":10}}'
+        );
+      });
+
+      it('extensions have access to initial GraphQL result', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          formatError: () => null,
+          extensions(result) {
+            return { preservedErrors: (result: any).errors };
+          }
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            query: '{thrower}',
+          }));
+
+        expect(response.status).to.equal(200);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: { thrower: null },
+          errors: [ null ],
+          extensions: {
+            preservedErrors: [ {
+              message: 'Throws!',
+              locations: [ { line: 1, column: 2 } ],
+              path: [ 'thrower' ]
+            } ]
+          }
+        });
+      });
+
+      it('extension function may be async', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          async extensions() {
+            // Note: you can await arbitrary things here!
+            return { eventually: 42 };
+          }
+        }));
+
+        const response = await request(app)
+          .get(urlString({ query: '{test}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"},"extensions":{"eventually":42}}'
+        );
+      });
+    });
   });
 });
