@@ -1596,7 +1596,7 @@ describe('test harness', () => {
         app.use(urlString(), graphqlHTTP({
           schema: TestSchema,
           formatError: () => null,
-          extensions(result) {
+          extensions({ result }) {
             return { preservedErrors: (result: any).errors };
           }
         }));

@@ -154,6 +154,11 @@ a GraphQL query via a field in the response called `"extensions"`. This is added
 by providing an `extensions` function when using `graphqlHTTP`. The function
 must return a JSON-serializable Object.
 
+When called, this is provided an argument which you can use to get information
+about the GraphQL request:
+
+`{ document, variables, operationName, result }`
+
 This example illustrates adding the amount of time consumed by running the
 provided query, which could perhaps be used by your development tools.
 
@@ -169,7 +174,7 @@ app.use('/graphql', graphqlHTTP(request => {
   return {
     schema: MyGraphQLSchema,
     graphiql: true,
-    extensions(result) {
+    extensions() {
       return { runTime: Date.now() - startTime };
     }
   };

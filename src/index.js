@@ -24,6 +24,7 @@ import url from 'url';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
+import type { Document } from 'graphql';
 import type { Response } from 'express';
 
 export type Request = {
@@ -83,14 +84,41 @@ export type OptionsData = {
    * the resulting JSON. This is often a useful place to add development time
    * info such as the runtime of a query or the amount of resources consumed.
    *
+   * Information about the request is provided to be used.
+   *
    * This function may be async.
    */
-  extensions?: ?(result: mixed) => {[key: string]: mixed};
+  extensions?: ?(info: RequestInfo) => {[key: string]: mixed};
 
   /**
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+};
+
+/**
+ * All information about a GraphQL request.
+ */
+export type RequestInfo = {
+  /**
+   * The parsed GraphQL document.
+   */
+  document: Document,
+
+  /**
+   * The variable values used at runtime.
+   */
+  variables: ?{[name: string]: mixed};
+
+  /**
+   * The (optional) operation name requested.
+   */
+  operationName: ?string;
+
+  /**
+   * The result of executing the operation.
+   */
+  result: ?mixed;
 };
 
 type Middleware = (request: Request, response: Response) => Promise<void>;
@@ -116,6 +144,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let extensionsFn;
     let showGraphiQL;
     let query;
+    let documentAST;
     let variables;
     let operationName;
     let validationRules;
@@ -188,7 +217,6 @@ export default function graphqlHTTP(options: Options): Middleware {
       const source = new Source(query, 'GraphQL request');
 
       // Parse source to AST, reporting any syntax error.
-      let documentAST;
       try {
         documentAST = parse(source);
       } catch (syntaxError) {
@@ -245,7 +273,12 @@ export default function graphqlHTTP(options: Options): Middleware {
       // Collect and apply any metadata extensions if a function was provided.
       // http://facebook.github.io/graphql/#sec-Response-Format
       if (result && extensionsFn) {
-        return Promise.resolve(extensionsFn(result)).then(extensions => {
+        return Promise.resolve(extensionsFn({
+          document: documentAST,
+          variables,
+          operationName,
+          result
+        })).then(extensions => {
           if (extensions && typeof extensions === 'object') {
             (result: any).extensions = extensions;
           }
