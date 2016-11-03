@@ -78,6 +78,16 @@ export type OptionsData = {
   validationRules?: ?Array<mixed>,
 
   /**
+   * An optional function for adding additional metadata to the GraphQL response
+   * as a key-value object. The result will be added to "extensions" field in
+   * the resulting JSON. This is often a useful place to add development time
+   * info such as the runtime of a query or the amount of resources consumed.
+   *
+   * This function may be async.
+   */
+  extensions?: ?(result: mixed) => {[key: string]: mixed};
+
+  /**
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
@@ -103,6 +113,7 @@ export default function graphqlHTTP(options: Options): Middleware {
     let pretty;
     let graphiql;
     let formatErrorFn;
+    let extensionsFn;
     let showGraphiQL;
     let query;
     let variables;
@@ -142,6 +153,7 @@ export default function graphqlHTTP(options: Options): Middleware {
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
+      extensionsFn = optionsData.extensions;
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
@@ -229,6 +241,18 @@ export default function graphqlHTTP(options: Options): Middleware {
         response.statusCode = 400;
         return { errors: [ contextError ] };
       }
+    }).then(result => {
+      // Collect and apply any metadata extensions if a function was provided.
+      // http://facebook.github.io/graphql/#sec-Response-Format
+      if (result && extensionsFn) {
+        return Promise.resolve(extensionsFn(result)).then(extensions => {
+          if (extensions && typeof extensions === 'object') {
+            (result: any).extensions = extensions;
+          }
+          return result;
+        });
+      }
+      return result;
     }).catch(error => {
       // If an error was caught, report the httpError status, or 500.
       response.statusCode = error.status || 500;
