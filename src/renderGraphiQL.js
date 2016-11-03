@@ -20,7 +20,7 @@ const GRAPHIQL_VERSION = '0.7.1';
 
 // Ensures string values are save to be used within a <script> tag.
 function safeSerialize(data) {
-  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'null';
+  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'undefined';
 }
 
 /**
