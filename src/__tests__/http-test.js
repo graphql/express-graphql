@@ -1424,7 +1424,7 @@ describe('test harness', () => {
 
         expect(response.status).to.equal(200);
         expect(response.type).to.equal('text/html');
-        expect(response.text).to.include('response: null');
+        expect(response.text).to.include('response: undefined');
       });
 
       it('GraphiQL accepts a mutation query - does not execute it', async () => {
@@ -1446,7 +1446,7 @@ describe('test harness', () => {
         expect(response.text).to.include(
           'query: "mutation TestMutation { writeTest { test } }"'
         );
-        expect(response.text).to.include('response: null');
+        expect(response.text).to.include('response: undefined');
       });
 
       it('returns HTML if preferred', async () => {
