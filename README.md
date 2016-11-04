@@ -57,7 +57,8 @@ The `graphqlHTTP` function accepts the following options:
     GraphQL response as a key-value object. The result will be added to
     `"extensions"` field in the resulting JSON. This is often a useful place to
     add development time metadata such as the runtime of a query or the amount
-    of resources consumed. This may be an async function.
+    of resources consumed. This may be an async function. The function is
+    give one object as an argument: `{ document, variables, operationName, result }`.
 
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
@@ -174,7 +175,7 @@ app.use('/graphql', graphqlHTTP(request => {
   return {
     schema: MyGraphQLSchema,
     graphiql: true,
-    extensions() {
+    extensions({ document, variables, operationName, result }) {
       return { runTime: Date.now() - startTime };
     }
   };
