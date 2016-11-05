@@ -8,16 +8,16 @@
  */
 /* eslint-disable no-console */
 
-import sane from 'sane';
-import { resolve as resolvePath } from 'path';
-import { spawn } from 'child_process';
-import flowBinPath from 'flow-bin';
+const sane = require('sane');
+const { resolve: resolvePath } = require('path');
+const { spawn } = require('child_process');
+const flowBinPath = require('flow-bin');
 
 
 process.env.PATH += ':./node_modules/.bin';
 
 var cmd = resolvePath(__dirname);
-var srcDir = resolvePath(cmd, './src');
+var srcDir = resolvePath(cmd, '../src');
 
 function exec(command, options) {
   return new Promise(function (resolve, reject) {
