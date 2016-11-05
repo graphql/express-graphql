@@ -93,8 +93,8 @@
     "raw-body": "2.1.6",
     "sane": "1.4.1",
     "sinon": "1.17.6",
-    "supertest": "1.0.1",
-    "supertest-as-promised": "2.0.2"
+    "supertest": "2.0.1",
+    "supertest-as-promised": "4.0.2"
   },
   "peerDependencies": {
     "graphql": "^0.5.0-b || ^0.6.0 || ^0.7.0 || ^0.8.0-b"
