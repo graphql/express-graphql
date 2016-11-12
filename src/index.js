@@ -131,7 +131,8 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * Middleware for express; takes an options object or function as input to
  * configure behavior, and returns an express middleware.
  */
-export default function graphqlHTTP(options: Options): Middleware {
+module.exports = graphqlHTTP;
+function graphqlHTTP(options: Options): Middleware {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
   }
@@ -336,7 +337,8 @@ export type GraphQLParams = {
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
-export function getGraphQLParams(request: Request): Promise<GraphQLParams> {
+module.exports.getGraphQLParams = getGraphQLParams;
+function getGraphQLParams(request: Request): Promise<GraphQLParams> {
   return parseBody(request).then(bodyData => {
     const urlData = request.url && url.parse(request.url, true).query || {};
     return parseGraphQLParams(urlData, bodyData);

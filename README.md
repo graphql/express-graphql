@@ -203,6 +203,14 @@ Given an HTTP Request, this returns a Promise for the parameters relevant to
 running a GraphQL request. This function is used internally to handle the
 incoming request, you may use it directly for building other similar services.
 
+```js
+const graphqlHTTP = require('express-graphql');
+
+graphqlHTTP.getGraphQLParams(request).then(params => {
+  // do something...
+})
+```
+
 
 ## Debugging Tips
 
