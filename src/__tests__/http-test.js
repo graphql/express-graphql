@@ -939,7 +939,8 @@ describe('test harness', () => {
           data: { thrower: null },
           errors: [ {
             message: 'Throws!',
-            locations: [ { line: 1, column: 2 } ]
+            locations: [ { line: 1, column: 2 } ],
+            path: [ 'thrower' ]
           } ]
         });
       });
@@ -961,7 +962,8 @@ describe('test harness', () => {
           data: null,
           errors: [ {
             message: 'Throws!',
-            locations: [ { line: 1, column: 2 } ]
+            locations: [ { line: 1, column: 2 } ],
+            path: [ 'nonNullThrower' ]
           } ]
         });
       });
