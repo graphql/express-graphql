@@ -43,7 +43,7 @@ const QueryRootType = new GraphQLObjectType({
           type: GraphQLString
         }
       },
-      resolve: (root, { who }) => 'Hello ' + (who || 'World')
+      resolve: (root, { who }) => 'Hello ' + ((who: any) || 'World')
     },
     nonNullThrower: {
       type: new GraphQLNonNull(GraphQLString),
@@ -60,7 +60,7 @@ const QueryRootType = new GraphQLObjectType({
     contextDotFoo: {
       type: GraphQLString,
       resolve: (obj, args, context) => {
-        return context.foo;
+        return (context: any).foo;
       },
     },
   }
