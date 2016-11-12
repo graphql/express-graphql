@@ -41,7 +41,6 @@
       "es2015"
     ],
     "plugins": [
-      "add-module-exports",
       "transform-class-properties",
       "transform-flow-strip-types"
     ]
