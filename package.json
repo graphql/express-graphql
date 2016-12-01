@@ -80,7 +80,7 @@
     "coveralls": "2.11.15",
     "eslint": "3.10.0",
     "eslint-plugin-babel": "3.3.0",
-    "eslint-plugin-flowtype": "2.25.0",
+    "eslint-plugin-flowtype": "2.29.1",
     "express": "4.14.0",
     "express3": "*",
     "flow-bin": "0.35.0",
