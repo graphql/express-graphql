@@ -79,7 +79,7 @@
     "content-type": "1.0.2",
     "coveralls": "2.11.15",
     "eslint": "3.10.0",
-    "eslint-plugin-babel": "3.3.0",
+    "eslint-plugin-babel": "4.0.0",
     "eslint-plugin-flowtype": "2.25.0",
     "express": "4.14.0",
     "express3": "*",
