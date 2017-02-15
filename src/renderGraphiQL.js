@@ -12,7 +12,9 @@ type GraphiQLData = {
   query: ?string,
   variables: ?{[name: string]: mixed},
   operationName: ?string,
-  result?: mixed
+  result?: mixed,
+  showGraphiQL?: ?(boolean | string),
+  baseURLWithTrailingSlash: string
 };
 
 // Current latest version of GraphiQL.
@@ -37,6 +39,39 @@ export function renderGraphiQL(data: GraphiQLData): string {
   const resultString =
     data.result ? JSON.stringify(data.result, null, 2) : null;
   const operationName = data.operationName;
+  const showGraphiQL = data.showGraphiQL;
+  const path = data.baseURLWithTrailingSlash;
+
+  let cssUrl = null;
+  let scriptUrls = null;
+
+  switch (showGraphiQL) {
+    case 'local' :
+      scriptUrls = [
+        `${path}vendor/fetch.min-0.9.0.js`,
+        `${path}vendor/react.min-15.4.2.js`,
+        `${path}vendor/react-dom.min-15.4.2.js`,
+        `${path}vendor/graphiql.min-${GRAPHIQL_VERSION}.js`
+      ];
+      cssUrl = `${path}vendor/graphiql-${GRAPHIQL_VERSION}.css`;
+      break;
+
+
+    case 'cdn' :
+    case true :
+      scriptUrls = [
+        '//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js',
+        '//cdn.jsdelivr.net/react/15.4.2/react.min.js',
+        '//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js',
+        `//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.min.js`
+      ];
+      cssUrl = `//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.css`;
+      break;
+
+
+    default :
+      throw new Error('showGraphiQL must be a boolean, "cdn" or "local".');
+  }
 
   /* eslint-disable max-len */
   return `<!--
@@ -61,11 +96,8 @@ add "&raw" to the end of the URL within a browser.
       width: 100%;
     }
   </style>
-  <link href="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
-  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
-  <script src="//cdn.jsdelivr.net/graphiql/${GRAPHIQL_VERSION}/graphiql.min.js"></script>
+  <link href="${cssUrl}" rel="stylesheet" />
+  ${scriptUrls.map(url => `<script src="${url}"></script>`).join('\n  ')}
 </head>
 <body>
   <script>

@@ -8,6 +8,7 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
+import path from 'path';
 import accepts from 'accepts';
 import {
   Source,
@@ -30,10 +31,12 @@ import type {
   GraphQLSchema
 } from 'graphql';
 import type { Response } from 'express';
+import express from 'express';
 
 export type Request = {
   method: string;
   url: string;
+  baseUrl: string,
   body: mixed;
   headers: {[header: string]: mixed};
   pipe<T>(stream: T): T;
@@ -99,7 +102,7 @@ export type OptionsData = {
   /**
    * A boolean to optionally enable GraphiQL mode.
    */
-  graphiql?: ?boolean,
+  graphiql?: ?(boolean | string),
 };
 
 /**
@@ -128,18 +131,28 @@ export type RequestInfo = {
 };
 
 type Middleware = (request: Request, response: Response) => Promise<void>;
+type Router = {
+  use: (route: string, middleware: Middleware) => void
+};
 
 /**
- * Middleware for express; takes an options object or function as input to
- * configure behavior, and returns an express middleware.
+ * An express router; takes an options object or function as input to
+ * configure behavior, and returns an express router that has been
+ * loaded with the middleware function and an endpoint to serve local
+ * files.
  */
 module.exports = graphqlHTTP;
-function graphqlHTTP(options: Options): Middleware {
+function graphqlHTTP(options: Options): Router {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
   }
 
-  return (request: Request, response: Response) => {
+  const router = new express.Router();
+
+  // Set up the static files to serve
+  router.use('/vendor', express.static(path.join(__dirname, 'vendor/')));
+
+  router.use('/', (request: Request, response: Response) => {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let schema;
@@ -209,7 +222,9 @@ function graphqlHTTP(options: Options): Middleware {
       query = params.query;
       variables = params.variables;
       operationName = params.operationName;
-      showGraphiQL = graphiql && canDisplayGraphiQL(request, params);
+      showGraphiQL = graphiql &&
+        canDisplayGraphiQL(request, params) &&
+        graphiql;
 
       // If there is no query, but GraphiQL will be displayed, do not produce
       // a result, otherwise return a 400: Bad Request.
@@ -312,9 +327,11 @@ function graphqlHTTP(options: Options): Middleware {
       }
       // If allowed to show GraphiQL, present it instead of JSON.
       if (showGraphiQL) {
+        const baseURLWithTrailingSlash = request.baseUrl.replace(/\/?$/, '/');
         const payload = renderGraphiQL({
           query, variables,
-          operationName, result
+          operationName, result,
+          showGraphiQL, baseURLWithTrailingSlash
         });
         response.setHeader('Content-Type', 'text/html; charset=utf-8');
         sendResponse(response, payload);
@@ -325,7 +342,9 @@ function graphqlHTTP(options: Options): Middleware {
         sendResponse(response, payload);
       }
     });
-  };
+  });
+
+  return router;
 }
 
 export type GraphQLParams = {
