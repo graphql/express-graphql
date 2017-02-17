@@ -139,7 +139,7 @@ function graphqlHTTP(options: Options): Middleware {
     throw new Error('GraphQL middleware requires options.');
   }
 
-  return (request: Request, response: Response) => {
+  return (request: Request, response: Response, next: Function) => {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let schema;
@@ -324,7 +324,7 @@ function graphqlHTTP(options: Options): Middleware {
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
         sendResponse(response, payload);
       }
-    });
+    }).then(next);
   };
 }
 
