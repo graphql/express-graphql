@@ -94,7 +94,7 @@ If not found in the query-string, it will look in the POST request body.
 If a previous middleware has already parsed the POST body, the `request.body`
 value will be used. Use [`multer`][] or a similar middleware to add support
 for `multipart/form-data` content, which may be useful for GraphQL mutations
-involving uploading files. See an [example using multer](https://github.com/graphql/express-graphql/blob/master/src/__tests__/http-test.js#L650).
+involving uploading files. See an [example using multer](https://github.com/graphql/express-graphql/blob/304b24b993c8f16fffff8d23b0fa4088e690874b/src/__tests__/http-test.js#L674-L741).
 
 If the POST body has not yet been parsed, express-graphql will interpret it
 depending on the provided *Content-Type* header.
