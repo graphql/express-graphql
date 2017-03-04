@@ -77,7 +77,7 @@
     "chai": "3.5.0",
     "connect": "3.6.0",
     "coveralls": "2.11.16",
-    "eslint": "3.16.1",
+    "eslint": "3.17.0",
     "eslint-plugin-babel": "4.1.0",
     "eslint-plugin-flowtype": "2.30.0",
     "express": "4.14.1",
