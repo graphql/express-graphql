@@ -362,7 +362,7 @@ function parseGraphQLParams(
 
   // Parse the variables if needed.
   let variables = urlData.variables || bodyData.variables;
-  if (typeof variables === 'string') {
+  if (variables && typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
     } catch (error) {
