@@ -58,7 +58,7 @@ The `graphqlHTTP` function accepts the following options:
     `"extensions"` field in the resulting JSON. This is often a useful place to
     add development time metadata such as the runtime of a query or the amount
     of resources consumed. This may be an async function. The function is
-    give one object as an argument: `{ document, variables, operationName, result }`.
+    given a few arguments: `{ document, variables, operationName, result, query }`.
 
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
