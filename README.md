@@ -221,7 +221,8 @@ stack traces. Providing a function to `formatError` enables this:
 formatError: error => ({
   message: error.message,
   locations: error.locations,
-  stack: error.stack
+  stack: error.stack,
+  path: error.path
 })
 ```
 
