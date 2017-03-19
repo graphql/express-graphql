@@ -63,6 +63,12 @@ const QueryRootType = new GraphQLObjectType({
         return (context: any).foo;
       },
     },
+    rootValueField: {
+      type: GraphQLString,
+      resolve: obj => {
+        return (obj: any).rootValueField;
+      },
+    }
   }
 });
 
@@ -1574,6 +1580,73 @@ describe('test harness', () => {
         expect(response.type).to.equal('application/json');
         expect(response.text).to.equal(
           '{"data":{"test":"Hello World"},"extensions":{"eventually":42}}'
+        );
+      });
+    });
+
+
+    describe('Custom rootValue', () => {
+
+      it('allows to supply rootValue as an object', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          rootValue: {rootValueField: 'Test Value'},
+        }));
+
+        const response = await request(app)
+          .get(urlString({ query: '{rootValueField}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"rootValueField":"Test Value"}}'
+        );
+      });
+
+      it('allows to supply rootValue as a Promise for an object', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          rootValue: new Promise(resolve => resolve({
+            rootValueField: 'Test Value'
+          })),
+        }));
+
+        const response = await request(app)
+          .get(urlString({ query: '{rootValueField}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"rootValueField":"Test Value"}}'
+        );
+      });
+
+      it('allows to supply rootValue as Function that returns a Promise for an object', async () => {
+        const app = server();
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          rootValue() {
+            return new Promise(resolve => resolve({
+              rootValueField: 'Test Value'
+            }));
+          }
+        }));
+
+        const response = await request(app)
+          .get(urlString({query: '{rootValueField}', raw: ''}))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(response.text).to.equal(
+          '{"data":{"rootValueField":"Test Value"}}'
         );
       });
     });
