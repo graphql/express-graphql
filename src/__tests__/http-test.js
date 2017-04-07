@@ -15,14 +15,11 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import sinon from 'sinon';
 import { stringify } from 'querystring';
-import url from 'url';
 import zlib from 'zlib';
 import multer from 'multer';
 import bodyParser from 'body-parser';
 import request from 'supertest-as-promised';
-import connect from 'connect';
-import express4 from 'express'; // modern
-import express3 from 'express3'; // old but commonly still used
+import express4 from 'express'; // current version 4
 import {
   GraphQLSchema,
   GraphQLObjectType,
@@ -115,9 +112,7 @@ describe('test harness', () => {
 });
 
 ([
-  [ connect, 'connect' ],
-  [ express4, 'express-modern' ],
-  [ express3, 'express-old' ]
+  [ express4, 'express-current' ]
 ])
 .forEach(([ server, name ]) => {
   describe(`GraphQL-HTTP tests for ${name}`, () => {
@@ -828,74 +823,6 @@ describe('test harness', () => {
         } else {
           expect(spySend.calledOnce);
         }
-      });
-    });
-
-    describe('Pretty printing', () => {
-      it('supports pretty printing', async () => {
-        const app = server();
-
-        app.use(urlString(), graphqlHTTP({
-          schema: TestSchema,
-          pretty: true
-        }));
-
-        const response = await request(app)
-          .get(urlString({
-            query: '{test}'
-          }));
-
-        expect(response.text).to.equal(
-          '{\n' +
-          '  "data": {\n' +
-          '    "test": "Hello World"\n' +
-          '  }\n' +
-          '}'
-        );
-      });
-
-      it('supports pretty printing configured by request', async () => {
-        const app = server();
-
-        app.use(urlString(), graphqlHTTP(req => {
-          return {
-            schema: TestSchema,
-            pretty: ((url.parse(req.url, true) || {}).query || {}).pretty === '1'
-          };
-        }));
-
-        const defaultResponse = await request(app)
-          .get(urlString({
-            query: '{test}'
-          }));
-
-        expect(defaultResponse.text).to.equal(
-          '{"data":{"test":"Hello World"}}'
-        );
-
-        const prettyResponse = await request(app)
-          .get(urlString({
-            query: '{test}',
-            pretty: 1
-          }));
-
-        expect(prettyResponse.text).to.equal(
-          '{\n' +
-          '  "data": {\n' +
-          '    "test": "Hello World"\n' +
-          '  }\n' +
-          '}'
-        );
-
-        const unprettyResponse = await request(app)
-          .get(urlString({
-            query: '{test}',
-            pretty: 0
-          }));
-
-        expect(unprettyResponse.text).to.equal(
-          '{"data":{"test":"Hello World"}}'
-        );
       });
     });
 
