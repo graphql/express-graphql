@@ -119,6 +119,11 @@ export type RequestInfo = {
   result: ?mixed;
 };
 
+export type ExecutionResult = {
+  data?: ?{[key: string]: mixed};
+  errors?: Array<GraphQLError>;
+};
+
 type Middleware = (request: $Request, response: $Response) => Promise<void>;
 
 /**
@@ -137,7 +142,6 @@ function graphqlHTTP(options: Options): Middleware {
     let schema;
     let context;
     let rootValue;
-    let pretty;
     let graphiql;
     let formatErrorFn;
     let extensionsFn;
@@ -178,7 +182,6 @@ function graphqlHTTP(options: Options): Middleware {
       schema = optionsData.schema;
       context = optionsData.context || request;
       rootValue = optionsData.rootValue;
-      pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
       extensionsFn = optionsData.extensions;
@@ -311,10 +314,9 @@ function graphqlHTTP(options: Options): Middleware {
         response.setHeader('Content-Type', 'text/html; charset=utf-8');
         sendResponse(response, payload);
       } else {
-        // Otherwise, present JSON directly.
-        const payload = JSON.stringify(result, null, pretty ? 2 : 0);
+        // Server will stringify our response object, we can return it directly
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
-        sendResponse(response, payload);
+        sendResponse(response, result);
       }
     });
   };
@@ -392,9 +394,14 @@ function canDisplayGraphiQL(
  * Helper function for sending the response data. Use response.send it method
  * exists (express), otherwise use response.end (connect).
  */
-function sendResponse(response: $Response, data: string): void {
-  if (typeof response.send === 'function') {
+function sendResponse(
+  response: $Response,
+  data: string | ExecutionResult
+): void {
+  if (typeof data === 'string' && typeof response.send === 'function') {
     response.send(data);
+  } else if (typeof data === 'object' && typeof response.json === 'function') {
+    response.json(data);
   } else {
     response.end(data);
   }
