@@ -398,11 +398,15 @@ function sendResponse(
   response: $Response,
   data: string | ExecutionResult
 ): void {
+  const dataIsObject = typeof data === 'object'
+
   if (typeof data === 'string' && typeof response.send === 'function') {
-    response.send(data);
-  } else if (typeof data === 'object' && typeof response.json === 'function') {
-    response.json(data);
-  } else {
-    response.end(data);
+    return response.send(data);
   }
+  if (dataIsObject && typeof response.json === 'function') {
+    return response.json(data);
+  }
+
+  const returnData = dataIsObject ? JSON.stringify(data): data
+  response.end(returnData);
 }

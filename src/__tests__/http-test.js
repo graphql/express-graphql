@@ -19,6 +19,7 @@ import zlib from 'zlib';
 import multer from 'multer';
 import bodyParser from 'body-parser';
 import request from 'supertest-as-promised';
+import connect from 'connect';
 import express4 from 'express';
 import restify4 from 'restify';
 import {
@@ -112,7 +113,10 @@ describe('test harness', () => {
 
 });
 
+const basicConfig = [urlString(), graphqlHTTP({ schema: TestSchema })];
+
 ([
+  [ connect, 'connect' ],
   [ express4, 'express' ],
   [ restify4, 'restify' ]
 ])
@@ -126,9 +130,8 @@ describe('test harness', () => {
     describe('GET functionality', () => {
       describe('Without context', () => {
         beforeEach(() => {
-          app.get(urlString(), graphqlHTTP({
-            schema: TestSchema
-          }));
+          if (name === 'restify') app.get(...basicConfig);
+          else app.use(...basicConfig);
         });
 
         it('allows GET with query param', async () => {
@@ -267,10 +270,12 @@ describe('test harness', () => {
 
       describe('With context', () => {
         it('Allows passing in a context', async () => {
-          app.get(urlString(), graphqlHTTP({
+          const config = [urlString(), graphqlHTTP({
             schema: TestSchema,
             context: 'testValue'
-          }));
+          })]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
 
           const response = await request(app)
             .get(urlString({
@@ -295,9 +300,8 @@ describe('test harness', () => {
             next();
           });
 
-          app.get(urlString(), graphqlHTTP({
-            schema: TestSchema
-          }));
+          if (name === 'restify') app.get(...basicConfig);
+          else app.use(...basicConfig);
 
           const response = await request(app)
             .get(urlString({
@@ -318,9 +322,11 @@ describe('test harness', () => {
 
       describe('With options', () => {
         it('Allows returning an options Promise', async () => {
-          app.get(urlString(), graphqlHTTP(() => Promise.resolve({
+          const config = [urlString(), graphqlHTTP(() => Promise.resolve({
             schema: TestSchema,
-          })));
+          }))]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
 
           const response = await request(app)
             .get(urlString({
@@ -333,9 +339,11 @@ describe('test harness', () => {
         });
 
         it('Catches errors thrown from options function', async () => {
-          app.get(urlString(), graphqlHTTP(() => {
+          const config = [urlString(), graphqlHTTP(() => {
             throw new Error('I did something wrong');
-          }));
+          })]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
 
           const response = await request(app)
             .get(urlString({
@@ -353,7 +361,8 @@ describe('test harness', () => {
     describe('POST functionality', () => {
       describe('allows/supports', () => {
         beforeEach(() => {
-          app.post(urlString(), graphqlHTTP({ schema: TestSchema }));
+          if (name === 'restify') app.post(...basicConfig);
+          else app.use(...basicConfig);
         });
 
         it('POST with JSON encoding', async () => {
@@ -606,11 +615,11 @@ describe('test harness', () => {
 
           // Multer provides multipart form data parsing.
           const storage = multer.memoryStorage();
-          app.post(urlString(), multer({ storage }).single('file'));
+          app.use(urlString(), multer({ storage }).single('file'));
 
           // Providing the request as part of `rootValue` allows it to
           // be accessible from within Schema resolve functions.
-          app.post(urlString(), graphqlHTTP(req => {
+          app.use(urlString(), graphqlHTTP(req => {
             return {
               schema: TestMutationSchema,
               rootValue: { request: req }
@@ -636,7 +645,9 @@ describe('test harness', () => {
 
         it('using application/graphql', async () => {
           app.use(bodyParser.text({ type: 'application/graphql' }));
-          app.post(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+          if (name === 'restify') app.post(...basicConfig);
+          else app.use(...basicConfig);
 
           const req = request(app)
             .post(urlString())
@@ -655,7 +666,9 @@ describe('test harness', () => {
       describe('does not accept unknown pre-parsed POST', () => {
         it('string', async () => {
           app.use(bodyParser.text({ type: '*/*' }));
-          app.post(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+          if (name === 'restify') app.post(...basicConfig);
+          else app.use(...basicConfig);
 
           const req = request(app)
             .post(urlString());
@@ -670,7 +683,9 @@ describe('test harness', () => {
 
         it('raw Buffer', async () => {
           app.use(bodyParser.raw({ type: '*/*' }));
-          app.post(urlString(), graphqlHTTP({ schema: TestSchema }));
+
+          if (name === 'restify') app.post(...basicConfig);
+          else app.use(...basicConfig);
 
           const req = request(app)
             .post(urlString())
@@ -692,7 +707,7 @@ describe('test harness', () => {
         let spySend = {};
 
         // mount a middleware to spy on response methods
-        app.get(urlString(), graphqlHTTP((req, res) => {
+        const config = [urlString(), graphqlHTTP((req, res) => {
           spyEnd = sinon.spy(res, 'end');
           try {
             // res.send is undefined with connect
@@ -701,7 +716,9 @@ describe('test harness', () => {
             spySend = undefined;
           }
           return { schema: TestSchema };
-        }));
+        })]
+        if (name === 'restify') app.get(...config);
+        else app.use(...config);
 
         await request(app).get(urlString({ query: '{test}' }));
 
@@ -719,7 +736,7 @@ describe('test harness', () => {
       let hasRequest = false;
       let hasResponse = false;
 
-      app.get(urlString(), graphqlHTTP((req, res) => {
+      const config = [urlString(), graphqlHTTP((req, res) => {
         if (req) {
           hasRequest = true;
         }
@@ -727,7 +744,9 @@ describe('test harness', () => {
           hasResponse = true;
         }
         return { schema: TestSchema };
-      }));
+      })]
+      if (name === 'restify') app.get(...config);
+      else app.use(...config);
 
       await request(app).get(urlString({ query: '{test}' }));
 
@@ -738,9 +757,8 @@ describe('test harness', () => {
     describe('Error handling functionality', () => {
       describe('GET handles', () => {
         beforeEach(() => {
-          app.get(urlString(), graphqlHTTP({
-            schema: TestSchema
-          }));
+          if (name === 'restify') app.get(...basicConfig);
+          else app.use(...basicConfig);
         });
 
         it('field errors caught by GraphQL', async () => {
@@ -818,9 +836,8 @@ describe('test harness', () => {
 
       describe('POST handles', () => {
         beforeEach(() => {
-          app.post(urlString(), graphqlHTTP({
-            schema: TestSchema
-          }));
+          if (name === 'restify') app.post(...basicConfig);
+          else app.use(...basicConfig);
         });
 
         it('invalid JSON bodies', async () => {
@@ -924,12 +941,14 @@ describe('test harness', () => {
 
       describe('allows for custom error formatting', () => {
         it('to sanitize', async () => {
-          app.get(urlString(), graphqlHTTP({
+          const config = [urlString(), graphqlHTTP({
             schema: TestSchema,
             formatError(error) {
               return { message: 'Custom error format: ' + error.message };
             }
-          }));
+          })]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
 
           const response = await request(app)
             .get(urlString({
@@ -946,7 +965,7 @@ describe('test harness', () => {
         });
 
         it('to elaborate', async () => {
-          app.get(urlString(), graphqlHTTP({
+          const config = [urlString(), graphqlHTTP({
             schema: TestSchema,
             formatError(error) {
               return {
@@ -955,7 +974,9 @@ describe('test harness', () => {
                 stack: 'Stack trace'
               };
             }
-          }));
+          })]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
 
           const response = await request(app)
             .get(urlString({
@@ -978,10 +999,12 @@ describe('test harness', () => {
     describe('Built-in GraphiQL support', () => {
       describe('no opt-in', () => {
         it('does not renders GraphiQL if no opt-in', async () => {
-          app.get(urlString(), graphqlHTTP({
+          const config = [urlString(), graphqlHTTP({
             schema: TestSchema,
             graphiql: false
-          }));
+          })]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
 
           const response = await request(app)
             .get(urlString({ query: '{test}' }))
@@ -997,10 +1020,12 @@ describe('test harness', () => {
 
       describe('opt-in', () => {
         beforeEach(() => {
-          app.get(urlString(), graphqlHTTP({
+          const config = [urlString(), graphqlHTTP({
             schema: TestSchema,
             graphiql: true
-          }));
+          })]
+          if (name === 'restify') app.get(...config);
+          else app.use(...config);
         });
 
         it('presents GraphiQL when accepting HTML', async () => {
@@ -1172,11 +1197,13 @@ describe('test harness', () => {
       };
 
       it('Do not execute a query if it do not pass the custom validation.', async() => {
-        app.get(urlString(), graphqlHTTP({
+        const config = [urlString(), graphqlHTTP({
           schema: TestSchema,
           validationRules: [ AlwaysInvalidRule ],
           pretty: true,
-        }));
+        })]
+        if (name === 'restify') app.get(...config);
+        else app.use(...config);
 
         const response = await request(app)
           .get(urlString({
@@ -1197,7 +1224,7 @@ describe('test harness', () => {
 
     describe('Custom result extensions', () => {
       it('allows for adding extensions', async () => {
-        app.get(urlString(), graphqlHTTP(() => {
+        const config = [urlString(), graphqlHTTP(() => {
           const startTime = 1000000000; /* Date.now(); */
           return {
             schema: TestSchema,
@@ -1205,7 +1232,9 @@ describe('test harness', () => {
               return { runTime: 1000000010 /* Date.now() */ - startTime };
             }
           };
-        }));
+        })]
+        if (name === 'restify') app.get(...config);
+        else app.use(...config);
 
         const response = await request(app)
           .get(urlString({ query: '{test}', raw: '' }))
@@ -1219,13 +1248,15 @@ describe('test harness', () => {
       });
 
       it('extensions have access to initial GraphQL result', async () => {
-        app.get(urlString(), graphqlHTTP({
+        const config = [urlString(), graphqlHTTP({
           schema: TestSchema,
           formatError: () => null,
           extensions({ result }) {
             return { preservedErrors: (result: any).errors };
           }
-        }));
+        })]
+        if (name === 'restify') app.get(...config);
+        else app.use(...config);
 
         const response = await request(app)
           .get(urlString({
@@ -1247,13 +1278,15 @@ describe('test harness', () => {
       });
 
       it('extension function may be async', async () => {
-        app.get(urlString(), graphqlHTTP({
+        const config = [urlString(), graphqlHTTP({
           schema: TestSchema,
           async extensions() {
             // Note: you can await arbitrary things here!
             return { eventually: 42 };
           }
-        }));
+        })]
+        if (name === 'restify') app.get(...config);
+        else app.use(...config);
 
         const response = await request(app)
           .get(urlString({ query: '{test}', raw: '' }))
