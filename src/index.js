@@ -398,7 +398,7 @@ function sendResponse(
   response: $Response,
   data: string | ExecutionResult
 ): void {
-  const dataIsObject = typeof data === 'object'
+  const dataIsObject = typeof data === 'object';
 
   if (typeof data === 'string' && typeof response.send === 'function') {
     return response.send(data);
@@ -407,6 +407,6 @@ function sendResponse(
     return response.json(data);
   }
 
-  const returnData = dataIsObject ? JSON.stringify(data): data
+  const returnData = dataIsObject ? JSON.stringify(data) : data;
   response.end(returnData);
 }
