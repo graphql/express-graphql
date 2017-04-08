@@ -312,7 +312,7 @@ function graphqlHTTP(options: Options): Middleware {
           operationName, result
         });
         response.setHeader('Content-Type', 'text/html; charset=utf-8');
-        sendResponse(response, payload);
+        response.end(payload);
       } else {
         // Server will stringify our response object, we can return it directly
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
