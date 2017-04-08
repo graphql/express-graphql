@@ -64,7 +64,7 @@
     "raw-body": "^2.1.0"
   },
   "devDependencies": {
-    "babel-cli": "6.22.2",
+    "babel-cli": "6.24.1",
     "babel-eslint": "7.2.1",
     "babel-plugin-transform-async-to-generator": "6.24.1",
     "babel-plugin-transform-class-properties": "6.24.1",
