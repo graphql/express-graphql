@@ -12,7 +12,10 @@ Create a GraphQL HTTP server with any HTTP web framework that supports connect s
 npm install --save express-graphql
 ```
 
-Then mount `express-graphql` as a route handler:
+
+## Simple Setup
+
+Just mount `express-graphql` as a route handler:
 
 ```js
 const express = require('express');
@@ -27,6 +30,48 @@ app.use('/graphql', graphqlHTTP({
 
 app.listen(4000);
 ```
+
+
+## Setup with Restify
+
+In restify the `.use` method is reserved to common handlers so you have to manually register methods (GET, POST, etc) multiple times even for the same endpoint.
+
+If you just need GraphQL to listen to POST request just mount `express-graphql` like so:
+
+```js
+const restify = require('restify');
+const graphqlHTTP = require('express-graphql');
+
+const app = restify.createServer();
+
+app.post('/graphql', graphqlHTTP({
+  schema: MyGraphQLSchema,
+  graphiql: false
+}));
+
+app.listen(4000);
+```
+
+NOTE: Registering GraphQL on POST doesn't allow you to serve GraphiQL since this is a visual HTML tool served through the browser, hence via GET.
+
+If you do want to present GraphiQL when the GraphQL endpoint is loaded in a browser then all you need to do is register a GET method:
+
+```js
+const restify = require('restify');
+const graphqlHTTP = require('express-graphql');
+
+const app = restify.createServer();
+
+app.get('/graphql', graphqlHTTP({
+  schema: MyGraphQLSchema,
+  graphiql: true
+}));
+
+app.listen(4000);
+```
+
+Having both the POST and the GET method listeners on the same endpoint will not cause any issue and will allow you to receive GraphQL queries with GET via query params and with POST via a payload in addition to optionally display GraphiQL when accessing `/graphql` through the browser.
+
 
 ## Options
 
