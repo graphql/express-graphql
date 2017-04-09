@@ -9,7 +9,9 @@
  */
 
 // 80+ char lines are useful in describe/it, so ignore in this file.
+// Also ignore no-unused-expressions rule as chai 'expect' sintax violates it.
 /* eslint-disable max-len */
+/* eslint-disable no-unused-expressions */
 
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
@@ -591,7 +593,7 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
       describe('allows for pre-parsed POST', () => {
         it('bodies', async function () {
-          // TODO: get this test working with restify
+          // TODO: can we get this test working with restify?
           if (name === 'restify') {
             this.skip();
           }
@@ -754,11 +756,11 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
         await request(app).get(urlString({ query: '{test}' }));
 
         if (name === 'connect') {
-          expect(spyEnd).to.have.been.called; // eslint-disable-line
+          expect(spyEnd).to.have.been.called;
           expect(spySend).to.equal(undefined);
         } else {
-          expect(spySend).to.have.been.called; // eslint-disable-line
-          expect(spyEnd).to.not.have.been.called; // eslint-disable-line
+          expect(spySend).to.have.been.called;
+          expect(spyEnd).to.not.have.been.called;
         }
       });
     });
@@ -957,9 +959,8 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
       describe('ALL handles', () => {
         it('unsupported HTTP methods', async function () {
-          // this test doesn't apply to restify
-          // as you need to define methods manually
-          // for each endpoint
+          // this test doesn't apply to restify because you need
+          // to define methods manually for each endpoint
           if (name === 'restify') {
             this.skip();
           }
@@ -1088,7 +1089,7 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
             .set('Accept', 'text/html');
 
           expect(response.status).to.equal(200);
-          // expect(response.type).to.equal('text/html');
+          expect(response.type).to.equal('text/html');
           expect(response.text).to.include('{test}');
           expect(response.text).to.include('graphiql.min.js');
         });
