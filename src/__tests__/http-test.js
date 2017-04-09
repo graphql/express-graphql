@@ -22,7 +22,8 @@ import multer from 'multer';
 import bodyParser from 'body-parser';
 import request from 'supertest-as-promised';
 import connect from 'connect';
-import express4 from 'express';
+import express3 from 'express3'; // deprecated but commonly still used
+import express4 from 'express'; // current
 import restify4 from 'restify';
 import {
   GraphQLSchema,
@@ -118,7 +119,8 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
 ([
   [ connect, 'connect' ],
-  [ express4, 'express' ],
+  [ express3, 'express-legacy' ],
+  [ express4, 'express-current' ],
   [ restify4, 'restify' ]
 ])
 .forEach(([ server, name ]) => {
@@ -144,9 +146,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               query: '{test}'
             }));
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
 
         it('allows GET with variable values', async () => {
@@ -156,9 +158,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               variables: JSON.stringify({ who: 'Dolly' })
             }));
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('allows GET with operation name', async () => {
@@ -346,9 +348,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               query: '{test}'
             }));
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
 
         it('Catches errors thrown from options function', async () => {
@@ -367,9 +369,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
             }));
 
           expect(response.status).to.equal(500);
-          expect(response.text).to.equal(
-            '{"errors":[{"message":"I did something wrong"}]}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            errors: [ { message: 'I did something wrong' } ]
+          });
         });
       });
     });
@@ -388,9 +390,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
           const response = await request(app)
             .post(urlString()).send({ query: '{test}' });
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
 
         it('sending a mutation via POST', async () => {
@@ -399,9 +401,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
             .send({ query: 'mutation TestMutation { writeTest { test } }' });
 
           expect(response.status).to.equal(200);
-          expect(response.text).to.equal(
-            '{"data":{"writeTest":{"test":"Hello World"}}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { writeTest: { test: 'Hello World' } }
+          });
         });
 
         it('POST with url encoding', async () => {
@@ -409,9 +411,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
             .post(urlString())
             .send(stringify({ query: '{test}' }));
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
 
         it('POST JSON query with string variables', async () => {
@@ -422,9 +424,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               variables: JSON.stringify({ who: 'Dolly' })
             });
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('POST JSON query with JSON variables', async () => {
@@ -435,9 +437,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               variables: { who: 'Dolly' }
             });
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('POST url encoded query with string variables', async () => {
@@ -448,9 +450,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               variables: JSON.stringify({ who: 'Dolly' })
             }));
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('POST JSON query with GET variable values', async () => {
@@ -460,9 +462,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
             }))
             .send({ query: 'query helloWho($who: String){ test(who: $who) }' });
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('POST url encoded query with GET variable values', async () => {
@@ -474,9 +476,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
               query: 'query helloWho($who: String){ test(who: $who) }'
             }));
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('POST raw text query with GET variable values', async () => {
@@ -487,9 +489,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
             .set('Content-Type', 'application/graphql')
             .send('query helloWho($who: String){ test(who: $who) }');
 
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello Dolly"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello Dolly' }
+          });
         });
 
         it('POST with operation name', async () => {
@@ -1063,9 +1065,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
           expect(response.status).to.equal(200);
           expect(response.type).to.equal('application/json');
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
       });
 
@@ -1207,9 +1209,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
           expect(response.status).to.equal(200);
           expect(response.type).to.equal('application/json');
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
 
         it('prefers JSON if unknown accept', async () => {
@@ -1219,9 +1221,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
           expect(response.status).to.equal(200);
           expect(response.type).to.equal('application/json');
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
 
         it('prefers JSON if explicitly requested raw response', async () => {
@@ -1231,9 +1233,9 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
           expect(response.status).to.equal(200);
           expect(response.type).to.equal('application/json');
-          expect(response.text).to.equal(
-            '{"data":{"test":"Hello World"}}'
-          );
+          expect(JSON.parse(response.text)).to.deep.equal({
+            data: { test: 'Hello World' }
+          });
         });
       });
     });
@@ -1302,9 +1304,10 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
         expect(response.status).to.equal(200);
         expect(response.type).to.equal('application/json');
-        expect(response.text).to.equal(
-          '{"data":{"test":"Hello World"},"extensions":{"runTime":10}}'
-        );
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: { test: 'Hello World' },
+          extensions: { runTime: 10 }
+        });
       });
 
       it('extensions have access to initial GraphQL result', async () => {
@@ -1360,9 +1363,10 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
         expect(response.status).to.equal(200);
         expect(response.type).to.equal('application/json');
-        expect(response.text).to.equal(
-          '{"data":{"test":"Hello World"},"extensions":{"eventually":42}}'
-        );
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: { test: 'Hello World' },
+          extensions: { eventually: 42 }
+        });
       });
     });
   });
