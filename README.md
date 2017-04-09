@@ -111,8 +111,6 @@ The `graphqlHTTP` function accepts the following options:
     function from [`GraphQL.js`][]. If `context` is not provided, the
     `request` object is passed as the context.
 
-  * **`pretty`**: If `true`, any JSON response will be pretty-printed.
-
   * **`formatError`**: An optional function which will be used to format any
     errors produced by fulfilling a GraphQL operation. If no function is
     provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
