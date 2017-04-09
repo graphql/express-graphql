@@ -398,12 +398,14 @@ function sendResponse(
   response: $Response,
   data: string | ExecutionResult
 ): void {
+  const dataIsString = typeof data === 'string';
   const dataIsObject = typeof data === 'object';
+  const methodIsFunction = method => typeof method === 'function';
 
-  if (typeof data === 'string' && typeof response.send === 'function') {
+  if (dataIsString && methodIsFunction(response.send)) {
     return response.send(data);
   }
-  if (dataIsObject && typeof response.json === 'function') {
+  if (dataIsObject && methodIsFunction(response.json)) {
     return response.json(data);
   }
 
