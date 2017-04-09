@@ -593,11 +593,6 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
       describe('allows for pre-parsed POST', () => {
         it('bodies', async function () {
-          // TODO: can we get this test working with restify?
-          if (name === 'restify') {
-            this.skip();
-          }
-
           // Note: this is not the only way to handle file uploads with GraphQL,
           // but it is terse and illustrative of using express-graphql and multer
           // together.
@@ -636,16 +631,20 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
           // Multer provides multipart form data parsing.
           const storage = multer.memoryStorage();
-          app.use(urlString(), multer({ storage }).single('file'));
-
-          // Providing the request as part of `rootValue` allows it to
-          // be accessible from within Schema resolve functions.
-          app.use(urlString(), graphqlHTTP(req => {
+          const multerHandler = multer({ storage }).single('file');
+          const config = [ urlString(), graphqlHTTP(req => {
             return {
               schema: TestMutationSchema,
               rootValue: { request: req }
             };
-          }));
+          }) ];
+
+          if (name === 'restify') {
+            app.post(config[0], multerHandler, config[1]);
+          } else {
+            app.use(config[0], multerHandler);
+            app.use(...config);
+          }
 
           const response = await request(app)
             .post(urlString())
