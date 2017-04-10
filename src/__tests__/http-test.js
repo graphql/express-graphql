@@ -594,7 +594,7 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
       });
 
       describe('allows for pre-parsed POST', () => {
-        it('bodies', async function () {
+        it('bodies', async () => {
           // Note: this is not the only way to handle file uploads with GraphQL,
           // but it is terse and illustrative of using express-graphql and multer
           // together.
