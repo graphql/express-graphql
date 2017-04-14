@@ -100,6 +100,12 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * An optional number to configure the maximum size of request body which is
+   * accepted by the server.
+   */
+  limit?: ?number,
 };
 
 /**
@@ -149,6 +155,7 @@ function graphqlHTTP(options: Options): Middleware {
     let graphiql;
     let formatErrorFn;
     let extensionsFn;
+    let limit;
     let showGraphiQL;
     let query;
     let documentAST;
@@ -190,6 +197,7 @@ function graphqlHTTP(options: Options): Middleware {
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
       extensionsFn = optionsData.extensions;
+      limit = optionsData.limit || 100 * 1024; // default is 100 kB
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
@@ -203,7 +211,7 @@ function graphqlHTTP(options: Options): Middleware {
       }
 
       // Parse the Request to get GraphQL request parameters.
-      return getGraphQLParams(request);
+      return getGraphQLParams(request, limit);
     }).then(params => {
       // Get GraphQL params from the request and POST body data.
       query = params.query;
@@ -340,8 +348,9 @@ export type GraphQLParams = {
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
 module.exports.getGraphQLParams = getGraphQLParams;
-function getGraphQLParams(request: Request): Promise<GraphQLParams> {
-  return parseBody(request).then(bodyData => {
+function getGraphQLParams(request: Request,
+    limit: number): Promise<GraphQLParams> {
+  return parseBody(request, limit).then(bodyData => {
     const urlData = request.url && url.parse(request.url, true).query || {};
     return parseGraphQLParams(urlData, bodyData);
   });
