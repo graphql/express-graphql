@@ -75,7 +75,7 @@
     "babel-runtime": "6.23.0",
     "body-parser": "1.17.1",
     "chai": "3.5.0",
-    "connect": "3.6.0",
+    "connect": "3.6.1",
     "coveralls": "2.13.0",
     "eslint": "3.19.0",
     "eslint-plugin-babel": "4.1.1",
