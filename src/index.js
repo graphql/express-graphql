@@ -29,7 +29,7 @@ import type {
   GraphQLError,
   GraphQLSchema
 } from 'graphql';
-import type { Response } from 'express';
+import type { $Response } from 'express';
 
 export type Request = {
   method: string;
@@ -47,7 +47,7 @@ export type Request = {
  * that returns an Object or a Promise for an Object.
  */
 export type Options =
-  ((request: Request, response: Response) => OptionsResult)
+  ((request: Request, response: $Response) => OptionsResult)
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
 export type OptionsData = {
@@ -127,7 +127,7 @@ export type RequestInfo = {
   result: ?mixed;
 };
 
-type Middleware = (request: Request, response: Response) => Promise<void>;
+type Middleware = (request: Request, response: $Response) => Promise<void>;
 
 /**
  * Middleware for express; takes an options object or function as input to
@@ -139,7 +139,7 @@ function graphqlHTTP(options: Options): Middleware {
     throw new Error('GraphQL middleware requires options.');
   }
 
-  return (request: Request, response: Response) => {
+  return (request: Request, response: $Response) => {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let schema;
@@ -400,7 +400,7 @@ function canDisplayGraphiQL(
  * Helper function for sending the response data. Use response.send it method
  * exists (express), otherwise use response.end (connect).
  */
-function sendResponse(response: Response, data: string): void {
+function sendResponse(response: $Response, data: string): void {
   if (typeof response.send === 'function') {
     response.send(data);
   } else {
