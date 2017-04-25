@@ -14,13 +14,13 @@ import httpError from 'http-errors';
 import querystring from 'querystring';
 import zlib from 'zlib';
 
-import type { Request } from './index';
+import type { $Request } from 'express';
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the body data contained.
  */
-export function parseBody(req: Request): Promise<{[param: string]: mixed}> {
+export function parseBody(req: $Request): Promise<{[param: string]: mixed}> {
   return new Promise((resolve, reject) => {
     const body = req.body;
 
