@@ -29,15 +29,7 @@ import type {
   GraphQLError,
   GraphQLSchema
 } from 'graphql';
-import type { Response } from 'express';
-
-export type Request = {
-  method: string;
-  url: string;
-  body: mixed;
-  headers: {[header: string]: mixed};
-  pipe<T>(stream: T): T;
-};
+import type { $Request, $Response } from 'express';
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -47,7 +39,7 @@ export type Request = {
  * that returns an Object or a Promise for an Object.
  */
 export type Options =
-  ((request: Request, response: Response) => OptionsResult)
+  ((request: $Request, response: $Response) => OptionsResult)
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
 export type OptionsData = {
@@ -127,7 +119,7 @@ export type RequestInfo = {
   result: ?mixed;
 };
 
-type Middleware = (request: Request, response: Response) => Promise<void>;
+type Middleware = (request: $Request, response: $Response) => Promise<void>;
 
 /**
  * Middleware for express; takes an options object or function as input to
@@ -139,7 +131,7 @@ function graphqlHTTP(options: Options): Middleware {
     throw new Error('GraphQL middleware requires options.');
   }
 
-  return (request: Request, response: Response) => {
+  return (request: $Request, response: $Response) => {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let schema;
@@ -340,7 +332,7 @@ export type GraphQLParams = {
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
 module.exports.getGraphQLParams = getGraphQLParams;
-function getGraphQLParams(request: Request): Promise<GraphQLParams> {
+function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
   return parseBody(request).then(bodyData => {
     const urlData = request.url && url.parse(request.url, true).query || {};
     return parseGraphQLParams(urlData, bodyData);
@@ -387,7 +379,7 @@ function parseGraphQLParams(
  * Helper function to determine if GraphiQL can be displayed.
  */
 function canDisplayGraphiQL(
-  request: Request,
+  request: $Request,
   params: GraphQLParams
 ): boolean {
   // If `raw` exists, GraphiQL mode is not enabled.
@@ -400,7 +392,7 @@ function canDisplayGraphiQL(
  * Helper function for sending the response data. Use response.send it method
  * exists (express), otherwise use response.end (connect).
  */
-function sendResponse(response: Response, data: string): void {
+function sendResponse(response: $Response, data: string): void {
   if (typeof response.send === 'function') {
     response.send(data);
   } else {
