@@ -94,6 +94,6 @@
     "supertest-as-promised": "4.0.2"
   },
   "peerDependencies": {
-    "graphql": "^0.9.4"
+    "graphql": "^0.9.5"
   }
 }
