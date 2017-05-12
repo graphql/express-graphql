@@ -1,3 +1,5 @@
+sudo: false
+
 language: node_js
 
 # https://github.com/nodejs/LTS
