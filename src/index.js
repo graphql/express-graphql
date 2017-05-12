@@ -176,12 +176,19 @@ function graphqlHTTP(options: Options): Middleware {
 
       // Collect information from the options data object.
       schema = optionsData.schema;
-      context = optionsData.context || request;
       rootValue = optionsData.rootValue;
       pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
       extensionsFn = optionsData.extensions;
+
+      if (typeof optionsData.context === 'function') {
+        context = optionsData.context(request);
+      } else if (optionsData.context) {
+        context = optionsData.context;
+      } else {
+        context = request;
+      }
 
       validationRules = specifiedRules;
       if (optionsData.validationRules) {
