@@ -9,7 +9,7 @@
  */
 
 // 80+ char lines are useful in describe/it, so ignore in this file.
-// Also ignore no-unused-expressions rule as chai 'expect' sintax violates it.
+// Also ignore no-unused-expressions rule as chai 'expect' syntax violates it.
 /* eslint-disable max-len */
 /* eslint-disable no-unused-expressions */
 
