@@ -315,8 +315,9 @@ function graphqlHTTP(options: Options): Middleware {
         response.end(payload);
       } else {
         // Server will stringify our response object, we can return it directly
+        const payload = result || '';
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
-        sendResponse(response, result);
+        sendResponse(response, payload);
       }
     });
   };
@@ -391,8 +392,10 @@ function canDisplayGraphiQL(
 }
 
 /**
- * Helper function for sending the response data. Use response.send it method
- * exists (express), otherwise use response.end (connect).
+ * Helper function for sending the response data. Use response.send if method
+ * exists and response is a string (express, restify); use response.json if
+ * method exist and response is an object to be stringified by the server
+ * (express, restify); otherwise use response.end (connect).
  */
 function sendResponse(
   response: $Response,
