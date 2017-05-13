@@ -59,11 +59,6 @@ export type OptionsData = {
   rootValue?: ?mixed,
 
   /**
-   * A boolean to configure whether the output should be pretty-printed.
-   */
-  pretty?: ?boolean,
-
-  /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.

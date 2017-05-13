@@ -1255,8 +1255,7 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
       it('Do not execute a query if it do not pass the custom validation.', async() => {
         const config = [ urlString(), graphqlHTTP({
           schema: TestSchema,
-          validationRules: [ AlwaysInvalidRule ],
-          pretty: true,
+          validationRules: [ AlwaysInvalidRule ]
         }) ];
         if (name === 'restify') {
           app.get(...config);
