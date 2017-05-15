@@ -32,6 +32,7 @@ import {
   BREAK
 } from 'graphql';
 import graphqlHTTP from '../';
+import { LRUMap } from 'lru_map';
 
 const QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
@@ -1575,6 +1576,32 @@ describe('test harness', () => {
         expect(response.text).to.equal(
           '{"data":{"test":"Hello World"},"extensions":{"eventually":42}}'
         );
+      });
+    });
+
+    describe('AST caches for query string', () => {
+      it('AST for query string should be cached', async () => {
+        const cachedMap = new LRUMap(10);
+        const config = [ urlString(), graphqlHTTP({
+          schema: TestSchema,
+          astCacheMap: cachedMap,
+        }) ];
+        if (name === 'restify') {
+          app.get(...config);
+        } else {
+          app.use(...config);
+        }
+
+        const response = await request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: { test: 'Hello World' }
+        });
+
+        expect(cachedMap.size).to.equal(1);
       });
     });
   });
