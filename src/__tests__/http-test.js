@@ -1372,22 +1372,25 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
 
     describe('AST caches for query string', () => {
       it('AST for query string should be cached', async () => {
-        const app = server();
         const cachedMap = new LRUMap(10);
-
-        app.use(urlString(), graphqlHTTP({
+        const config = [ urlString(), graphqlHTTP({
           schema: TestSchema,
           astCacheMap: cachedMap,
-        }));
+        }) ];
+        if (name === 'restify') {
+          app.get(...config);
+        } else {
+          app.use(...config);
+        }
 
         const response = await request(app)
           .get(urlString({
             query: '{test}'
           }));
 
-        expect(response.text).to.equal(
-          '{"data":{"test":"Hello World"}}'
-        );
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: { test: 'Hello World' }
+        });
 
         expect(cachedMap.size).to.equal(1);
       });
