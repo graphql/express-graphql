@@ -128,6 +128,9 @@ describe('test harness', () => {
       // 0 only in "production" mode.
       app.set('json spaces', 0);
     }
+    app.on('error', error => {
+      console.log('App encountered an error:', error);
+    });
     return app;
   }
 
