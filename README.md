@@ -125,6 +125,10 @@ The `graphqlHTTP` function accepts the following options:
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
 
+  * **`astCacheMap`**: Optional LRUMap for storing ast caches.
+
+  * **`astCacheLimit`**: Optional number of ast Least Recently Used (LRU) caches limit.
+
 
 ## HTTP Usage
 
