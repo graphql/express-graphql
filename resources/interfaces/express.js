@@ -11,4 +11,6 @@ declare class Response {
   status: (code: Number) => Response;
   set: (field: String, value: String) => Response;
   send: (body: String) => void;
+  end: (body: Buffer) => void;
+  json: (body: Object) => void;
 }
