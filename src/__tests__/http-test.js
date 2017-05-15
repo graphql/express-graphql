@@ -119,7 +119,18 @@ describe('test harness', () => {
   [ express4, 'express-modern' ],
   [ express3, 'express-old' ]
 ])
-.forEach(([ server, name ]) => {
+.forEach(([ serverImpl, name ]) => {
+
+  function server() {
+    const app = serverImpl();
+    if (app.set) {
+      // This ensures consistent tests, as express defaults json spacing to
+      // 0 only in "production" mode.
+      app.set('json spaces', 0);
+    }
+    return app;
+  }
+
   describe(`GraphQL-HTTP tests for ${name}`, () => {
     describe('GET functionality', () => {
       it('allows GET with query param', async () => {
