@@ -298,19 +298,32 @@ function graphqlHTTP(options: Options): Middleware {
       if (result && result.errors) {
         (result: any).errors = result.errors.map(formatErrorFn || formatError);
       }
+
       // If allowed to show GraphiQL, present it instead of JSON.
       if (showGraphiQL) {
         const payload = renderGraphiQL({
-          query, variables,
-          operationName, result
+          query,
+          variables,
+          operationName,
+          result
         });
-        response.setHeader('Content-Type', 'text/html; charset=utf-8');
-        sendResponse(response, payload);
+        return sendResponse(response, 'text/html', payload);
+      }
+
+      // At this point, result is guaranteed to exist, as the only scenario
+      // where it will not is when showGraphiQL is true.
+      if (!result) {
+        throw httpError(500, 'Internal Error');
+      }
+
+      // If "pretty" JSON isn't requested, and the server provides a
+      // response.json method (express), use that directly.
+      // Otherwise use the simplified sendResponse method.
+      if (!pretty && typeof response.json === 'function') {
+        response.json(result);
       } else {
-        // Otherwise, present JSON directly.
         const payload = JSON.stringify(result, null, pretty ? 2 : 0);
-        response.setHeader('Content-Type', 'application/json; charset=utf-8');
-        sendResponse(response, payload);
+        sendResponse(response, 'application/json', payload);
       }
     });
   };
@@ -385,13 +398,11 @@ function canDisplayGraphiQL(
 }
 
 /**
- * Helper function for sending the response data. Use response.send it method
- * exists (express), otherwise use response.end (connect).
+ * Helper function for sending a response using only the core Node server APIs.
  */
-function sendResponse(response: $Response, data: string): void {
-  if (typeof response.send === 'function') {
-    response.send(data);
-  } else {
-    response.end(data);
-  }
+function sendResponse(response: $Response, type: string, data: string): void {
+  const chunk = new Buffer(data, 'utf8');
+  response.setHeader('Content-Type', type + '; charset=utf-8');
+  response.setHeader('Content-Length', String(chunk.length));
+  response.end(chunk);
 }
