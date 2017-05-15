@@ -59,6 +59,11 @@ export type OptionsData = {
   rootValue?: ?mixed,
 
   /**
+   * A boolean to configure whether the output should be pretty-printed.
+   */
+  pretty?: ?boolean,
+
+  /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
@@ -114,11 +119,6 @@ export type RequestInfo = {
   result: ?mixed;
 };
 
-export type ExecutionResult = {
-  data?: ?{[key: string]: mixed};
-  errors?: Array<GraphQLError>;
-};
-
 type Middleware = (request: $Request, response: $Response) => Promise<void>;
 
 /**
@@ -137,6 +137,7 @@ function graphqlHTTP(options: Options): Middleware {
     let schema;
     let context;
     let rootValue;
+    let pretty;
     let graphiql;
     let formatErrorFn;
     let extensionsFn;
@@ -177,6 +178,7 @@ function graphqlHTTP(options: Options): Middleware {
       schema = optionsData.schema;
       context = optionsData.context || request;
       rootValue = optionsData.rootValue;
+      pretty = optionsData.pretty;
       graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
       extensionsFn = optionsData.extensions;
@@ -307,10 +309,10 @@ function graphqlHTTP(options: Options): Middleware {
           operationName, result
         });
         response.setHeader('Content-Type', 'text/html; charset=utf-8');
-        response.end(payload);
+        sendResponse(response, payload);
       } else {
-        // Server will stringify our response object, we can return it directly
-        const payload = result || '';
+        // Otherwise, present JSON directly.
+        const payload = JSON.stringify(result, null, pretty ? 2 : 0);
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
         sendResponse(response, payload);
       }
@@ -387,26 +389,13 @@ function canDisplayGraphiQL(
 }
 
 /**
- * Helper function for sending the response data. Use response.send if method
- * exists and response is a string (express, restify); use response.json if
- * method exist and response is an object to be stringified by the server
- * (express, restify); otherwise use response.end (connect).
+ * Helper function for sending the response data. Use response.send it method
+ * exists (express), otherwise use response.end (connect).
  */
-function sendResponse(
-  response: $Response,
-  data: string | ExecutionResult
-): void {
-  const dataIsString = typeof data === 'string';
-  const dataIsObject = typeof data === 'object';
-  const methodIsFunction = method => typeof method === 'function';
-
-  if (dataIsString && methodIsFunction(response.send)) {
-    return response.send(data);
+function sendResponse(response: $Response, data: string): void {
+  if (typeof response.send === 'function') {
+    response.send(data);
+  } else {
+    response.end(data);
   }
-  if (dataIsObject && methodIsFunction(response.json)) {
-    return response.json(data);
-  }
-
-  const returnData = dataIsObject ? JSON.stringify(data) : data;
-  response.end(returnData);
 }
