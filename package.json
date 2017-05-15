@@ -17,7 +17,6 @@
   },
   "keywords": [
     "express",
-    "restify",
     "connect",
     "http",
     "graphql",
@@ -89,7 +88,6 @@
     "isparta": "4.0.0",
     "mocha": "3.4.1",
     "multer": "1.3.0",
-    "restify": "4.3.0",
     "sane": "1.6.0",
     "sinon": "2.2.0",
     "supertest": "3.0.0",
