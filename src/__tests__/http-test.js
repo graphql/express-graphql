@@ -34,6 +34,7 @@ import {
   BREAK
 } from 'graphql';
 import graphqlHTTP from '../';
+import { LRUMap } from 'lru_map';
 
 const QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
@@ -1366,6 +1367,29 @@ const basicConfig = [ urlString(), graphqlHTTP({ schema: TestSchema }) ];
           data: { test: 'Hello World' },
           extensions: { eventually: 42 }
         });
+      });
+    });
+
+    describe('AST caches for query string', () => {
+      it('AST for query string should be cached', async () => {
+        const app = server();
+        const cachedMap = new LRUMap(10);
+
+        app.use(urlString(), graphqlHTTP({
+          schema: TestSchema,
+          astCacheMap: cachedMap,
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+
+        expect(cachedMap.size).to.equal(1);
       });
     });
   });

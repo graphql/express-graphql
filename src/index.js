@@ -31,6 +31,8 @@ import type {
 } from 'graphql';
 import type { $Request, $Response } from 'express';
 
+import { LRUMap } from 'lru_map';
+
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
  * and other configuration options.
@@ -87,6 +89,16 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * An optional number of ast Least Recently Used (LRU) caches limit
+   */
+  astCacheLimit?: ?number,
+
+  /**
+   * An optional LRUMap for storing ast caches
+   */
+  astCacheMap?: ?LRUMap<string, DocumentNode>,
 };
 
 /**
@@ -130,6 +142,9 @@ function graphqlHTTP(options: Options): Middleware {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
   }
+
+  const astCache: LRUMap<string, DocumentNode> = options.astCacheMap ||
+    new LRUMap(options.astCacheLimit || 100);
 
   return (request: $Request, response: $Response) => {
     // Higher scoped variables are referred to at various stages in the
@@ -210,24 +225,32 @@ function graphqlHTTP(options: Options): Middleware {
         throw httpError(400, 'Must provide query string.');
       }
 
-      // GraphQL source.
-      const source = new Source(query, 'GraphQL request');
+      // Check if this query string was already parsed and cached ever
+      if (astCache.has(query)) {
+        documentAST = astCache.get(query);
+      } else {
+        // GraphQL source.
+        const source = new Source(query, 'GraphQL request');
 
-      // Parse source to AST, reporting any syntax error.
-      try {
-        documentAST = parse(source);
-      } catch (syntaxError) {
-        // Return 400: Bad Request if any syntax errors errors exist.
-        response.statusCode = 400;
-        return { errors: [ syntaxError ] };
-      }
+        // Parse source to AST, reporting any syntax error.
+        try {
+          documentAST = parse(source);
+        } catch (syntaxError) {
+          // Return 400: Bad Request if any syntax errors errors exist.
+          response.statusCode = 400;
+          return { errors: [ syntaxError ] };
+        }
 
-      // Validate AST, reporting any errors.
-      const validationErrors = validate(schema, documentAST, validationRules);
-      if (validationErrors.length > 0) {
-        // Return 400: Bad Request if any validation errors exist.
-        response.statusCode = 400;
-        return { errors: validationErrors };
+        // Validate AST, reporting any errors.
+        const validationErrors = validate(schema, documentAST, validationRules);
+        if (validationErrors.length > 0) {
+          // Return 400: Bad Request if any validation errors exist.
+          response.statusCode = 400;
+          return { errors: validationErrors };
+        }
+
+        // Cache ast of this query string
+        astCache.set(query, documentAST);
       }
 
       // Only query operations are allowed on GET requests.
