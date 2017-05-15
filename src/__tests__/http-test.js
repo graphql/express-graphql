@@ -129,7 +129,8 @@ describe('test harness', () => {
       app.set('json spaces', 0);
     }
     app.on('error', error => {
-      console.log('App encountered an error:', error);
+      // eslint-disable-next-line no-console
+      console.warn('App encountered an error:', error);
     });
     return app;
   }
