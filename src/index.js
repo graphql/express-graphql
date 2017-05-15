@@ -134,30 +134,29 @@ function graphqlHTTP(options: Options): Middleware {
   return (request: $Request, response: $Response) => {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
-    let schema;
-    let context;
-    let rootValue;
+    let params;
     let pretty;
-    let graphiql;
     let formatErrorFn;
     let extensionsFn;
     let showGraphiQL;
     let query;
+
     let documentAST;
     let variables;
     let operationName;
-    let validationRules;
 
     // Promises are used as a mechanism for capturing any thrown errors during
     // the asynchronous process below.
 
-    // Resolve the Options to get OptionsData.
-    return new Promise(resolve => {
-      resolve(
+    // Parse the Request to get GraphQL request parameters.
+    return getGraphQLParams(request).then(graphQLParams => {
+      params = graphQLParams;
+      // Then, resolve the Options to get OptionsData.
+      return new Promise(resolve => resolve(
         typeof options === 'function' ?
-          options(request, response) :
+          options(request, response, params) :
           options
-      );
+      ));
     }).then(optionsData => {
       // Assert that optionsData is in fact an Object.
       if (!optionsData || typeof optionsData !== 'object') {
@@ -175,15 +174,15 @@ function graphqlHTTP(options: Options): Middleware {
       }
 
       // Collect information from the options data object.
-      schema = optionsData.schema;
-      context = optionsData.context || request;
-      rootValue = optionsData.rootValue;
+      const schema = optionsData.schema;
+      const context = optionsData.context || request;
+      const rootValue = optionsData.rootValue;
+      const graphiql = optionsData.graphiql;
       pretty = optionsData.pretty;
-      graphiql = optionsData.graphiql;
       formatErrorFn = optionsData.formatError;
       extensionsFn = optionsData.extensions;
 
-      validationRules = specifiedRules;
+      let validationRules = specifiedRules;
       if (optionsData.validationRules) {
         validationRules = validationRules.concat(optionsData.validationRules);
       }
@@ -194,9 +193,6 @@ function graphqlHTTP(options: Options): Middleware {
         throw httpError(405, 'GraphQL only supports GET and POST requests.');
       }
 
-      // Parse the Request to get GraphQL request parameters.
-      return getGraphQLParams(request);
-    }).then(params => {
       // Get GraphQL params from the request and POST body data.
       query = params.query;
       variables = params.variables;

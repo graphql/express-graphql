@@ -363,6 +363,39 @@ describe('test harness', () => {
         );
       });
 
+      it('Provides an options function with arguments', async () => {
+        const app = server();
+
+        let seenRequest;
+        let seenResponse;
+        let seenParams;
+
+        app.use(urlString(), graphqlHTTP((req, res, params) => {
+          seenRequest = req;
+          seenResponse = res;
+          seenParams = params;
+          return { schema: TestSchema };
+        }));
+
+        const response = await request(app)
+          .get(urlString({
+            query: '{test}'
+          }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World"}}'
+        );
+
+        expect(seenRequest).to.not.equal(null);
+        expect(seenResponse).to.not.equal(null);
+        expect(seenParams).to.deep.equal({
+          query: '{test}',
+          operationName: null,
+          variables: null,
+          raw: false
+        });
+      });
+
       it('Catches errors thrown from options function', async () => {
         const app = server();
 
