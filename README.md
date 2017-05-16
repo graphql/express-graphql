@@ -49,7 +49,7 @@ app.post('/graphql', graphqlHTTP({
 
 app.get('/graphql', graphqlHTTP({
   schema: MyGraphQLSchema,
-  graphiql: true // set it to false to disable the GraphiQL interface
+  graphiql: true
 }));
 
 app.listen(4000);
