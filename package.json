@@ -75,7 +75,7 @@
     "babel-preset-es2015": "6.24.1",
     "babel-register": "6.24.1",
     "babel-runtime": "6.23.0",
-    "body-parser": "1.17.1",
+    "body-parser": "1.17.2",
     "chai": "3.5.0",
     "connect": "3.6.2",
     "coveralls": "2.13.1",
