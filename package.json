@@ -94,6 +94,6 @@
     "supertest": "3.0.0"
   },
   "peerDependencies": {
-    "graphql": "^0.9.6"
+    "graphql": "^0.10.0"
   }
 }
