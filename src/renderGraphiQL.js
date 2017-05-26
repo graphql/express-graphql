@@ -10,9 +10,9 @@
 
 type GraphiQLData = {
   query: ?string,
-  variables: ?{[name: string]: mixed},
+  variables: ?{ [name: string]: mixed },
   operationName: ?string,
-  result?: mixed
+  result?: mixed,
 };
 
 // Current latest version of GraphiQL.
@@ -32,10 +32,12 @@ function safeSerialize(data) {
  */
 export function renderGraphiQL(data: GraphiQLData): string {
   const queryString = data.query;
-  const variablesString =
-    data.variables ? JSON.stringify(data.variables, null, 2) : null;
-  const resultString =
-    data.result ? JSON.stringify(data.result, null, 2) : null;
+  const variablesString = data.variables
+    ? JSON.stringify(data.variables, null, 2)
+    : null;
+  const resultString = data.result
+    ? JSON.stringify(data.result, null, 2)
+    : null;
   const operationName = data.operationName;
 
   /* eslint-disable max-len */
