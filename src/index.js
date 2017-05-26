@@ -39,7 +39,9 @@ import type { $Request, $Response } from 'express';
  * that returns an Object or a Promise for an Object.
  */
 export type Options =
-  ((request: $Request, response: $Response) => OptionsResult)
+  ((request: $Request,
+    response: $Response,
+    params?: GraphQLParams) => OptionsResult)
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
 export type OptionsData = {
