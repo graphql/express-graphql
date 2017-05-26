@@ -69,7 +69,8 @@ The `graphqlHTTP` function accepts the following options:
     quite useful. You may or may not want it in production.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
-    function from [`GraphQL.js`][].
+    function from [`GraphQL.js`][]. Can be provided as an object, a Promise for
+    an object, or a Function that returns an object or a Promise for an object.
 
   * **`context`**: A value to pass as the `context` to the `graphql()`
     function from [`GraphQL.js`][]. If `context` is not provided, the
