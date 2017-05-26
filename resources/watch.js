@@ -13,20 +13,19 @@ const { resolve: resolvePath } = require('path');
 const { spawn } = require('child_process');
 const flowBinPath = require('flow-bin');
 
-
 process.env.PATH += ':./node_modules/.bin';
 
 const cmd = resolvePath(__dirname);
 const srcDir = resolvePath(cmd, '../src');
 
 function exec(command, options) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function(resolve, reject) {
     const child = spawn(command, options, {
       cmd,
       env: process.env,
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
-    child.on('exit', function (code) {
+    child.on('exit', function(code) {
       if (code === 0) {
         resolve(true);
       } else {
@@ -36,18 +35,18 @@ function exec(command, options) {
   });
 }
 
-const flowServer = spawn(flowBinPath, [ 'server' ], {
+const flowServer = spawn(flowBinPath, ['server'], {
   cmd,
-  env: process.env
+  env: process.env,
 });
 
-const watcher = sane(srcDir, { glob: [ '**/*.js', '**/*.graphql' ] })
+const watcher = sane(srcDir, { glob: ['**/*.js', '**/*.graphql'] })
   .on('ready', startWatch)
   .on('add', changeFile)
   .on('delete', deleteFile)
   .on('change', changeFile);
 
-process.on('SIGINT', function () {
+process.on('SIGINT', function() {
   watcher.close();
   flowServer.kill();
   console.log(CLEARLINE + yellow(invert('stopped watching')));
@@ -100,14 +99,17 @@ function checkFiles(filepaths) {
 
   return parseFiles(filepaths)
     .then(() => runTests(filepaths))
-    .then(testSuccess => lintFiles(filepaths)
-      .then(lintSuccess => typecheckStatus()
-        .then(typecheckSuccess =>
-          testSuccess && lintSuccess && typecheckSuccess)))
+    .then(testSuccess =>
+      lintFiles(filepaths).then(lintSuccess =>
+        typecheckStatus().then(
+          typecheckSuccess => testSuccess && lintSuccess && typecheckSuccess,
+        ),
+      ),
+    )
     .catch(() => false)
     .then(success => {
       process.stdout.write(
-        '\n' + (success ? '' : '\x07') + green(invert('watching...'))
+        '\n' + (success ? '' : '\x07') + green(invert('watching...')),
       );
     });
 }
@@ -117,50 +119,60 @@ function checkFiles(filepaths) {
 function parseFiles(filepaths) {
   console.log('Checking Syntax');
 
-  return Promise.all(filepaths.map(filepath => {
-    if (isJS(filepath) && !isTest(filepath)) {
-      return exec('babel', [
-        '--optional', 'runtime',
-        '--out-file', '/dev/null',
-        srcPath(filepath)
-      ]);
-    }
-  }));
+  return Promise.all(
+    filepaths.map(filepath => {
+      if (isJS(filepath) && !isTest(filepath)) {
+        return exec('babel', [
+          '--optional',
+          'runtime',
+          '--out-file',
+          '/dev/null',
+          srcPath(filepath),
+        ]);
+      }
+    }),
+  );
 }
 
 function runTests(filepaths) {
   console.log('\nRunning Tests');
 
-  return exec('mocha', [
-    '--reporter', 'progress',
-    '--require', 'resources/mocha-bootload'
-  ].concat(
-    allTests(filepaths) ? filepaths.map(srcPath) :
-      [ 'src/**/__tests__/**/*.js' ]
-  )).catch(() => false);
+  return exec(
+    'mocha',
+    ['--reporter', 'progress', '--require', 'resources/mocha-bootload'].concat(
+      allTests(filepaths)
+        ? filepaths.map(srcPath)
+        : ['src/**/__tests__/**/*.js'],
+    ),
+  ).catch(() => false);
 }
 
 function lintFiles(filepaths) {
   console.log('Linting Code\n');
 
-  return filepaths.reduce((prev, filepath) => prev.then(prevSuccess => {
-    if (isJS(filepath)) {
-      process.stdout.write('  ' + filepath + ' ...');
-      return exec('eslint', [ srcPath(filepath) ])
-        .catch(() => false)
-        .then(success => {
-          const msg = CLEARLINE + '  ' + (success ? CHECK : X) + ' ' + filepath;
-          console.log(msg);
-          return prevSuccess && success;
-        });
-    }
-    return prevSuccess;
-  }), Promise.resolve(true));
+  return filepaths.reduce(
+    (prev, filepath) =>
+      prev.then(prevSuccess => {
+        if (isJS(filepath)) {
+          process.stdout.write('  ' + filepath + ' ...');
+          return exec('eslint', [srcPath(filepath)])
+            .catch(() => false)
+            .then(success => {
+              const msg =
+                CLEARLINE + '  ' + (success ? CHECK : X) + ' ' + filepath;
+              console.log(msg);
+              return prevSuccess && success;
+            });
+        }
+        return prevSuccess;
+      }),
+    Promise.resolve(true),
+  );
 }
 
 function typecheckStatus() {
   console.log('\nType Checking\n');
-  return exec(flowBinPath, [ 'status' ]).catch(() => false);
+  return exec(flowBinPath, ['status']).catch(() => false);
 }
 
 // Filepath

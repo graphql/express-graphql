@@ -20,7 +20,7 @@ import type { $Request } from 'express';
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the body data contained.
  */
-export function parseBody(req: $Request): Promise<{[param: string]: mixed}> {
+export function parseBody(req: $Request): Promise<{ [param: string]: mixed }> {
   return new Promise((resolve, reject) => {
     const body = req.body;
 
@@ -105,9 +105,9 @@ function read(req, typeInfo, parseFn, resolve, reject) {
 
   // Get content-encoding (e.g. gzip)
   const contentEncoding = req.headers['content-encoding'];
-  const encoding = typeof contentEncoding === 'string' ?
-    contentEncoding.toLowerCase() :
-    'identity';
+  const encoding = typeof contentEncoding === 'string'
+    ? contentEncoding.toLowerCase()
+    : 'identity';
   const length = encoding === 'identity' ? req.headers['content-length'] : null;
   const limit = 100 * 1024; // 100kb
   const stream = decompressed(req, encoding);
@@ -116,9 +116,9 @@ function read(req, typeInfo, parseFn, resolve, reject) {
   getBody(stream, { encoding: charset, length, limit }, (err, body) => {
     if (err) {
       return reject(
-        err.type === 'encoding.unsupported' ?
-          httpError(415, `Unsupported charset "${charset.toUpperCase()}".`) :
-          httpError(400, `Invalid body: ${err.message}.`)
+        err.type === 'encoding.unsupported'
+          ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
+          : httpError(400, `Invalid body: ${err.message}.`),
       );
     }
 
@@ -134,9 +134,12 @@ function read(req, typeInfo, parseFn, resolve, reject) {
 // Return a decompressed stream, given an encoding.
 function decompressed(req, encoding) {
   switch (encoding) {
-    case 'identity': return req;
-    case 'deflate': return req.pipe(zlib.createInflate());
-    case 'gzip': return req.pipe(zlib.createGunzip());
+    case 'identity':
+      return req;
+    case 'deflate':
+      return req.pipe(zlib.createInflate());
+    case 'gzip':
+      return req.pipe(zlib.createGunzip());
   }
   throw httpError(415, `Unsupported content-encoding "${encoding}".`);
 }
