@@ -274,7 +274,8 @@ function graphqlHTTP(options: Options): Middleware {
           document: documentAST,
           variables,
           operationName,
-          result
+          result,
+          query
         })).then(extensions => {
           if (extensions && typeof extensions === 'object') {
             (result: any).extensions = extensions;
