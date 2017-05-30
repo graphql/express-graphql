@@ -21,6 +21,7 @@ import {
 import httpError from 'http-errors';
 import url from 'url';
 
+import { DisableIntrospectionQueries } from './disable-introspection';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
@@ -92,6 +93,11 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * A boolean to optionally disable introspection queries.
+   */
+  introspectionDisabled?: ?boolean,
 };
 
 /**
@@ -187,6 +193,9 @@ function graphqlHTTP(options: Options): Middleware {
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
           validationRules = validationRules.concat(optionsData.validationRules);
+        }
+        if (optionsData.introspectionDisabled) {
+          validationRules = validationRules.concat(DisableIntrospectionQueries);
         }
 
         // GraphQL HTTP only supports GET and POST methods.
