@@ -83,7 +83,7 @@
     "connect": "3.6.2",
     "coveralls": "2.13.1",
     "eslint": "3.19.0",
-    "eslint-plugin-flowtype": "2.33.0",
+    "eslint-plugin-flowtype": "2.34.0",
     "express": "4.14.1",
     "express3": "*",
     "flow-bin": "0.47.0",
