@@ -238,6 +238,36 @@ for example:
 ```
 
 
+## Additional Validation Rules
+
+GraphQL's [validation phase](https://facebook.github.io/graphql/#sec-Validation) checks the query to ensure that it can be sucessfully executed against the schema. The `validationRules` option allows for additional rules to be run durring this phase. Rules are applied to each node in an AST representing the query using the Visitor pattern.
+
+A validation rules is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific fieldname `metadata` from being queried. For more examples see the `specifiedRules` in the `graphql-js` package.
+
+```js
+/* @flow */
+
+import { GraphQLError } from 'graphql';
+
+import type { ValidationContext, FieldNode } from 'graphql';
+
+export function DisallowMetadataQueries(context: ValidationContext): any {
+  return {
+    Field(node: FieldNode) {
+      const fieldName = node.name.value;
+
+      if (fieldName === "metadata") {
+        context.reportError(
+          new GraphQLError(
+            `Validation: Requesting the field ${fieldName} is not allowed`,
+          ),
+        );
+      }
+    }
+  };
+}
+```
+
 ## Other Exports
 
 **`getGraphQLParams(request: Request): Promise<GraphQLParams>`**
