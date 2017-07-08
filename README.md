@@ -69,10 +69,10 @@ The `graphqlHTTP` function accepts the following options:
     quite useful. You may or may not want it in production.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
-    function from [`GraphQL.js`][].
+    function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L121).
 
   * **`context`**: A value to pass as the `context` to the `graphql()`
-    function from [`GraphQL.js`][]. If `context` is not provided, the
+    function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L122). If `context` is not provided, the
     `request` object is passed as the context.
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
