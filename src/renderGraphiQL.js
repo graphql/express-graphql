@@ -83,7 +83,9 @@ add "&raw" to the end of the URL within a browser.
 
     // Produce a Location query string from a parameter object.
     function locationQuery(params) {
-      return '?' + Object.keys(params).map(function (key) {
+      return '?' + Object.keys(params).filter(function (key) {
+        return Boolean(params[key]);
+      }).map(function (key) {
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(params[key]);
       }).join('&');
