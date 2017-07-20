@@ -36,10 +36,10 @@ import type { $Request, $Response } from 'express';
  */
 export type Options =
   | ((
-    request: $Request,
-    response: $Response,
-    params?: GraphQLParams,
-  ) => OptionsResult)
+      request: $Request,
+      response: $Response,
+      params?: GraphQLParams,
+    ) => OptionsResult)
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
 export type OptionsData = {
@@ -119,7 +119,7 @@ export type RequestInfo = {
   result: ?mixed,
 };
 
-type Middleware = (request: $Request, response: $Response) => Promise<void>;
+type Middleware = (request: $Request, response: $Response) => Promise<mixed>;
 
 /**
  * Middleware for express; takes an options object or function as input to
@@ -316,7 +316,8 @@ function graphqlHTTP(options: Options): Middleware {
             operationName,
             result,
           });
-          return sendResponse(response, 'text/html', payload);
+          sendResponse(response, 'text/html', payload);
+          return result;
         }
 
         // At this point, result is guaranteed to exist, as the only scenario
@@ -334,6 +335,7 @@ function graphqlHTTP(options: Options): Middleware {
           const payload = JSON.stringify(result, null, pretty ? 2 : 0);
           sendResponse(response, 'application/json', payload);
         }
+        return result;
       });
   };
 }

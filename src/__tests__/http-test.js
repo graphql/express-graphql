@@ -267,7 +267,8 @@ describe('test harness', () => {
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [
             {
-              message: 'Must provide operation name if query contains multiple operations.',
+              message:
+                'Must provide operation name if query contains multiple operations.',
             },
           ],
         });
@@ -288,7 +289,8 @@ describe('test harness', () => {
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [
             {
-              message: 'Can only perform a mutation operation from a POST request.',
+              message:
+                'Can only perform a mutation operation from a POST request.',
             },
           ],
         });
@@ -313,7 +315,8 @@ describe('test harness', () => {
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [
             {
-              message: 'Can only perform a mutation operation from a POST request.',
+              message:
+                'Can only perform a mutation operation from a POST request.',
             },
           ],
         });
@@ -1024,8 +1027,8 @@ describe('test harness', () => {
           graphqlHTTP(req => {
             return {
               schema: TestSchema,
-              pretty: ((url.parse(req.url, true) || {}).query || {}).pretty ===
-                '1',
+              pretty:
+                ((url.parse(req.url, true) || {}).query || {}).pretty === '1',
             };
           }),
         );
@@ -1244,7 +1247,8 @@ describe('test harness', () => {
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [
             {
-              message: 'Syntax Error GraphQL request (1:1) ' +
+              message:
+                'Syntax Error GraphQL request (1:1) ' +
                 'Unexpected Name "syntaxerror"\n\n1: syntaxerror\n   ^\n',
               locations: [{ line: 1, column: 1 }],
             },
@@ -1889,6 +1893,67 @@ describe('test harness', () => {
         expect(response.text).to.equal(
           '{"data":{"test":"Hello World"},"extensions":{"eventually":42}}',
         );
+      });
+    });
+
+    describe('Promise chain', () => {
+      it('resolves the promise with data', async () => {
+        const app = server();
+
+        let graphqlResult;
+        const graphqlMiddleware = async (req, res) => {
+          graphqlResult = await graphqlHTTP({
+            schema: TestSchema,
+          })(req, res);
+        };
+
+        get(app, urlString(), graphqlMiddleware);
+
+        await request(app).get(
+          urlString({
+            query: '{test}',
+          }),
+        );
+
+        expect(graphqlResult).to.deep.equal({
+          data: {
+            test: 'Hello World',
+          },
+        });
+      });
+
+      it('resolves the promise with error', async () => {
+        const app = server();
+
+        let graphqlResult;
+        const graphqlMiddleware = async (req, res) => {
+          graphqlResult = await graphqlHTTP({
+            schema: TestSchema,
+          })(req, res);
+        };
+
+        get(app, urlString(), graphqlMiddleware);
+
+        await request(app).get(
+          urlString({
+            query: '{ test, unknownOne, unknownTwo }',
+          }),
+        );
+
+        expect(graphqlResult).to.deep.equal({
+          errors: [
+            {
+              message: 'Cannot query field "unknownOne" on type "QueryRoot".',
+              locations: [{ line: 1, column: 9 }],
+              path: undefined,
+            },
+            {
+              message: 'Cannot query field "unknownTwo" on type "QueryRoot".',
+              locations: [{ line: 1, column: 21 }],
+              path: undefined,
+            },
+          ],
+        });
       });
     });
   });

@@ -34,7 +34,8 @@ describe('Useful errors when incorrectly used', () => {
     expect(JSON.parse(response.text)).to.deep.equal({
       errors: [
         {
-          message: 'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
+          message:
+            'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
         },
       ],
     });
@@ -51,7 +52,8 @@ describe('Useful errors when incorrectly used', () => {
     expect(JSON.parse(response.text)).to.deep.equal({
       errors: [
         {
-          message: 'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
+          message:
+            'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
         },
       ],
     });
