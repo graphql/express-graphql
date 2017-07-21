@@ -293,6 +293,18 @@ function graphqlHTTP(options: Options): Middleware {
         return { errors: [error] };
       })
       .then(result => {
+        // Format any encountered errors.
+        if (!result || !result.errors) {
+          return result;
+        }
+        return Promise.all(
+          result.errors.map(formatErrorFn || formatError).map(e => Promise.resolve(e))
+        ).then(errs => {
+          (result: any).errors = errs;
+          return result;
+        });
+      })
+      .then(function(result) {
         // If no data was included in the result, that indicates a runtime query
         // error, indicate as such with a generic status code.
         // Note: Information about the error itself will still be contained in
@@ -300,12 +312,6 @@ function graphqlHTTP(options: Options): Middleware {
         // http://facebook.github.io/graphql/#sec-Data
         if (result && result.data === null) {
           response.statusCode = 500;
-        }
-        // Format any encountered errors.
-        if (result && result.errors) {
-          (result: any).errors = result.errors.map(
-            formatErrorFn || formatError,
-          );
         }
 
         // If allowed to show GraphiQL, present it instead of JSON.
