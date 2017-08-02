@@ -64,6 +64,11 @@ export type OptionsData = {
   pretty?: ?boolean,
 
   /**
+   * A boolean to configure whether the output jsonp format.
+   */
+  jsonp?: ?boolean,
+
+  /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
@@ -136,6 +141,7 @@ function graphqlHTTP(options: Options): Middleware {
     // asynchronous state machine below.
     let params;
     let pretty;
+    let jsonp;
     let formatErrorFn;
     let extensionsFn;
     let showGraphiQL;
@@ -181,6 +187,7 @@ function graphqlHTTP(options: Options): Middleware {
         const rootValue = optionsData.rootValue;
         const graphiql = optionsData.graphiql;
         pretty = optionsData.pretty;
+        jsonp = optionsData.jsonp;
         formatErrorFn = optionsData.formatError;
         extensionsFn = optionsData.extensions;
 
@@ -329,6 +336,9 @@ function graphqlHTTP(options: Options): Middleware {
         // response.json method (express), use that directly.
         // Otherwise use the simplified sendResponse method.
         if (!pretty && typeof response.json === 'function') {
+          if (jsonp) {
+            return response.jsonp(result);
+          }
           response.json(result);
         } else {
           const payload = JSON.stringify(result, null, pretty ? 2 : 0);
