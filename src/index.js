@@ -153,13 +153,9 @@ function graphqlHTTP(options: Options): Middleware {
       .then(graphQLParams => {
         params = graphQLParams;
         // Then, resolve the Options to get OptionsData.
-        return new Promise(resolve =>
-          resolve(
-            typeof options === 'function'
-              ? options(request, response, params)
-              : options,
-          ),
-        );
+        return typeof options === 'function'
+          ? options(request, response, params)
+          : options;
       })
       .then(optionsData => {
         // Assert that optionsData is in fact an Object.
