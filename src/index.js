@@ -101,7 +101,7 @@ export type RequestInfo = {
   /**
    * The parsed GraphQL document.
    */
-  document: DocumentNode,
+  document: ?DocumentNode,
 
   /**
    * The variable values used at runtime.
