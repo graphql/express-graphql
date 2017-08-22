@@ -24,7 +24,7 @@ import url from 'url';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
-import type { DocumentNode, GraphQLError, GraphQLSchema } from 'graphql';
+import type { DocumentNode, GraphQLError, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
 import type { $Request, $Response } from 'express';
 
 /**
@@ -92,6 +92,13 @@ export type OptionsData = {
    * A boolean to optionally enable GraphiQL mode.
    */
   graphiql?: ?boolean,
+
+  /**
+   * A resolver function to use when one is not provided by the schema.
+   * If not provided, the default field resolver is used (which looks for a
+   * value or method on the source value with the field's name).
+   */
+  fieldResolver?: ?GraphQLFieldResolver<any, any>,
 };
 
 /**
@@ -175,6 +182,7 @@ function graphqlHTTP(options: Options): Middleware {
         const schema = optionsData.schema;
         const context = optionsData.context || request;
         const rootValue = optionsData.rootValue;
+        const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
         pretty = optionsData.pretty;
         formatErrorFn = optionsData.formatError;
@@ -256,6 +264,7 @@ function graphqlHTTP(options: Options): Middleware {
             context,
             variables,
             operationName,
+            fieldResolver,
           );
         } catch (contextError) {
           // Return 400: Bad Request if any execution context errors exist.
