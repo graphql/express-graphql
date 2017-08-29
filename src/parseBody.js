@@ -105,9 +105,10 @@ function read(req, typeInfo, parseFn, resolve, reject) {
 
   // Get content-encoding (e.g. gzip)
   const contentEncoding = req.headers['content-encoding'];
-  const encoding = typeof contentEncoding === 'string'
-    ? contentEncoding.toLowerCase()
-    : 'identity';
+  const encoding =
+    typeof contentEncoding === 'string'
+      ? contentEncoding.toLowerCase()
+      : 'identity';
   const length = encoding === 'identity' ? req.headers['content-length'] : null;
   const limit = 100 * 1024; // 100kb
   const stream = decompressed(req, encoding);
