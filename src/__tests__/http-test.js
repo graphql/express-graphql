@@ -1903,5 +1903,66 @@ describe('test harness', () => {
         );
       });
     });
+
+    describe('Promise chain', () => {
+      it('resolves the promise with data', async () => {
+        const app = server();
+
+        let graphqlResult;
+        const graphqlMiddleware = async (req, res) => {
+          graphqlResult = await graphqlHTTP({
+            schema: TestSchema,
+          })(req, res);
+        };
+
+        get(app, urlString(), graphqlMiddleware);
+
+        await request(app).get(
+          urlString({
+            query: '{test}',
+          }),
+        );
+
+        expect(graphqlResult).to.deep.equal({
+          data: {
+            test: 'Hello World',
+          },
+        });
+      });
+
+      it('resolves the promise with error', async () => {
+        const app = server();
+
+        let graphqlResult;
+        const graphqlMiddleware = async (req, res) => {
+          graphqlResult = await graphqlHTTP({
+            schema: TestSchema,
+          })(req, res);
+        };
+
+        get(app, urlString(), graphqlMiddleware);
+
+        await request(app).get(
+          urlString({
+            query: '{ test, unknownOne, unknownTwo }',
+          }),
+        );
+
+        expect(graphqlResult).to.deep.equal({
+          errors: [
+            {
+              message: 'Cannot query field "unknownOne" on type "QueryRoot".',
+              locations: [{ line: 1, column: 9 }],
+              path: undefined,
+            },
+            {
+              message: 'Cannot query field "unknownTwo" on type "QueryRoot".',
+              locations: [{ line: 1, column: 21 }],
+              path: undefined,
+            },
+          ],
+        });
+      });
+    });
   });
 });
