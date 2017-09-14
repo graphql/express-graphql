@@ -250,22 +250,16 @@ function graphqlHTTP(options: Options): Middleware {
 
         let preExecute;
         if (typeof context === 'function') {
-          preExecute = Promise.resolve()
-            .then(() =>
-              context(
-                request,
-                response,
-                schema,
-                documentAST,
-                variables,
-                operationName,
-              ),
-            )
-            .catch(error => {
-              // If an error was caught, report the httpError status, or 500.
-              response.statusCode = error.status || 500;
-              return { errors: [error] };
-            });
+          preExecute = Promise.resolve().then(() =>
+            context(
+              request,
+              response,
+              schema,
+              documentAST,
+              variables,
+              operationName,
+            ),
+          );
         } else {
           preExecute = Promise.resolve(context);
         }
@@ -283,7 +277,7 @@ function graphqlHTTP(options: Options): Middleware {
           })
           .catch(contextError => {
             // Return 400: Bad Request if any execution context errors exist.
-            response.statusCode = 400;
+            response.statusCode = (contextError || {}).status || 400;
             return { errors: [contextError] };
           });
       })
