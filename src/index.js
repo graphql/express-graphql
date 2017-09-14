@@ -247,21 +247,45 @@ function graphqlHTTP(options: Options): Middleware {
             );
           }
         }
-        // Perform the execution, reporting any errors creating the context.
-        try {
-          return execute(
-            schema,
-            documentAST,
-            rootValue,
-            context,
-            variables,
-            operationName,
-          );
-        } catch (contextError) {
-          // Return 400: Bad Request if any execution context errors exist.
-          response.statusCode = 400;
-          return { errors: [contextError] };
+
+        let preExecute;
+        if (typeof context === 'function') {
+          preExecute = Promise.resolve()
+            .then(() =>
+              context(
+                request,
+                response,
+                schema,
+                documentAST,
+                variables,
+                operationName,
+              ),
+            )
+            .catch(error => {
+              // If an error was caught, report the httpError status, or 500.
+              response.statusCode = error.status || 500;
+              return { errors: [error] };
+            });
+        } else {
+          preExecute = Promise.resolve(context);
         }
+        // Perform the execution, reporting any errors creating the context.
+        return preExecute
+          .then(dynamicContext => {
+            return execute(
+              schema,
+              documentAST,
+              rootValue,
+              dynamicContext,
+              variables,
+              operationName,
+            );
+          })
+          .catch(contextError => {
+            // Return 400: Bad Request if any execution context errors exist.
+            response.statusCode = 400;
+            return { errors: [contextError] };
+          });
       })
       .then(result => {
         // Collect and apply any metadata extensions if a function was provided.

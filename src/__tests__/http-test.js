@@ -1903,5 +1903,36 @@ describe('test harness', () => {
         );
       });
     });
+
+    describe('Custom context capabiility', () => {
+      it('allows context to be a function', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            context: () => Promise.resolve('testValue'),
+          }),
+        );
+
+        const response = await request(app).get(
+          urlString({
+            operationName: 'TestQuery',
+            query: `
+              query TestQuery { context }
+            `,
+          }),
+        );
+
+        expect(response.status).to.equal(200);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            context: 'testValue',
+          },
+        });
+      });
+    });
   });
 });
