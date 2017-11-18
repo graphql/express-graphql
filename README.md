@@ -75,11 +75,16 @@ The `graphqlHTTP` function accepts the following options:
     function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L122). If `context` is not provided, the
     `request` object is passed as the context.
 
-  * **`pretty`**: If `true`, any JSON response will be pretty-printed.
+  * **`pretty`**: If `true`, any JSON response will be pretty-printed. When set to `true`, this will override `formatResponse` option.
 
   * **`formatError`**: An optional function which will be used to format any
     errors produced by fulfilling a GraphQL operation. If no function is
-    provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
+    provided, GraphQL's default spec-compliant [`formatError`][] function will be used.π
+
+  * **`formatResponse`**: An optional string value to customize the response format. Valid options are:
+    `result`, `pretty`, or `json`. The default value is `json`. When specifying `result`, the result data will
+    be returned instead of output. Otherwise both `json` and `pretty` will output the appropriate
+    response as plain or pretty json respectively.
 
   * **`extensions`**: An optional function for adding additional metadata to the
     GraphQL response as a key-value object. The result will be added to
