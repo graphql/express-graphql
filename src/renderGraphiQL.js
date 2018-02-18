@@ -57,11 +57,14 @@ add "&raw" to the end of the URL within a browser.
   <meta name="robots" content="noindex" />
   <meta name="referrer" content="origin">
   <style>
-    html, body {
+    body {
       height: 100%;
       margin: 0;
       overflow: hidden;
       width: 100%;
+    }
+    #graphiql {
+      height: 100vh;
     }
   </style>
   <link href="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
@@ -72,6 +75,7 @@ add "&raw" to the end of the URL within a browser.
   <script src="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
 </head>
 <body>
+  <div id="graphiql">Loading...</div>
   <script>
     // Collect the URL parameters
     var parameters = {};
@@ -162,7 +166,7 @@ add "&raw" to the end of the URL within a browser.
         variables: ${safeSerialize(variablesString)},
         operationName: ${safeSerialize(operationName)},
       }),
-      document.body
+      document.getElementById('graphiql')
     );
   </script>
 </body>
