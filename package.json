@@ -81,7 +81,7 @@
     "express": "^4.16.2",
     "express3": "*",
     "flow-bin": "^0.65.0",
-    "graphql": "^0.12.3",
+    "graphql": "^0.13.1",
     "isparta": "4.0.0",
     "mocha": "5.0.1",
     "multer": "1.3.0",
@@ -92,6 +92,6 @@
     "supertest": "3.0.0"
   },
   "peerDependencies": {
-    "graphql": "^0.10.0 || ^0.11.0 || ^0.12.0"
+    "graphql": "^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0"
   }
 }
