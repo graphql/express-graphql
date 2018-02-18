@@ -290,7 +290,7 @@ stack traces. Providing a function to `formatError` enables this:
 formatError: error => ({
   message: error.message,
   locations: error.locations,
-  stack: error.stack,
+  stack: error.stack ? error.stack.split('\n') : [],
   path: error.path
 })
 ```
