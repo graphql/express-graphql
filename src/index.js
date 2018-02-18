@@ -131,7 +131,7 @@ function graphqlHTTP(options: Options): Middleware {
     throw new Error('GraphQL middleware requires options.');
   }
 
-  return (request: $Request, response: $Response) => {
+  return function graphqlMiddleware(request: $Request, response: $Response) {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let params;
