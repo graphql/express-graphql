@@ -263,7 +263,7 @@ describe('test harness', () => {
           }),
         );
 
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(500);
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [
             {
@@ -1432,6 +1432,36 @@ describe('test harness', () => {
         expect(response.status).to.equal(400);
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [{ message: 'Variables are invalid JSON.' }],
+        });
+      });
+
+      it('handles invalid variables', async () => {
+        const app = server();
+
+        post(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+          }),
+        );
+
+        const response = await request(app)
+          .post(urlString())
+          .send({
+            query: 'query helloWho($who: String){ test(who: $who) }',
+            variables: { who: ['Dolly', 'Jonty'] },
+          });
+
+        expect(response.status).to.equal(500);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          errors: [
+            {
+              locations: [{ column: 16, line: 1 }],
+              message:
+                'Variable "$who" got invalid value ["Dolly","Jonty"]; Expected type String; String cannot represent an array value: [Dolly,Jonty]',
+            },
+          ],
         });
       });
 
