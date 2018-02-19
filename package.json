@@ -54,7 +54,8 @@
     "cover:lcov": "babel-node node_modules/.bin/isparta cover --root src --report lcovonly node_modules/.bin/_mocha -- $npm_package_options_mocha",
     "pretty": "node resources/pretty.js",
     "pretty-check": "node resources/pretty.js --check",
-    "preversion": "npm test"
+    "preversion": "npm test",
+    "start": "babel-node examples/index.js"
   },
   "dependencies": {
     "accepts": "^1.3.0",
