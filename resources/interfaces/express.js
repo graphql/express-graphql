@@ -1,4 +1,4 @@
-/* @flow */
+/* @flow strict */
 /* Flow declarations for express requests and responses */
 /* eslint-disable no-unused-vars */
 declare class Request {
