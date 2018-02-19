@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- *  Copyright (c) Facebook, Inc.
+ *  Copyright (c) 2015-present, Facebook, Inc.
  *  All rights reserved.
  *
  *  This source code is licensed under the license found in the
