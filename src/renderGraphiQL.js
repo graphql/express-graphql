@@ -41,7 +41,6 @@ export function renderGraphiQL(data: GraphiQLData): string {
     : null;
   const operationName = data.operationName;
 
-  /* eslint-disable max-len */
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
 and as a result has been presented GraphiQL - an in-browser IDE for
