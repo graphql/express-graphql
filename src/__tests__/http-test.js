@@ -1459,7 +1459,7 @@ describe('test harness', () => {
             {
               locations: [{ column: 16, line: 1 }],
               message:
-                'Variable "$who" got invalid value ["Dolly","Jonty"].\nExpected type "String", found ["Dolly","Jonty"]: String cannot represent an array value: [Dolly,Jonty]',
+                'Variable "$who" got invalid value ["Dolly","Jonty"]; Expected type String; String cannot represent an array value: [Dolly,Jonty]',
             },
           ],
         });
