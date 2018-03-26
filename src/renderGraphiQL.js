@@ -123,13 +123,7 @@ add "&raw" to the end of the URL within a browser.
         body: JSON.stringify(graphQLParams),
         credentials: 'include',
       }).then(function (response) {
-        return response.text();
-      }).then(function (responseBody) {
-        try {
-          return JSON.parse(responseBody);
-        } catch (error) {
-          return responseBody;
-        }
+        return response.json();
       });
     }
 
