@@ -151,13 +151,34 @@ function graphqlHTTP(options: Options): Middleware {
 
     // Parse the Request to get GraphQL request parameters.
     return getGraphQLParams(request)
-      .then(graphQLParams => {
-        params = graphQLParams;
-        // Then, resolve the Options to get OptionsData.
-        return typeof options === 'function'
-          ? options(request, response, params)
-          : options;
-      })
+      .then(
+        graphQLParams => {
+          params = graphQLParams;
+          // Then, resolve the Options to get OptionsData.
+          return typeof options === 'function'
+            ? options(request, response, params)
+            : options;
+        },
+        err => {
+          // When we failed to parse the GraphQL parameters, we still need
+          // to get the formatErrorFn, so make an options call
+          // to resolve just that.
+          const dummyParams = {
+            query: null,
+            variables: null,
+            operationName: null,
+            raw: null,
+          };
+          return Promise.resolve(
+            typeof options === 'function'
+              ? options(request, response, dummyParams)
+              : options,
+          ).then(optionsData => {
+            formatErrorFn = optionsData.formatError;
+            return Promise.reject(err);
+          });
+        },
+      )
       .then(optionsData => {
         // Assert that optionsData is in fact an Object.
         if (!optionsData || typeof optionsData !== 'object') {
