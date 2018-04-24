@@ -65,6 +65,13 @@ export type OptionsData = {
   pretty?: ?boolean,
 
   /**
+   * A string to configure the format of the output.
+   * Options: result, pretty, or json
+   * Defaults to: json
+   */
+  formatResponse?: ?string,
+
+  /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
@@ -120,7 +127,7 @@ export type RequestInfo = {
   result: ?mixed,
 };
 
-type Middleware = (request: $Request, response: $Response) => Promise<void>;
+type Middleware = (request: $Request, response: $Response) => Promise<mixed>;
 
 /**
  * Middleware for express; takes an options object or function as input to
@@ -136,11 +143,11 @@ function graphqlHTTP(options: Options): Middleware {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let params;
-    let pretty;
     let formatErrorFn;
     let extensionsFn;
     let showGraphiQL;
     let query;
+    let formatResponse;
 
     let documentAST;
     let variables;
@@ -177,9 +184,15 @@ function graphqlHTTP(options: Options): Middleware {
         const context = optionsData.context || request;
         const rootValue = optionsData.rootValue;
         const graphiql = optionsData.graphiql;
-        pretty = optionsData.pretty;
+
         formatErrorFn = optionsData.formatError;
         extensionsFn = optionsData.extensions;
+        formatResponse = optionsData.formatResponse || 'json';
+
+        // Backwards compatability
+        if (optionsData.pretty === true) {
+          formatResponse = 'pretty';
+        }
 
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
@@ -322,15 +335,19 @@ function graphqlHTTP(options: Options): Middleware {
           throw httpError(500, 'Internal Error');
         }
 
-        // If "pretty" JSON isn't requested, and the server provides a
-        // response.json method (express), use that directly.
-        // Otherwise use the simplified sendResponse method.
-        if (!pretty && typeof response.json === 'function') {
-          response.json(result);
-        } else {
-          const payload = JSON.stringify(result, null, pretty ? 2 : 0);
-          sendResponse(response, 'application/json', payload);
+        // Return the correct formatted response
+        if (formatResponse === 'result') {
+          return Promise.resolve(result);
         }
+        if (formatResponse === 'pretty') {
+          return sendResponse(response, 'application/json', JSON.stringify(result, null, 2));
+        }
+        if (typeof response.json === 'function') {
+          return response.json(result);
+        }
+
+        // Default json response
+        return sendResponse(response, 'application/json', JSON.stringify(result, null, 0));
       });
   };
 }
