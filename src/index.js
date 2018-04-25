@@ -155,39 +155,21 @@ function graphqlHTTP(options: Options): Middleware {
         graphQLParams => {
           params = graphQLParams;
           // Then, resolve the Options to get OptionsData.
-          return typeof options === 'function'
-            ? options(request, response, params)
-            : options;
+          return resolveOptions(params);
         },
-        err => {
-          // When we failed to parse the GraphQL parameters, we still need
-          // to get the formatErrorFn, so make an options call
-          // to resolve just that.
+        error => {
+          // When we failed to parse the GraphQL parameters, we still need to get
+          // the options object, so make an options call to resolve just that.
           const dummyParams = {
             query: null,
             variables: null,
             operationName: null,
             raw: null,
           };
-          return Promise.resolve(
-            typeof options === 'function'
-              ? options(request, response, dummyParams)
-              : options,
-          ).then(optionsData => {
-            formatErrorFn = optionsData.formatError;
-            return Promise.reject(err);
-          });
+          return resolveOptions(dummyParams).then(() => Promise.reject(error));
         },
       )
       .then(optionsData => {
-        // Assert that optionsData is in fact an Object.
-        if (!optionsData || typeof optionsData !== 'object') {
-          throw new Error(
-            'GraphQL middleware option function must return an options object ' +
-              'or a promise which will be resolved to an options object.',
-          );
-        }
-
         // Assert that schema is required.
         if (!optionsData.schema) {
           throw new Error('GraphQL middleware options must contain a schema.');
@@ -198,9 +180,6 @@ function graphqlHTTP(options: Options): Middleware {
         const context = optionsData.context || request;
         const rootValue = optionsData.rootValue;
         const graphiql = optionsData.graphiql;
-        pretty = optionsData.pretty;
-        formatErrorFn = optionsData.formatError;
-        extensionsFn = optionsData.extensions;
 
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
@@ -353,6 +332,27 @@ function graphqlHTTP(options: Options): Middleware {
           sendResponse(response, 'application/json', payload);
         }
       });
+
+    function resolveOptions(requestParams) {
+      return Promise.resolve(
+        typeof options === 'function'
+          ? options(request, response, requestParams)
+          : options,
+      ).then(optionsData => {
+        // Assert that optionsData is in fact an Object.
+        if (!optionsData || typeof optionsData !== 'object') {
+          throw new Error(
+            'GraphQL middleware option function must return an options object ' +
+              'or a promise which will be resolved to an options object.',
+          );
+        }
+
+        formatErrorFn = optionsData.formatError;
+        extensionsFn = optionsData.extensions;
+        pretty = optionsData.pretty;
+        return optionsData;
+      });
+    }
   };
 }
 
