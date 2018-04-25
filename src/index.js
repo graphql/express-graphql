@@ -25,7 +25,12 @@ import url from 'url';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
-import type { DocumentNode, GraphQLError, GraphQLSchema, GraphQLFieldResolver } from 'graphql';
+import type {
+  DocumentNode,
+  GraphQLError,
+  GraphQLSchema,
+  GraphQLFieldResolver,
+} from 'graphql';
 import type { $Request, $Response } from 'express';
 
 /**
