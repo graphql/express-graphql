@@ -10,6 +10,5 @@ module.exports = {
       },
     ],
   ],
-  plugins: ['transform-class-properties', 'transform-flow-strip-types'],
-  ignore: ['__tests__'],
+  plugins: ['transform-class-properties', 'transform-flow-strip-types']
 };
