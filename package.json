@@ -20,7 +20,7 @@
     "api"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "main": "dist/index",
   "module": "dist/index.mjs",
