@@ -8,7 +8,7 @@
  */
 
 import express from 'express';
-import graphqlHTTP from '../src/';
+import { graphqlHTTP } from '../src/';
 import { buildSchema } from 'graphql';
 
 // Construct a schema, using GraphQL schema language

@@ -11,7 +11,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import request from 'supertest';
 import express from 'express';
-import graphqlHTTP from '../';
+import { graphqlHTTP } from '../';
 
 describe('Useful errors when incorrectly used', () => {
   it('requires an option factory function', () => {

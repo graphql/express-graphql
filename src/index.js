@@ -138,7 +138,7 @@ type Middleware = (request: $Request, response: $Response) => Promise<void>;
  * Middleware for express; takes an options object or function as input to
  * configure behavior, and returns an express middleware.
  */
-export default function graphqlHTTP(options: Options): Middleware {
+export function graphqlHTTP(options: Options): Middleware {
   if (!options) {
     throw new Error('GraphQL middleware requires options.');
   }

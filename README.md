@@ -19,7 +19,7 @@ Just mount `express-graphql` as a route handler:
 
 ```js
 const express = require('express');
-const graphqlHTTP = require('express-graphql');
+const { graphqlHTTP } = require('express-graphql');
 
 const app = express();
 
@@ -38,7 +38,7 @@ Use `.get` or `.post` (or both) rather than `.use` to configure your route handl
 
 ```js
 const restify = require('restify');
-const graphqlHTTP = require('express-graphql');
+const { graphqlHTTP } = require('express-graphql');
 
 const app = restify.createServer();
 
@@ -162,7 +162,7 @@ This example uses [`express-session`][] to provide GraphQL with the currently lo
 
 ```js
 const session = require('express-session');
-const graphqlHTTP = require('express-graphql');
+const { graphqlHTTP } = require('express-graphql');
 
 const app = express();
 
@@ -207,7 +207,7 @@ This example illustrates adding the amount of time consumed by running the
 provided query, which could perhaps be used by your development tools.
 
 ```js
-const graphqlHTTP = require('express-graphql');
+const { graphqlHTTP } = require('express-graphql');
 
 const app = express();
 
@@ -273,9 +273,9 @@ running a GraphQL request. This function is used internally to handle the
 incoming request, you may use it directly for building other similar services.
 
 ```js
-const graphqlHTTP = require('express-graphql');
+const { getGraphQLParams } = require('express-graphql');
 
-graphqlHTTP.getGraphQLParams(request).then(params => {
+getGraphQLParams(request).then(params => {
   // do something...
 })
 ```
