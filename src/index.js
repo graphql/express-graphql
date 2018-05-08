@@ -100,7 +100,10 @@ export type OptionsData = {
    */
   graphiql?: ?boolean,
 
-  subscriptionsEndpoint?: ?string
+  /**
+   * A websocket endpoint for subscriptions
+   */
+  subscriptionsEndpoint?: ?string,
   /**
    * A resolver function to use when one is not provided by the schema.
    * If not provided, the default field resolver is used (which looks for a
