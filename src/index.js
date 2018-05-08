@@ -200,7 +200,6 @@ function graphqlHTTP(options: Options): Middleware {
         const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
         subscriptionsEndpoint = optionsData.subscriptionsEndpoint;
-        
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
           validationRules = validationRules.concat(optionsData.validationRules);
@@ -341,7 +340,7 @@ function graphqlHTTP(options: Options): Middleware {
             variables,
             operationName,
             result,
-            subscriptionsEndpoint
+            subscriptionsEndpoint,
           });
           return sendResponse(response, 'text/html', payload);
         }

@@ -14,7 +14,7 @@ type GraphiQLData = {
   variables: ?{ [name: string]: mixed },
   operationName: ?string,
   result?: mixed,
-  subscriptionsEndpoint?: ?string
+  subscriptionsEndpoint?: ?string,
 };
 
 // Current latest version of GraphiQL.
@@ -139,10 +139,11 @@ add "&raw" to the end of the URL within a browser.
 
     function makeFetcher() {
       if('${typeof subscriptionsEndpoint}' == 'string') {
-        let subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient(${safeSerialize(subscriptionsEndpoint)}, {
+        let clientClass = window.SubscriptionsTransportWs.SubscriptionClient;
+        let client = new clientClass(${safeSerialize(subscriptionsEndpoint)}, {
            reconnect: true
         });
-        return window.GraphiQLSubscriptionsFetcher.graphQLFetcher(subscriptionsClient, graphQLFetcher);
+        return window.GraphiQLSubscriptionsFetcher.graphQLFetcher(client, graphQLFetcher);
       }else{
         return graphQLFetcher;
       }
