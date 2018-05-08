@@ -65,13 +65,12 @@ add "&raw" to the end of the URL within a browser.
   <meta charset="utf-8" />
   <title>GraphiQL</title>
   <meta name="robots" content="noindex" />
-  <meta name="referrer" content="origin">
+  <meta name="referrer" content="origin" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      height: 100%;
       margin: 0;
       overflow: hidden;
-      width: 100%;
     }
     #graphiql {
       height: 100vh;
@@ -134,13 +133,7 @@ add "&raw" to the end of the URL within a browser.
         body: JSON.stringify(graphQLParams),
         credentials: 'include',
       }).then(function (response) {
-        return response.text();
-      }).then(function (responseBody) {
-        try {
-          return JSON.parse(responseBody);
-        } catch (error) {
-          return responseBody;
-        }
+        return response.json();
       });
     }
 

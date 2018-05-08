@@ -66,6 +66,9 @@ const QueryRootType = new GraphQLObjectType({
         return (context: any).foo;
       },
     },
+    missingResolver: {
+      type: GraphQLString,
+    },
   },
 });
 
@@ -368,6 +371,38 @@ describe('test harness', () => {
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
             context: 'testValue',
+          },
+        });
+      });
+
+      it('Allows passing in a fieldResolver', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            context: 'testValue',
+            fieldResolver() {
+              return 'fieldResolver data';
+            },
+          }),
+        );
+
+        const response = await request(app).get(
+          urlString({
+            operationName: 'TestQuery',
+            query: `
+              query TestQuery { missingResolver }
+            `,
+          }),
+        );
+
+        expect(response.status).to.equal(200);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            missingResolver: 'fieldResolver data',
           },
         });
       });
@@ -1430,6 +1465,37 @@ describe('test harness', () => {
         expect(response.status).to.equal(400);
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [{ message: 'Variables are invalid JSON.' }],
+        });
+      });
+
+      it('allows for custom error formatting of poorly formed requests', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            formatError(error) {
+              return { message: 'Custom error format: ' + error.message };
+            },
+          }),
+        );
+
+        const response = await request(app).get(
+          urlString({
+            variables: 'who:You',
+            query: 'query helloWho($who: String){ test(who: $who) }',
+          }),
+        );
+
+        expect(response.status).to.equal(400);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          errors: [
+            {
+              message: 'Custom error format: Variables are invalid JSON.',
+            },
+          ],
         });
       });
 

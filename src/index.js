@@ -12,6 +12,7 @@
 import accepts from 'accepts';
 import {
   Source,
+  validateSchema,
   parse,
   validate,
   execute,
@@ -25,7 +26,12 @@ import url from 'url';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
-import type { DocumentNode, GraphQLError, GraphQLSchema } from 'graphql';
+import type {
+  DocumentNode,
+  GraphQLError,
+  GraphQLSchema,
+  GraphQLFieldResolver,
+} from 'graphql';
 import type { $Request, $Response } from 'express';
 
 /**
@@ -95,6 +101,12 @@ export type OptionsData = {
   graphiql?: ?boolean,
 
   subscriptionsEndpoint?: ?string
+  /**
+   * A resolver function to use when one is not provided by the schema.
+   * If not provided, the default field resolver is used (which looks for a
+   * value or method on the source value with the field's name).
+   */
+  fieldResolver?: ?GraphQLFieldResolver<any, any>,
 };
 
 /**
@@ -154,22 +166,25 @@ function graphqlHTTP(options: Options): Middleware {
 
     // Parse the Request to get GraphQL request parameters.
     return getGraphQLParams(request)
-      .then(graphQLParams => {
-        params = graphQLParams;
-        // Then, resolve the Options to get OptionsData.
-        return typeof options === 'function'
-          ? options(request, response, params)
-          : options;
-      })
+      .then(
+        graphQLParams => {
+          params = graphQLParams;
+          // Then, resolve the Options to get OptionsData.
+          return resolveOptions(params);
+        },
+        error => {
+          // When we failed to parse the GraphQL parameters, we still need to get
+          // the options object, so make an options call to resolve just that.
+          const dummyParams = {
+            query: null,
+            variables: null,
+            operationName: null,
+            raw: null,
+          };
+          return resolveOptions(dummyParams).then(() => Promise.reject(error));
+        },
+      )
       .then(optionsData => {
-        // Assert that optionsData is in fact an Object.
-        if (!optionsData || typeof optionsData !== 'object') {
-          throw new Error(
-            'GraphQL middleware option function must return an options object ' +
-              'or a promise which will be resolved to an options object.',
-          );
-        }
-
         // Assert that schema is required.
         if (!optionsData.schema) {
           throw new Error('GraphQL middleware options must contain a schema.');
@@ -179,12 +194,10 @@ function graphqlHTTP(options: Options): Middleware {
         const schema = optionsData.schema;
         const context = optionsData.context || request;
         const rootValue = optionsData.rootValue;
+        const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
         subscriptionsEndpoint = optionsData.subscriptionsEndpoint;
-        pretty = optionsData.pretty;
-        formatErrorFn = optionsData.formatError;
-        extensionsFn = optionsData.extensions;
-
+        
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
           validationRules = validationRules.concat(optionsData.validationRules);
@@ -211,7 +224,15 @@ function graphqlHTTP(options: Options): Middleware {
           throw httpError(400, 'Must provide query string.');
         }
 
-        // GraphQL source.
+        // Validate Schema
+        const schemaValidationErrors = validateSchema(schema);
+        if (schemaValidationErrors.length > 0) {
+          // Return 500: Internal Server Error if invalid schema.
+          response.statusCode = 500;
+          return { errors: schemaValidationErrors };
+        }
+
+        //  GraphQL source.
         const source = new Source(query, 'GraphQL request');
 
         // Parse source to AST, reporting any syntax error.
@@ -261,6 +282,7 @@ function graphqlHTTP(options: Options): Middleware {
             context,
             variables,
             operationName,
+            fieldResolver,
           );
         } catch (contextError) {
           // Return 400: Bad Request if any execution context errors exist.
@@ -337,6 +359,27 @@ function graphqlHTTP(options: Options): Middleware {
           sendResponse(response, 'application/json', payload);
         }
       });
+
+    function resolveOptions(requestParams) {
+      return Promise.resolve(
+        typeof options === 'function'
+          ? options(request, response, requestParams)
+          : options,
+      ).then(optionsData => {
+        // Assert that optionsData is in fact an Object.
+        if (!optionsData || typeof optionsData !== 'object') {
+          throw new Error(
+            'GraphQL middleware option function must return an options object ' +
+              'or a promise which will be resolved to an options object.',
+          );
+        }
+
+        formatErrorFn = optionsData.formatError;
+        extensionsFn = optionsData.extensions;
+        pretty = optionsData.pretty;
+        return optionsData;
+      });
+    }
   };
 }
 
