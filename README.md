@@ -101,7 +101,7 @@ The `graphQLParams` is provided as the object `{ query, variables, operationName
 ```js
 app.use('/graphql', graphqlHTTP(async (request, response, graphQLParams) => ({
   schema: MyGraphQLSchema,
-  rootValue: await someFunctionToGetRootValue(request)
+  rootValue: await someFunctionToGetRootValue(request),
   graphiql: true
 })));
 ```
