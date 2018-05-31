@@ -1932,6 +1932,37 @@ describe('test harness', () => {
         );
       });
 
+      it('should have access to the GraphQL context property', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => {
+            return {
+              schema: TestSchema,
+              context: { test: 'hello friend' },
+              extensions: ({ context }) => {
+                return { context };
+              },
+            };
+          }),
+        );
+
+        const response = await request(app)
+          .get(urlString({ query: '{test}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('application/json');
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: { test: 'Hello World' },
+          extensions: {
+            context: { test: 'hello friend' },
+          },
+        });
+      });
+
       it('extensions have access to initial GraphQL result', async () => {
         const app = server();
 
