@@ -56,7 +56,7 @@ export type OptionsData = {
   schema: GraphQLSchema,
 
   /**
-   * A value to pass as the context to the graphql() function.
+   * A value to pass as the context to this middleware.
    */
   context?: ?mixed,
 
