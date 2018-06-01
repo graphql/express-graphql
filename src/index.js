@@ -56,7 +56,7 @@ export type OptionsData = {
   schema: GraphQLSchema,
 
   /**
-   * A value to pass as the context to the graphql() function.
+   * A value to pass as the context to this middleware.
    */
   context?: ?mixed,
 
@@ -131,6 +131,11 @@ export type RequestInfo = {
    * The result of executing the operation.
    */
   result: ?mixed,
+
+  /**
+   * A value to pass as the context to the graphql() function.
+   */
+  context?: ?mixed,
 };
 
 type Middleware = (request: $Request, response: $Response) => Promise<void>;
@@ -148,6 +153,7 @@ function graphqlHTTP(options: Options): Middleware {
   return function graphqlMiddleware(request: $Request, response: $Response) {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
+    let context;
     let params;
     let pretty;
     let formatErrorFn;
@@ -190,10 +196,11 @@ function graphqlHTTP(options: Options): Middleware {
 
         // Collect information from the options data object.
         const schema = optionsData.schema;
-        const context = optionsData.context || request;
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
+
+        context = optionsData.context || request;
 
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
@@ -297,6 +304,7 @@ function graphqlHTTP(options: Options): Middleware {
               variables,
               operationName,
               result,
+              context,
             }),
           ).then(extensions => {
             if (extensions && typeof extensions === 'object') {
