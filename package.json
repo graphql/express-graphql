@@ -2,7 +2,7 @@
   "name": "express-graphql",
   "version": "0.6.12",
   "description": "Production ready GraphQL HTTP middleware.",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/graphql/express-graphql/issues"
   },
@@ -26,8 +26,7 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE",
-    "PATENTS"
+    "LICENSE"
   ],
   "options": {
     "mocha": "--require resources/mocha-bootload src/**/__tests__/**/*.js"

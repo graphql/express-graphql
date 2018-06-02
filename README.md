@@ -305,3 +305,7 @@ formatError: error => ({
 [GraphiQL]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session
+
+### License
+
+express-graphql is [MIT-licensed](https://github.com/graphql/express-graphql/blob/master/LICENSE).
