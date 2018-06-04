@@ -30,7 +30,7 @@ import {
   GraphQLError,
   BREAK,
 } from 'graphql';
-import graphqlHTTP from '../';
+import { graphqlHTTP } from '../';
 
 const QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
