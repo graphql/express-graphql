@@ -1907,16 +1907,24 @@ describe('test harness', () => {
       it('allows for adding extensions', async () => {
         const app = server();
 
+        const extensions = ({ context = {} }) => {
+          if (context !== null && typeof context.startTime === 'number') {
+            return {
+              runTime: 1000000010 /* Date.now() */ - context.startTime,
+            };
+          }
+
+          return {};
+        };
+
         get(
           app,
           urlString(),
           graphqlHTTP(() => {
-            const startTime = 1000000000; /* Date.now(); */
             return {
               schema: TestSchema,
-              extensions() {
-                return { runTime: 1000000010 /* Date.now() */ - startTime };
-              },
+              context: { startTime: 1000000000 },
+              extensions,
             };
           }),
         );
