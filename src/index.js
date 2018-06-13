@@ -32,7 +32,7 @@ import type {
   GraphQLSchema,
   GraphQLFieldResolver,
 } from 'graphql';
-import type { $Request, $Response } from 'express';
+import type { $Request, $Response, $NextFunction } from 'express';
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -69,6 +69,11 @@ export type OptionsData = {
    * A boolean to configure whether the output should be pretty-printed.
    */
   pretty?: ?boolean,
+
+  /**
+   * A boolean to configure whether an error should be handler by an express middleware.
+   */
+  handleErrorWithExpress?: ?boolean,
 
   /**
    * An optional function which will be used to format any errors produced by
@@ -138,7 +143,11 @@ export type RequestInfo = {
   context?: ?mixed,
 };
 
-type Middleware = (request: $Request, response: $Response) => Promise<void>;
+type Middleware = (
+  request: $Request,
+  response: $Response,
+  nextFunction: $NextFunction,
+) => Promise<void>;
 
 /**
  * Middleware for express; takes an options object or function as input to
@@ -150,7 +159,11 @@ function graphqlHTTP(options: Options): Middleware {
     throw new Error('GraphQL middleware requires options.');
   }
 
-  return function graphqlMiddleware(request: $Request, response: $Response) {
+  return function graphqlMiddleware(
+    request: $Request,
+    response: $Response,
+    nextFunction: $NextFunction,
+  ) {
     // Higher scoped variables are referred to at various stages in the
     // asynchronous state machine below.
     let context;
@@ -160,6 +173,7 @@ function graphqlHTTP(options: Options): Middleware {
     let extensionsFn;
     let showGraphiQL;
     let query;
+    let handleErrorWithExpress;
 
     let documentAST;
     let variables;
@@ -336,6 +350,16 @@ function graphqlHTTP(options: Options): Middleware {
           );
         }
 
+        // If handler error with express is allowed, return the first error in next function.
+        if (
+          handleErrorWithExpress &&
+          result &&
+          result.errors &&
+          result.errors.length
+        ) {
+          return nextFunction(result.errors[0]);
+        }
+
         // If allowed to show GraphiQL, present it instead of JSON.
         if (showGraphiQL) {
           const payload = renderGraphiQL({
@@ -381,6 +405,7 @@ function graphqlHTTP(options: Options): Middleware {
         formatErrorFn = optionsData.formatError;
         extensionsFn = optionsData.extensions;
         pretty = optionsData.pretty;
+        handleErrorWithExpress = optionsData.handleErrorWithExpress;
         return optionsData;
       });
     }
