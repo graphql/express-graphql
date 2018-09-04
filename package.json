@@ -19,6 +19,9 @@
     "middleware",
     "api"
   ],
+  "engines": {
+    "node": "6.x || 8.x || >= 10.x"
+  },
   "main": "dist/index.js",
   "directories": {
     "lib": "./dist"
