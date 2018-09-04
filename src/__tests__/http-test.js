@@ -19,8 +19,7 @@ import multer from 'multer';
 import bodyParser from 'body-parser';
 import request from 'supertest';
 import connect from 'connect';
-import express4 from 'express'; // modern
-import express3 from 'express3'; // old but commonly still used
+import express from 'express';
 import restify from 'restify';
 import {
   GraphQLSchema,
@@ -120,8 +119,7 @@ describe('test harness', () => {
 
 [
   [connect, 'connect'],
-  [express4, 'express-modern'],
-  [express3, 'express-old'],
+  [express, 'express'],
   [restify.createServer, 'restify'],
 ].forEach(([serverImpl, name]) => {
   function server() {

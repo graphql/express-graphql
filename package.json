@@ -83,7 +83,6 @@
     "eslint-plugin-flowtype": "^2.44.0",
     "eslint-plugin-prettier": "^2.6.0",
     "express": "^4.16.2",
-    "express3": "*",
     "flow-bin": "^0.80.0",
     "graphql": "14.0.0",
     "isparta": "4.1.0",
