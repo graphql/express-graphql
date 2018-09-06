@@ -20,7 +20,7 @@
     "api"
   ],
   "engines": {
-    "node": "6.x || 8.x || >= 10.x"
+    "node": ">= 6.x"
   },
   "main": "dist/index.js",
   "directories": {
