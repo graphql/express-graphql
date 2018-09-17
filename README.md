@@ -77,6 +77,8 @@ The `graphqlHTTP` function accepts the following options:
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
 
+  * **`httpErrorOnEmptyData`**: If `false`, the HTTP status code of the response will not be set to 500 if the response contains only errors, not data.
+
   * **`formatError`**: An optional function which will be used to format any
     errors produced by fulfilling a GraphQL operation. If no function is
     provided, GraphQL's default spec-compliant [`formatError`][] function will be used.

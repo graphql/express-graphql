@@ -73,11 +73,20 @@ export type OptionsData = {
   pretty?: ?boolean,
 
   /**
+   * A boolean to configure whether HTTP status code should be set to 500
+   * if the query did not return any data.
+   * True by default.
+   */
+  httpErrorOnEmptyData?: ?boolean,
+
+  /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
    */
   formatError?: ?(error: GraphQLError) => mixed,
+
+
 
   /**
    * An optional array of validation rules that will be applied on the document
@@ -158,6 +167,7 @@ function graphqlHTTP(options: Options): Middleware {
     let context;
     let params;
     let pretty;
+    let httpErrorOnEmptyData;
     let formatErrorFn;
     let extensionsFn;
     let showGraphiQL;
@@ -203,6 +213,7 @@ function graphqlHTTP(options: Options): Middleware {
         const graphiql = optionsData.graphiql;
 
         context = optionsData.context || request;
+        httpErrorOnEmptyData = optionsData.httpErrorOnEmptyData !== false;
 
         let validationRules = specifiedRules;
         if (optionsData.validationRules) {
@@ -328,7 +339,7 @@ function graphqlHTTP(options: Options): Middleware {
         // Note: Information about the error itself will still be contained in
         // the resulting JSON payload.
         // http://facebook.github.io/graphql/#sec-Data
-        if (response.statusCode === 200 && result && !result.data) {
+        if (httpErrorOnEmptyData == && response.statusCode === 200 && result && !result.data) {
           response.statusCode = 500;
         }
         // Format any encountered errors.
