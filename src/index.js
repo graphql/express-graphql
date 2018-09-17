@@ -86,8 +86,6 @@ export type OptionsData = {
    */
   formatError?: ?(error: GraphQLError) => mixed,
 
-
-
   /**
    * An optional array of validation rules that will be applied on the document
    * in additional to those defined by the GraphQL spec.
