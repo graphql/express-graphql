@@ -1,6 +1,6 @@
 {
   "name": "express-graphql",
-  "version": "0.6.12",
+  "version": "0.7.0",
   "description": "Production ready GraphQL HTTP middleware.",
   "license": "BSD-3-Clause",
   "bugs": {
