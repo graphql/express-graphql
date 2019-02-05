@@ -108,6 +108,21 @@ export type OptionsData = {
    * value or method on the source value with the field's name).
    */
   fieldResolver?: ?GraphQLFieldResolver<any, any>,
+
+  /**
+   * Status code for results that have neither errors nor data; default 500
+   */
+  noErrorNoDataStatusCode?: number;
+
+  /**
+   * Status code for results that have errors and no data; default 400
+   */
+  errorsNoDataStatusCode?: number;
+
+  /**
+   * Status code for results that have both errors and data; default 200
+   */
+  errorsAndDataStatusCode?: number;
 };
 
 /**
@@ -328,8 +343,14 @@ function graphqlHTTP(options: Options): Middleware {
         // Note: Information about the error itself will still be contained in
         // the resulting JSON payload.
         // http://facebook.github.io/graphql/#sec-Data
-        if (response.statusCode === 200 && result && !result.data) {
-          response.statusCode = 500;
+        if (response.statusCode === 200) {
+          if (result.errors && result.errors.length > 0 && !result.data) {
+            response.statusCode = Number.isInteger(options.errorsNoDataStatusCode) ? options.errorsNoDataStatusCode : 400;
+          } else if (result.errors && result.errors.length > 0 && result.data) {
+            response.statusCode = Number.isInteger(options.errorsAndDataStatusCode) ? options.errorsAndDataStatusCode : 200;
+          } else if ((!result.errors || result.errors.length === 0) && !result.data) {
+            response.statusCode = Number.isInteger(options.noErrorNoDataStatusCode) ? options.noErrorNoDataStatusCode : 500;
+          }
         }
         // Format any encountered errors.
         if (result && result.errors) {
