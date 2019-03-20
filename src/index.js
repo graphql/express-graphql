@@ -22,6 +22,7 @@ import {
 } from 'graphql';
 import httpError from 'http-errors';
 import url from 'url';
+import crypto from 'crypto';
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
@@ -84,6 +85,11 @@ export type OptionsData = {
    * in additional to those defined by the GraphQL spec.
    */
   validationRules?: ?Array<(ValidationContext) => ASTVisitor>,
+
+  /**
+   * An optional compatible associative object to cache the results of validation.
+   */
+  validationCache?: ?{ [hash: string]: $ReadOnlyArray<GraphQLError> },
 
   /**
    * An optional function for adding additional metadata to the GraphQL response
@@ -201,6 +207,7 @@ function graphqlHTTP(options: Options): Middleware {
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
+        const validationCache = optionsData.validationCache;
 
         context = optionsData.context || request;
 
@@ -251,7 +258,23 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         // Validate AST, reporting any errors.
-        const validationErrors = validate(schema, documentAST, validationRules);
+        const string =
+          JSON.stringify(schema) +
+          JSON.stringify(source) +
+          validationRules.toString();
+        const hash = crypto
+          .createHash('sha256')
+          .update(string, 'utf8')
+          .digest('hex');
+
+        const validationErrors = validateWithCache(
+          validationCache,
+          hash,
+          () => {
+            return validate(schema, documentAST, validationRules);
+          },
+        );
+
         if (validationErrors.length > 0) {
           // Return 400: Bad Request if any validation errors exist.
           response.statusCode = 400;
@@ -462,4 +485,16 @@ function sendResponse(response: $Response, type: string, data: string): void {
   response.setHeader('Content-Type', type + '; charset=utf-8');
   response.setHeader('Content-Length', String(chunk.length));
   response.end(chunk);
+}
+
+function validateWithCache(validationCache, hash, op) {
+  if (validationCache) {
+    if (validationCache[hash]) {
+      return validationCache[hash];
+    }
+    validationCache[hash] = op();
+
+    return validationCache[hash];
+  }
+  return op();
 }

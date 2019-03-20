@@ -91,6 +91,9 @@ The `graphqlHTTP` function accepts the following options:
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
 
+  * **`validationCache`**: An optional compatible associative object to cache the results of 
+    validation.
+
 In addition to an object defining each option, options can also be provided as
 a function (or async function) which returns this options object. This function
 is provided the arguments `(request, response, graphQLParams)` and is called
