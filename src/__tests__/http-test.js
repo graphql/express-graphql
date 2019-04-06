@@ -28,6 +28,7 @@ import {
   GraphQLString,
   GraphQLError,
   BREAK,
+  validate,
 } from 'graphql';
 import graphqlHTTP from '../';
 
@@ -1205,7 +1206,7 @@ describe('test harness', () => {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            formatError(error) {
+            customFormatErrorFn(error) {
               return { message: 'Custom error format: ' + error.message };
             },
           }),
@@ -1236,7 +1237,7 @@ describe('test harness', () => {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            formatError(error) {
+            customFormatErrorFn(error) {
               return {
                 message: error.message,
                 locations: error.locations,
@@ -1466,7 +1467,7 @@ describe('test harness', () => {
         });
       });
 
-      it('allows for custom error formatting of poorly formed requests', async () => {
+      it('`formatError` is deprecated', async () => {
         const app = server();
 
         get(
@@ -1475,6 +1476,46 @@ describe('test harness', () => {
           graphqlHTTP({
             schema: TestSchema,
             formatError(error) {
+              return { message: 'Custom error format: ' + error.message };
+            },
+          }),
+        );
+
+        const spy = sinon.spy(console, 'warn');
+
+        const response = await request(app).get(
+          urlString({
+            variables: 'who:You',
+            query: 'query helloWho($who: String){ test(who: $who) }',
+          }),
+        );
+
+        expect(
+          spy.calledWith(
+            '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
+          ),
+        );
+        expect(response.status).to.equal(400);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          errors: [
+            {
+              message: 'Custom error format: Variables are invalid JSON.',
+            },
+          ],
+        });
+
+        spy.restore();
+      });
+
+      it('allows for custom error formatting of poorly formed requests', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            customFormatErrorFn(error) {
               return { message: 'Custom error format: ' + error.message };
             },
           }),
@@ -1859,6 +1900,64 @@ describe('test harness', () => {
       });
     });
 
+    describe('Custom validate function', () => {
+      it('returns data', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            customValidateFn(schema, documentAST, validationRules) {
+              return validate(schema, documentAST, validationRules);
+            },
+          }),
+        );
+
+        const response = await request(app)
+          .get(urlString({ query: '{test}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+      });
+
+      it('returns validation errors', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            customValidateFn(schema, documentAST, validationRules) {
+              const errors = validate(schema, documentAST, validationRules);
+
+              const error = new GraphQLError(`custom error ${errors.length}`);
+
+              return [error];
+            },
+          }),
+        );
+
+        const response = await request(app).get(
+          urlString({
+            query: '{thrower}',
+          }),
+        );
+
+        expect(response.status).to.equal(400);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          errors: [
+            {
+              message: 'custom error 0',
+            },
+          ],
+        });
+      });
+    });
+
     describe('Custom validation rules', () => {
       const AlwaysInvalidRule = function(context) {
         return {
@@ -1946,7 +2045,7 @@ describe('test harness', () => {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            formatError: () => null,
+            customFormatErrorFn: () => null,
             extensions({ result }) {
               return { preservedErrors: (result: any).errors };
             },

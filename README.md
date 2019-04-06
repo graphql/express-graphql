@@ -77,10 +77,6 @@ The `graphqlHTTP` function accepts the following options:
 
   * **`pretty`**: If `true`, any JSON response will be pretty-printed.
 
-  * **`formatError`**: An optional function which will be used to format any
-    errors produced by fulfilling a GraphQL operation. If no function is
-    provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
-
   * **`extensions`**: An optional function for adding additional metadata to the
     GraphQL response as a key-value object. The result will be added to
     `"extensions"` field in the resulting JSON. This is often a useful place to
@@ -90,6 +86,16 @@ The `graphqlHTTP` function accepts the following options:
 
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
+
+  * **`customValidateFn`**: An optional function which will be used to validate
+    instead of default `validate` from `graphql-js`.
+
+  * **`customFormatErrorFn`**:  An optional function which will be used to format any
+    errors produced by fulfilling a GraphQL operation. If no function is
+    provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
+
+  * **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be
+    removed in version 1.0.0.
 
 In addition to an object defining each option, options can also be provided as
 a function (or async function) which returns this options object. This function
@@ -288,10 +294,10 @@ graphqlHTTP.getGraphQLParams(request).then(params => {
 ## Debugging Tips
 
 During development, it's useful to get more information from errors, such as
-stack traces. Providing a function to `formatError` enables this:
+stack traces. Providing a function to `customFormatErrorFn` enables this:
 
 ```js
-formatError: error => ({
+customFormatErrorFn: error => ({
   message: error.message,
   locations: error.locations,
   stack: error.stack ? error.stack.split('\n') : [],

@@ -73,17 +73,33 @@ export type OptionsData = {
   pretty?: ?boolean,
 
   /**
-   * An optional function which will be used to format any errors produced by
-   * fulfilling a GraphQL operation. If no function is provided, GraphQL's
-   * default spec-compliant `formatError` function will be used.
-   */
-  formatError?: ?(error: GraphQLError) => mixed,
-
-  /**
    * An optional array of validation rules that will be applied on the document
    * in additional to those defined by the GraphQL spec.
    */
   validationRules?: ?Array<(ValidationContext) => ASTVisitor>,
+
+  /**
+   * An optional function which will be used to validate instead of default `validate`
+   * from `graphql-js`.
+   */
+  customValidateFn?: ?(
+    schema: GraphQLSchema,
+    documentAST: DocumentNode,
+    rules: $ReadOnlyArray<any>,
+  ) => $ReadOnlyArray<GraphQLError>,
+
+  /**
+   * An optional function which will be used to format any errors produced by
+   * fulfilling a GraphQL operation. If no function is provided, GraphQL's
+   * default spec-compliant `formatError` function will be used.
+   */
+  customFormatErrorFn?: ?(error: GraphQLError) => mixed,
+
+  /**
+   * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
+   *  be removed in version 1.0.0.
+   */
+  formatError?: ?(error: GraphQLError) => mixed,
 
   /**
    * An optional function for adding additional metadata to the GraphQL response
@@ -158,7 +174,8 @@ function graphqlHTTP(options: Options): Middleware {
     let context;
     let params;
     let pretty;
-    let formatErrorFn;
+    let formatErrorFn = formatError;
+    let validateFn = validate;
     let extensionsFn;
     let showGraphiQL;
     let query;
@@ -201,7 +218,6 @@ function graphqlHTTP(options: Options): Middleware {
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
-
         context = optionsData.context || request;
 
         let validationRules = specifiedRules;
@@ -251,7 +267,12 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         // Validate AST, reporting any errors.
-        const validationErrors = validate(schema, documentAST, validationRules);
+        const validationErrors = validateFn(
+          schema,
+          documentAST,
+          validationRules,
+        );
+
         if (validationErrors.length > 0) {
           // Return 400: Bad Request if any validation errors exist.
           response.statusCode = 400;
@@ -333,9 +354,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
         // Format any encountered errors.
         if (result && result.errors) {
-          (result: any).errors = result.errors.map(
-            formatErrorFn || formatError,
-          );
+          (result: any).errors = result.errors.map(formatErrorFn);
         }
 
         // If allowed to show GraphiQL, present it instead of JSON.
@@ -380,7 +399,18 @@ function graphqlHTTP(options: Options): Middleware {
           );
         }
 
-        formatErrorFn = optionsData.formatError;
+        if (optionsData.formatError) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
+          );
+        }
+
+        validateFn = optionsData.customValidateFn || validateFn;
+        formatErrorFn =
+          optionsData.customFormatErrorFn ||
+          optionsData.formatError ||
+          formatErrorFn;
         extensionsFn = optionsData.extensions;
         pretty = optionsData.pretty;
         return optionsData;
