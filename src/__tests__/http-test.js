@@ -1481,7 +1481,7 @@ describe('test harness', () => {
           }),
         );
 
-        const spy = sinon.spy(console, 'error');
+        const spy = sinon.spy(console, 'warn');
 
         const response = await request(app).get(
           urlString({
@@ -1504,7 +1504,7 @@ describe('test harness', () => {
           ],
         });
 
-        console.error.restore();
+        spy.restore();
       });
 
       it('allows for custom error formatting of poorly formed requests', async () => {

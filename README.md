@@ -87,14 +87,14 @@ The `graphqlHTTP` function accepts the following options:
   * **`validationRules`**: Optional additional validation rules queries must
     satisfy in addition to those defined by the GraphQL spec.
 
-  * **`customValidateFn`**: An optional function which will be used to validate 
+  * **`customValidateFn`**: An optional function which will be used to validate
     instead of default `validate` from `graphql-js`.
 
   * **`customFormatErrorFn`**:  An optional function which will be used to format any
     errors produced by fulfilling a GraphQL operation. If no function is
     provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
 
-  * **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be 
+  * **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be
     removed in version 1.0.0.
 
 In addition to an object defining each option, options can also be provided as

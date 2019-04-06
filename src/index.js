@@ -174,7 +174,8 @@ function graphqlHTTP(options: Options): Middleware {
     let context;
     let params;
     let pretty;
-    let formatErrorFn;
+    let formatErrorFn = formatError;
+    let validateFn = validate;
     let extensionsFn;
     let showGraphiQL;
     let query;
@@ -217,7 +218,6 @@ function graphqlHTTP(options: Options): Middleware {
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
         const graphiql = optionsData.graphiql;
-        const validateFn = optionsData.customValidateFn || validate;
         context = optionsData.context || request;
 
         let validationRules = specifiedRules;
@@ -354,9 +354,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
         // Format any encountered errors.
         if (result && result.errors) {
-          (result: any).errors = result.errors.map(
-            formatErrorFn || formatError,
-          );
+          (result: any).errors = result.errors.map(formatErrorFn);
         }
 
         // If allowed to show GraphiQL, present it instead of JSON.
@@ -402,13 +400,17 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         if (optionsData.formatError) {
-          console.error(
+          // eslint-disable-next-line no-console
+          console.warn(
             '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
           );
         }
 
+        validateFn = optionsData.customValidateFn || validateFn;
         formatErrorFn =
-          optionsData.customFormatErrorFn || optionsData.formatError;
+          optionsData.customFormatErrorFn ||
+          optionsData.formatError ||
+          formatErrorFn;
         extensionsFn = optionsData.extensions;
         pretty = optionsData.pretty;
         return optionsData;
