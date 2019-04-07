@@ -20,6 +20,7 @@ import {
   getOperationAST,
   specifiedRules,
 } from 'graphql';
+import type { ExecutionArgs, ExecutionResult } from 'graphql';
 import httpError from 'http-errors';
 import url from 'url';
 
@@ -51,6 +52,7 @@ export type Options =
     ) => OptionsResult)
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
+
 export type OptionsData = {
   /**
    * A GraphQL schema from graphql-js.
@@ -87,6 +89,12 @@ export type OptionsData = {
     documentAST: DocumentNode,
     rules: $ReadOnlyArray<any>,
   ) => $ReadOnlyArray<GraphQLError>,
+
+  /**
+   * An optional function which will be used to execute instead of default `execute`
+   * from `graphql-js`.
+   */
+  customExecuteFn?: ?(args: ExecutionArgs) => Promise<ExecutionResult>,
 
   /**
    * An optional function which will be used to format any errors produced by
@@ -176,6 +184,7 @@ function graphqlHTTP(options: Options): Middleware {
     let pretty;
     let formatErrorFn = formatError;
     let validateFn = validate;
+    let executeFn = execute;
     let extensionsFn;
     let showGraphiQL;
     let query;
@@ -302,15 +311,15 @@ function graphqlHTTP(options: Options): Middleware {
         }
         // Perform the execution, reporting any errors creating the context.
         try {
-          return execute(
+          return executeFn({
             schema,
-            documentAST,
+            document: documentAST,
             rootValue,
-            context,
-            variables,
+            contextValue: context,
+            variableValues: variables,
             operationName,
             fieldResolver,
-          );
+          });
         } catch (contextError) {
           // Return 400: Bad Request if any execution context errors exist.
           response.statusCode = 400;
@@ -407,6 +416,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         validateFn = optionsData.customValidateFn || validateFn;
+        executeFn = optionsData.customExecuteFn || executeFn;
         formatErrorFn =
           optionsData.customFormatErrorFn ||
           optionsData.formatError ||
