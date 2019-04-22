@@ -20,7 +20,6 @@ import {
   getOperationAST,
   specifiedRules,
 } from 'graphql';
-import type { ExecutionArgs, ExecutionResult } from 'graphql';
 import httpError from 'http-errors';
 import url from 'url';
 
@@ -28,6 +27,8 @@ import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
 import type {
+  ExecutionArgs,
+  ExecutionResult,
   DocumentNode,
   GraphQLError,
   GraphQLSchema,
