@@ -97,6 +97,9 @@ The `graphqlHTTP` function accepts the following options:
     errors produced by fulfilling a GraphQL operation. If no function is
     provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
 
+  * **`customParseFn`**: An optional function which will be used to create a document
+    instead of the default `parse` from `graphql-js`.
+
   * **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be
     removed in version 1.0.0.
 
