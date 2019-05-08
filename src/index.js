@@ -105,6 +105,12 @@ export type OptionsData = {
   customFormatErrorFn?: ?(error: GraphQLError) => mixed,
 
   /**
+   * An optional function which will be used to create a document instead of
+   * the default `parse` from `graphql-js`.
+   */
+  customParseFn?: ?(params: GraphQLParams) => DocumentNode,
+
+  /**
    * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
    *  be removed in version 1.0.0.
    */
@@ -186,6 +192,7 @@ function graphqlHTTP(options: Options): Middleware {
     let formatErrorFn = formatError;
     let validateFn = validate;
     let executeFn = execute;
+    let parseFn = defaultParseFn;
     let extensionsFn;
     let showGraphiQL;
     let query;
@@ -264,12 +271,9 @@ function graphqlHTTP(options: Options): Middleware {
           return { errors: schemaValidationErrors };
         }
 
-        //  GraphQL source.
-        const source = new Source(query, 'GraphQL request');
-
         // Parse source to AST, reporting any syntax error.
         try {
-          documentAST = parse(source);
+          documentAST = parseFn(params);
         } catch (syntaxError) {
           // Return 400: Bad Request if any syntax errors errors exist.
           response.statusCode = 400;
@@ -418,6 +422,7 @@ function graphqlHTTP(options: Options): Middleware {
 
         validateFn = optionsData.customValidateFn || validateFn;
         executeFn = optionsData.customExecuteFn || executeFn;
+        parseFn = optionsData.customParseFn || parseFn;
         formatErrorFn =
           optionsData.customFormatErrorFn ||
           optionsData.formatError ||
@@ -503,4 +508,11 @@ function sendResponse(response: $Response, type: string, data: string): void {
   response.setHeader('Content-Type', type + '; charset=utf-8');
   response.setHeader('Content-Length', String(chunk.length));
   response.end(chunk);
+}
+
+/**
+ * Helper function to provide the default parse functionality.
+ */
+function defaultParseFn(params: GraphQLParams): DocumentNode {
+  return parse(new Source(params.query || '', 'GraphQL request'));
 }
