@@ -2058,7 +2058,7 @@ describe('test harness', () => {
 
         expect(response.status).to.equal(200);
         expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
-        expect(seenParseArgs).property('query', '----');
+        expect(seenParseArgs).property('body', '----');
       });
       it('can throw errors', async () => {
         const app = server();
