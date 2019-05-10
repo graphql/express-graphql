@@ -272,7 +272,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         //  GraphQL source.
-        const source = new Source(query);
+        const source = new Source(query, 'GraphQL request');
 
         // Parse source to AST, reporting any syntax error.
         try {
