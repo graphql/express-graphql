@@ -28,8 +28,10 @@ import {
   GraphQLString,
   GraphQLError,
   BREAK,
+  Source,
   validate,
   execute,
+  parse,
 } from 'graphql';
 import graphqlHTTP from '../';
 
@@ -2029,6 +2031,56 @@ describe('test harness', () => {
           '{"data":{"test":"Hello World","test2":"Modification"}}',
         );
         expect(seenExecuteArgs).to.not.equal(null);
+      });
+    });
+
+    describe('Custom parse function', () => {
+      it('can replace default parse functionality', async () => {
+        const app = server();
+
+        let seenParseArgs;
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => {
+            return {
+              schema: TestSchema,
+              customParseFn(args) {
+                seenParseArgs = args;
+                return parse(new Source('{test}', 'Custom parse function'));
+              },
+            };
+          }),
+        );
+
+        const response = await request(app).get(urlString({ query: '----' }));
+
+        expect(response.status).to.equal(200);
+        expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+        expect(seenParseArgs).property('body', '----');
+      });
+      it('can throw errors', async () => {
+        const app = server();
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => {
+            return {
+              schema: TestSchema,
+              customParseFn() {
+                throw new GraphQLError('my custom parse error');
+              },
+            };
+          }),
+        );
+
+        const response = await request(app).get(urlString({ query: '----' }));
+
+        expect(response.status).to.equal(400);
+        expect(response.text).to.equal(
+          '{"errors":[{"message":"my custom parse error"}]}',
+        );
       });
     });
 

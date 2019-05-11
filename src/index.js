@@ -105,6 +105,12 @@ export type OptionsData = {
   customFormatErrorFn?: ?(error: GraphQLError) => mixed,
 
   /**
+   * An optional function which will be used to create a document instead of
+   * the default `parse` from `graphql-js`.
+   */
+  customParseFn?: ?(source: Source) => DocumentNode,
+
+  /**
    * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
    *  be removed in version 1.0.0.
    */
@@ -186,6 +192,7 @@ function graphqlHTTP(options: Options): Middleware {
     let formatErrorFn = formatError;
     let validateFn = validate;
     let executeFn = execute;
+    let parseFn = parse;
     let extensionsFn;
     let showGraphiQL;
     let query;
@@ -269,7 +276,7 @@ function graphqlHTTP(options: Options): Middleware {
 
         // Parse source to AST, reporting any syntax error.
         try {
-          documentAST = parse(source);
+          documentAST = parseFn(source);
         } catch (syntaxError) {
           // Return 400: Bad Request if any syntax errors errors exist.
           response.statusCode = 400;
@@ -418,6 +425,7 @@ function graphqlHTTP(options: Options): Middleware {
 
         validateFn = optionsData.customValidateFn || validateFn;
         executeFn = optionsData.customExecuteFn || executeFn;
+        parseFn = optionsData.customParseFn || parseFn;
         formatErrorFn =
           optionsData.customFormatErrorFn ||
           optionsData.formatError ||
