@@ -60,10 +60,10 @@
     "start": "babel-node examples/index.js"
   },
   "dependencies": {
-    "accepts": "^1.3.5",
+    "accepts": "^1.3.7",
     "content-type": "^1.0.4",
     "http-errors": "^1.7.2",
-    "raw-body": "^2.3.3"
+    "raw-body": "^2.4.0"
   },
   "devDependencies": {
     "babel-cli": "6.26.0",
@@ -75,23 +75,23 @@
     "babel-preset-es2015": "6.24.1",
     "babel-register": "6.26.0",
     "babel-runtime": "6.26.0",
-    "body-parser": "1.18.3",
+    "body-parser": "1.19.0",
     "chai": "4.2.0",
     "connect": "3.6.6",
     "coveralls": "3.0.3",
     "eslint": "5.16.0",
-    "eslint-plugin-flowtype": "3.5.1",
-    "eslint-plugin-prettier": "3.0.1",
+    "eslint-plugin-flowtype": "3.8.2",
+    "eslint-plugin-prettier": "3.1.0",
     "express": "4.16.4",
     "flow-bin": "0.96.0",
-    "graphql": "14.2.1",
+    "graphql": "14.3.0",
     "isparta": "4.1.1",
-    "mocha": "6.0.2",
+    "mocha": "6.1.4",
     "multer": "1.4.1",
-    "prettier": "1.16.4",
+    "prettier": "1.17.1",
     "restify": "4.3.2",
     "sane": "4.1.0",
-    "sinon": "7.3.1",
+    "sinon": "7.3.2",
     "supertest": "4.0.2"
   },
   "peerDependencies": {
