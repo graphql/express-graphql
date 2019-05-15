@@ -411,38 +411,38 @@ function graphqlHTTP(options: Options): Middleware {
         }
       });
 
-    function resolveOptions(requestParams) {
-      return Promise.resolve(
+    async function resolveOptions(requestParams) {
+      const optionsResult =
         typeof options === 'function'
           ? options(request, response, requestParams)
-          : options,
-      ).then(optionsData => {
-        // Assert that optionsData is in fact an Object.
-        if (!optionsData || typeof optionsData !== 'object') {
-          throw new Error(
-            'GraphQL middleware option function must return an options object ' +
-              'or a promise which will be resolved to an options object.',
-          );
-        }
+          : options;
+      const optionsData = await optionsResult;
 
-        if (optionsData.formatError) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
-          );
-        }
+      // Assert that optionsData is in fact an Object.
+      if (!optionsData || typeof optionsData !== 'object') {
+        throw new Error(
+          'GraphQL middleware option function must return an options object ' +
+            'or a promise which will be resolved to an options object.',
+        );
+      }
 
-        validateFn = optionsData.customValidateFn || validateFn;
-        executeFn = optionsData.customExecuteFn || executeFn;
-        parseFn = optionsData.customParseFn || parseFn;
-        formatErrorFn =
-          optionsData.customFormatErrorFn ||
-          optionsData.formatError ||
-          formatErrorFn;
-        extensionsFn = optionsData.extensions;
-        pretty = optionsData.pretty;
-        return optionsData;
-      });
+      if (optionsData.formatError) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
+        );
+      }
+
+      validateFn = optionsData.customValidateFn || validateFn;
+      executeFn = optionsData.customExecuteFn || executeFn;
+      parseFn = optionsData.customParseFn || parseFn;
+      formatErrorFn =
+        optionsData.customFormatErrorFn ||
+        optionsData.formatError ||
+        formatErrorFn;
+      extensionsFn = optionsData.extensions;
+      pretty = optionsData.pretty;
+      return optionsData;
     }
   };
 }
@@ -459,11 +459,11 @@ export type GraphQLParams = {
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
 module.exports.getGraphQLParams = getGraphQLParams;
-function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
-  return parseBody(request).then(bodyData => {
-    const urlData = (request.url && url.parse(request.url, true).query) || {};
-    return parseGraphQLParams(urlData, bodyData);
-  });
+async function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
+  const bodyData = await parseBody(request);
+  const urlData = (request.url && url.parse(request.url, true).query) || {};
+
+  return parseGraphQLParams(urlData, bodyData);
 }
 
 /**
