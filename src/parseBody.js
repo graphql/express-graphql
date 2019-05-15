@@ -21,67 +21,56 @@ import type { $Request } from 'express';
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the body data contained.
  */
-export function parseBody(req: $Request): Promise<{ [param: string]: mixed }> {
-  return new Promise((resolve, reject) => {
-    const body = req.body;
+export async function parseBody(
+  req: $Request,
+): Promise<{ [param: string]: mixed }> {
+  const body = req.body;
 
-    // If express has already parsed a body as a keyed object, use it.
-    if (typeof body === 'object' && !(body instanceof Buffer)) {
-      return resolve((body: any));
-    }
-
-    // Skip requests without content types.
-    if (req.headers['content-type'] === undefined) {
-      return resolve({});
-    }
-
-    const typeInfo = contentType.parse(req);
-
-    // If express has already parsed a body as a string, and the content-type
-    // was application/graphql, parse the string body.
-    if (typeof body === 'string' && typeInfo.type === 'application/graphql') {
-      return resolve(graphqlParser(body));
-    }
-
-    // Already parsed body we didn't recognise? Parse nothing.
-    if (body) {
-      return resolve({});
-    }
-
-    // Use the correct body parser based on Content-Type header.
-    switch (typeInfo.type) {
-      case 'application/graphql':
-        return read(req, typeInfo, graphqlParser, resolve, reject);
-      case 'application/json':
-        return read(req, typeInfo, jsonEncodedParser, resolve, reject);
-      case 'application/x-www-form-urlencoded':
-        return read(req, typeInfo, urlEncodedParser, resolve, reject);
-    }
-
-    // If no Content-Type header matches, parse nothing.
-    return resolve({});
-  });
-}
-
-function jsonEncodedParser(body) {
-  if (jsonObjRegex.test(body)) {
-    /* eslint-disable no-empty */
-    try {
-      return JSON.parse(body);
-    } catch (error) {
-      // Do nothing
-    }
-    /* eslint-enable no-empty */
+  // If express has already parsed a body as a keyed object, use it.
+  if (typeof body === 'object' && !(body instanceof Buffer)) {
+    return (body: any);
   }
-  throw httpError(400, 'POST body sent invalid JSON.');
-}
 
-function urlEncodedParser(body) {
-  return querystring.parse(body);
-}
+  // Skip requests without content types.
+  if (req.headers['content-type'] === undefined) {
+    return {};
+  }
 
-function graphqlParser(body) {
-  return { query: body };
+  const typeInfo = contentType.parse(req);
+
+  // If express has already parsed a body as a string, and the content-type
+  // was application/graphql, parse the string body.
+  if (typeof body === 'string' && typeInfo.type === 'application/graphql') {
+    return { query: body };
+  }
+
+  // Already parsed body we didn't recognise? Parse nothing.
+  if (body) {
+    return {};
+  }
+
+  const rawBody = await readBody(req, typeInfo);
+  // Use the correct body parser based on Content-Type header.
+  switch (typeInfo.type) {
+    case 'application/graphql':
+      return { query: rawBody };
+    case 'application/json':
+      if (jsonObjRegex.test(rawBody)) {
+        /* eslint-disable no-empty */
+        try {
+          return JSON.parse(rawBody);
+        } catch (error) {
+          // Do nothing
+        }
+        /* eslint-enable no-empty */
+      }
+      throw httpError(400, 'POST body sent invalid JSON.');
+    case 'application/x-www-form-urlencoded':
+      return querystring.parse(rawBody);
+  }
+
+  // If no Content-Type header matches, parse nothing.
+  return {};
 }
 
 /**
@@ -96,7 +85,7 @@ function graphqlParser(body) {
 const jsonObjRegex = /^[\x20\x09\x0a\x0d]*\{/;
 
 // Read and parse a request body.
-function read(req, typeInfo, parseFn, resolve, reject) {
+async function readBody(req, typeInfo) {
   const charset = (typeInfo.parameters.charset || 'utf-8').toLowerCase();
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
@@ -115,22 +104,13 @@ function read(req, typeInfo, parseFn, resolve, reject) {
   const stream = decompressed(req, encoding);
 
   // Read body from stream.
-  getBody(stream, { encoding: charset, length, limit }, (err, body) => {
-    if (err) {
-      return reject(
-        err.type === 'encoding.unsupported'
-          ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
-          : httpError(400, `Invalid body: ${err.message}.`),
-      );
-    }
-
-    try {
-      // Decode and parse body.
-      return resolve(parseFn(body));
-    } catch (error) {
-      return reject(error);
-    }
-  });
+  try {
+    return await getBody(stream, { encoding: charset, length, limit });
+  } catch (err) {
+    throw err.type === 'encoding.unsupported'
+      ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
+      : httpError(400, `Invalid body: ${err.message}.`);
+  }
 }
 
 // Return a decompressed stream, given an encoding.
