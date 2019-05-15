@@ -242,13 +242,9 @@ function graphqlHTTP(options: Options): Middleware {
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
         const typeResolver = optionsData.typeResolver;
+        const validationRules = optionsData.validationRules || [];
         const graphiql = optionsData.graphiql;
         context = optionsData.context || request;
-
-        let validationRules = specifiedRules;
-        if (optionsData.validationRules) {
-          validationRules = validationRules.concat(optionsData.validationRules);
-        }
 
         // GraphQL HTTP only supports GET and POST methods.
         if (request.method !== 'GET' && request.method !== 'POST') {
@@ -292,11 +288,10 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         // Validate AST, reporting any errors.
-        const validationErrors = validateFn(
-          schema,
-          documentAST,
-          validationRules,
-        );
+        const validationErrors = validateFn(schema, documentAST, [
+          ...specifiedRules,
+          ...validationRules,
+        ]);
 
         if (validationErrors.length > 0) {
           // Return 400: Bad Request if any validation errors exist.
