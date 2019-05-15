@@ -22,12 +22,17 @@ import connect from 'connect';
 import express from 'express';
 import restify from 'restify';
 import {
+  buildSchema,
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLNonNull,
   GraphQLString,
   GraphQLError,
   BREAK,
+  Source,
+  validate,
+  execute,
+  parse,
 } from 'graphql';
 import graphqlHTTP from '../';
 
@@ -37,36 +42,15 @@ const QueryRootType = new GraphQLObjectType({
     test: {
       type: GraphQLString,
       args: {
-        who: {
-          type: GraphQLString,
-        },
+        who: { type: GraphQLString },
       },
       resolve: (root, { who }) => 'Hello ' + ((who: any) || 'World'),
     },
-    nonNullThrower: {
-      type: new GraphQLNonNull(GraphQLString),
-      resolve: () => {
-        throw new Error('Throws!');
-      },
-    },
     thrower: {
       type: GraphQLString,
-      resolve: () => {
+      resolve() {
         throw new Error('Throws!');
       },
-    },
-    context: {
-      type: GraphQLString,
-      resolve: (obj, args, context) => context,
-    },
-    contextDotFoo: {
-      type: GraphQLString,
-      resolve: (obj, args, context) => {
-        return (context: any).foo;
-      },
-    },
-    missingResolver: {
-      type: GraphQLString,
     },
   },
 });
@@ -91,31 +75,6 @@ function urlString(urlParams?: ?{ [param: string]: mixed }) {
   }
   return string;
 }
-
-function promiseTo(fn) {
-  return new Promise((resolve, reject) => {
-    fn((error, result) => (error ? reject(error) : resolve(result)));
-  });
-}
-
-describe('test harness', () => {
-  it('resolves callback promises', async () => {
-    const resolveValue = {};
-    const result = await promiseTo(cb => cb(null, resolveValue));
-    expect(result).to.equal(resolveValue);
-  });
-
-  it('rejects callback promises with errors', async () => {
-    const rejectError = new Error();
-    let caught;
-    try {
-      await promiseTo(cb => cb(rejectError));
-    } catch (error) {
-      caught = error;
-    }
-    expect(caught).to.equal(rejectError);
-  });
-});
 
 [
   [connect, 'connect'],
@@ -345,67 +304,127 @@ describe('test harness', () => {
       });
 
       it('Allows passing in a context', async () => {
+        const schema = new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              test: {
+                type: GraphQLString,
+                resolve: (obj, args, context) => context,
+              },
+            },
+          }),
+        });
         const app = server();
 
         get(
           app,
           urlString(),
           graphqlHTTP({
-            schema: TestSchema,
+            schema,
             context: 'testValue',
           }),
         );
 
         const response = await request(app).get(
           urlString({
-            operationName: 'TestQuery',
-            query: `
-              query TestQuery { context }
-            `,
+            query: '{ test }',
           }),
         );
 
         expect(response.status).to.equal(200);
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
-            context: 'testValue',
+            test: 'testValue',
           },
         });
       });
 
       it('Allows passing in a fieldResolver', async () => {
+        const schema = buildSchema(`
+          type Query {
+            test: String
+          }
+        `);
         const app = server();
 
         get(
           app,
           urlString(),
           graphqlHTTP({
-            schema: TestSchema,
-            context: 'testValue',
-            fieldResolver() {
-              return 'fieldResolver data';
-            },
+            schema,
+            fieldResolver: () => 'fieldResolver data',
           }),
         );
 
         const response = await request(app).get(
           urlString({
-            operationName: 'TestQuery',
-            query: `
-              query TestQuery { missingResolver }
-            `,
+            query: '{ test }',
           }),
         );
 
         expect(response.status).to.equal(200);
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
-            missingResolver: 'fieldResolver data',
+            test: 'fieldResolver data',
+          },
+        });
+      });
+
+      it('Allows passing in a typeResolver', async () => {
+        const schema = buildSchema(`
+          type Foo {
+            foo: String
+          }
+
+          type Bar {
+            bar: String
+          }
+
+          union UnionType = Foo | Bar
+
+          type Query {
+            test: UnionType
+          }
+        `);
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema,
+            rootValue: { test: {} },
+            typeResolver: () => 'Bar',
+          }),
+        );
+
+        const response = await request(app).get(
+          urlString({
+            query: '{ test { __typename } }',
+          }),
+        );
+
+        expect(response.status).to.equal(200);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          data: {
+            test: { __typename: 'Bar' },
           },
         });
       });
 
       it('Uses request as context by default', async () => {
+        const schema = new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              test: {
+                type: GraphQLString,
+                resolve: (obj, args, context) => (context: any).foo,
+              },
+            },
+          }),
+        });
         const app = server();
 
         // Middleware that adds req.foo to every request
@@ -414,27 +433,18 @@ describe('test harness', () => {
           next();
         });
 
-        get(
-          app,
-          urlString(),
-          graphqlHTTP({
-            schema: TestSchema,
-          }),
-        );
+        get(app, urlString(), graphqlHTTP({ schema }));
 
         const response = await request(app).get(
           urlString({
-            operationName: 'TestQuery',
-            query: `
-              query TestQuery { contextDotFoo }
-            `,
+            query: '{ test }',
           }),
         );
 
         expect(response.status).to.equal(200);
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
-            contextDotFoo: 'bar',
+            test: 'bar',
           },
         });
       });
@@ -811,17 +821,15 @@ describe('test harness', () => {
           })),
         );
 
-        const data = { query: '{ test(who: "World") }' };
-        const json = JSON.stringify(data);
-        const gzippedJson = await promiseTo(cb => zlib.gzip(json, cb));
-
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/json')
           .set('Content-Encoding', 'gzip');
-        req.write(gzippedJson);
-        const response = await req;
 
+        // eslint-disable-next-line no-sync
+        req.write(zlib.gzipSync('{ "query": "{ test }" }'));
+
+        const response = await req;
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
             test: 'Hello World',
@@ -840,17 +848,15 @@ describe('test harness', () => {
           })),
         );
 
-        const data = { query: '{ test(who: "World") }' };
-        const json = JSON.stringify(data);
-        const deflatedJson = await promiseTo(cb => zlib.deflate(json, cb));
-
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/json')
           .set('Content-Encoding', 'deflate');
-        req.write(deflatedJson);
-        const response = await req;
 
+        // eslint-disable-next-line no-sync
+        req.write(zlib.deflateSync('{ "query": "{ test }" }'));
+
+        const response = await req;
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
             test: 'Hello World',
@@ -1168,19 +1174,26 @@ describe('test harness', () => {
       });
 
       it('handles query errors from non-null top field errors', async () => {
+        const schema = new GraphQLSchema({
+          query: new GraphQLObjectType({
+            name: 'Query',
+            fields: {
+              test: {
+                type: new GraphQLNonNull(GraphQLString),
+                resolve() {
+                  throw new Error('Throws!');
+                },
+              },
+            },
+          }),
+        });
         const app = server();
 
-        get(
-          app,
-          urlString(),
-          graphqlHTTP({
-            schema: TestSchema,
-          }),
-        );
+        get(app, urlString(), graphqlHTTP({ schema }));
 
         const response = await request(app).get(
           urlString({
-            query: '{nonNullThrower}',
+            query: '{ test }',
           }),
         );
 
@@ -1190,8 +1203,8 @@ describe('test harness', () => {
           errors: [
             {
               message: 'Throws!',
-              locations: [{ line: 1, column: 2 }],
-              path: ['nonNullThrower'],
+              locations: [{ line: 1, column: 3 }],
+              path: ['test'],
             },
           ],
         });
@@ -1205,7 +1218,7 @@ describe('test harness', () => {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            formatError(error) {
+            customFormatErrorFn(error) {
               return { message: 'Custom error format: ' + error.message };
             },
           }),
@@ -1236,7 +1249,7 @@ describe('test harness', () => {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            formatError(error) {
+            customFormatErrorFn(error) {
               return {
                 message: error.message,
                 locations: error.locations,
@@ -1466,7 +1479,7 @@ describe('test harness', () => {
         });
       });
 
-      it('allows for custom error formatting of poorly formed requests', async () => {
+      it('`formatError` is deprecated', async () => {
         const app = server();
 
         get(
@@ -1475,6 +1488,46 @@ describe('test harness', () => {
           graphqlHTTP({
             schema: TestSchema,
             formatError(error) {
+              return { message: 'Custom error format: ' + error.message };
+            },
+          }),
+        );
+
+        const spy = sinon.spy(console, 'warn');
+
+        const response = await request(app).get(
+          urlString({
+            variables: 'who:You',
+            query: 'query helloWho($who: String){ test(who: $who) }',
+          }),
+        );
+
+        expect(
+          spy.calledWith(
+            '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
+          ),
+        );
+        expect(response.status).to.equal(400);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          errors: [
+            {
+              message: 'Custom error format: Variables are invalid JSON.',
+            },
+          ],
+        });
+
+        spy.restore();
+      });
+
+      it('allows for custom error formatting of poorly formed requests', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            customFormatErrorFn(error) {
               return { message: 'Custom error format: ' + error.message };
             },
           }),
@@ -1859,6 +1912,64 @@ describe('test harness', () => {
       });
     });
 
+    describe('Custom validate function', () => {
+      it('returns data', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            customValidateFn(schema, documentAST, validationRules) {
+              return validate(schema, documentAST, validationRules);
+            },
+          }),
+        );
+
+        const response = await request(app)
+          .get(urlString({ query: '{test}', raw: '' }))
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+      });
+
+      it('returns validation errors', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            customValidateFn(schema, documentAST, validationRules) {
+              const errors = validate(schema, documentAST, validationRules);
+
+              const error = new GraphQLError(`custom error ${errors.length}`);
+
+              return [error];
+            },
+          }),
+        );
+
+        const response = await request(app).get(
+          urlString({
+            query: '{thrower}',
+          }),
+        );
+
+        expect(response.status).to.equal(400);
+        expect(JSON.parse(response.text)).to.deep.equal({
+          errors: [
+            {
+              message: 'custom error 0',
+            },
+          ],
+        });
+      });
+    });
+
     describe('Custom validation rules', () => {
       const AlwaysInvalidRule = function(context) {
         return {
@@ -1898,6 +2009,87 @@ describe('test harness', () => {
             },
           ],
         });
+      });
+    });
+
+    describe('Custom execute', () => {
+      it('allow to replace default execute.', async () => {
+        const app = server();
+
+        let seenExecuteArgs;
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => {
+            return {
+              schema: TestSchema,
+              async customExecuteFn(args) {
+                seenExecuteArgs = args;
+                const result: any = await Promise.resolve(execute(args));
+                result.data.test2 = 'Modification';
+                return result;
+              },
+            };
+          }),
+        );
+
+        const response = await request(app).get(urlString({ query: '{test}' }));
+
+        expect(response.text).to.equal(
+          '{"data":{"test":"Hello World","test2":"Modification"}}',
+        );
+        expect(seenExecuteArgs).to.not.equal(null);
+      });
+    });
+
+    describe('Custom parse function', () => {
+      it('can replace default parse functionality', async () => {
+        const app = server();
+
+        let seenParseArgs;
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => {
+            return {
+              schema: TestSchema,
+              customParseFn(args) {
+                seenParseArgs = args;
+                return parse(new Source('{test}', 'Custom parse function'));
+              },
+            };
+          }),
+        );
+
+        const response = await request(app).get(urlString({ query: '----' }));
+
+        expect(response.status).to.equal(200);
+        expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+        expect(seenParseArgs).property('body', '----');
+      });
+      it('can throw errors', async () => {
+        const app = server();
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => {
+            return {
+              schema: TestSchema,
+              customParseFn() {
+                throw new GraphQLError('my custom parse error');
+              },
+            };
+          }),
+        );
+
+        const response = await request(app).get(urlString({ query: '----' }));
+
+        expect(response.status).to.equal(400);
+        expect(response.text).to.equal(
+          '{"errors":[{"message":"my custom parse error"}]}',
+        );
       });
     });
 
@@ -1946,7 +2138,7 @@ describe('test harness', () => {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            formatError: () => null,
+            customFormatErrorFn: () => null,
             extensions({ result }) {
               return { preservedErrors: (result: any).errors };
             },

@@ -20,6 +20,7 @@ import {
   getOperationAST,
   specifiedRules,
 } from 'graphql';
+import type { ExecutionArgs, ExecutionResult } from 'graphql';
 import httpError from 'http-errors';
 import url from 'url';
 
@@ -31,6 +32,7 @@ import type {
   GraphQLError,
   GraphQLSchema,
   GraphQLFieldResolver,
+  GraphQLTypeResolver,
   ValidationContext,
   ASTVisitor,
 } from 'graphql';
@@ -51,6 +53,7 @@ export type Options =
     ) => OptionsResult)
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
+
 export type OptionsData = {
   /**
    * A GraphQL schema from graphql-js.
@@ -78,19 +81,47 @@ export type OptionsData = {
    * True by default.
    */
   httpErrorOnEmptyData?: ?boolean,
+  
+  /**
+   * An optional array of validation rules that will be applied on the document
+   * in additional to those defined by the GraphQL spec.
+   */
+  validationRules?: ?Array<(ValidationContext) => ASTVisitor>,
+
+  /**
+   * An optional function which will be used to validate instead of default `validate`
+   * from `graphql-js`.
+   */
+  customValidateFn?: ?(
+    schema: GraphQLSchema,
+    documentAST: DocumentNode,
+    rules: $ReadOnlyArray<any>,
+  ) => $ReadOnlyArray<GraphQLError>,
+
+  /**
+   * An optional function which will be used to execute instead of default `execute`
+   * from `graphql-js`.
+   */
+  customExecuteFn?: ?(args: ExecutionArgs) => Promise<ExecutionResult>,
 
   /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
    */
-  formatError?: ?(error: GraphQLError) => mixed,
+  customFormatErrorFn?: ?(error: GraphQLError) => mixed,
 
   /**
-   * An optional array of validation rules that will be applied on the document
-   * in additional to those defined by the GraphQL spec.
+   * An optional function which will be used to create a document instead of
+   * the default `parse` from `graphql-js`.
    */
-  validationRules?: ?Array<(ValidationContext) => ASTVisitor>,
+  customParseFn?: ?(source: Source) => DocumentNode,
+
+  /**
+   * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
+   *  be removed in version 1.0.0.
+   */
+  formatError?: ?(error: GraphQLError) => mixed,
 
   /**
    * An optional function for adding additional metadata to the GraphQL response
@@ -115,6 +146,13 @@ export type OptionsData = {
    * value or method on the source value with the field's name).
    */
   fieldResolver?: ?GraphQLFieldResolver<any, any>,
+
+  /**
+   * A type resolver function to use when none is provided by the schema.
+   * If not provided, the default type resolver is used (which looks for a
+   * `__typename` field or alternatively calls the `isTypeOf` method).
+   */
+  typeResolver?: ?GraphQLTypeResolver<any, any>,
 };
 
 /**
@@ -166,7 +204,10 @@ function graphqlHTTP(options: Options): Middleware {
     let params;
     let pretty;
     let httpErrorOnEmptyData;
-    let formatErrorFn;
+    let formatErrorFn = formatError;
+    let validateFn = validate;
+    let executeFn = execute;
+    let parseFn = parse;
     let extensionsFn;
     let showGraphiQL;
     let query;
@@ -208,8 +249,8 @@ function graphqlHTTP(options: Options): Middleware {
         const schema = optionsData.schema;
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
+        const typeResolver = optionsData.typeResolver;
         const graphiql = optionsData.graphiql;
-
         context = optionsData.context || request;
         httpErrorOnEmptyData = optionsData.httpErrorOnEmptyData !== false;
 
@@ -252,7 +293,7 @@ function graphqlHTTP(options: Options): Middleware {
 
         // Parse source to AST, reporting any syntax error.
         try {
-          documentAST = parse(source);
+          documentAST = parseFn(source);
         } catch (syntaxError) {
           // Return 400: Bad Request if any syntax errors errors exist.
           response.statusCode = 400;
@@ -260,7 +301,12 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         // Validate AST, reporting any errors.
-        const validationErrors = validate(schema, documentAST, validationRules);
+        const validationErrors = validateFn(
+          schema,
+          documentAST,
+          validationRules,
+        );
+
         if (validationErrors.length > 0) {
           // Return 400: Bad Request if any validation errors exist.
           response.statusCode = 400;
@@ -290,15 +336,16 @@ function graphqlHTTP(options: Options): Middleware {
         }
         // Perform the execution, reporting any errors creating the context.
         try {
-          return execute(
+          return executeFn({
             schema,
-            documentAST,
+            document: documentAST,
             rootValue,
-            context,
-            variables,
+            contextValue: context,
+            variableValues: variables,
             operationName,
             fieldResolver,
-          );
+            typeResolver,
+          });
         } catch (contextError) {
           // Return 400: Bad Request if any execution context errors exist.
           response.statusCode = 400;
@@ -347,9 +394,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
         // Format any encountered errors.
         if (result && result.errors) {
-          (result: any).errors = result.errors.map(
-            formatErrorFn || formatError,
-          );
+          (result: any).errors = result.errors.map(formatErrorFn);
         }
 
         // If allowed to show GraphiQL, present it instead of JSON.
@@ -394,7 +439,20 @@ function graphqlHTTP(options: Options): Middleware {
           );
         }
 
-        formatErrorFn = optionsData.formatError;
+        if (optionsData.formatError) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
+          );
+        }
+
+        validateFn = optionsData.customValidateFn || validateFn;
+        executeFn = optionsData.customExecuteFn || executeFn;
+        parseFn = optionsData.customParseFn || parseFn;
+        formatErrorFn =
+          optionsData.customFormatErrorFn ||
+          optionsData.formatError ||
+          formatErrorFn;
         extensionsFn = optionsData.extensions;
         pretty = optionsData.pretty;
         return optionsData;
