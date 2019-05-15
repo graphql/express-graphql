@@ -33,7 +33,7 @@
     "PATENTS"
   ],
   "options": {
-    "mocha": "--require resources/mocha-bootload src/**/__tests__/**/*.js"
+    "mocha": "--require babel-register src/**/__tests__/**/*.js"
   },
   "babel": {
     "plugins": [
