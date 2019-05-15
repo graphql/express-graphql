@@ -76,31 +76,6 @@ function urlString(urlParams?: ?{ [param: string]: mixed }) {
   return string;
 }
 
-function promiseTo(fn) {
-  return new Promise((resolve, reject) => {
-    fn((error, result) => (error ? reject(error) : resolve(result)));
-  });
-}
-
-describe('test harness', () => {
-  it('resolves callback promises', async () => {
-    const resolveValue = {};
-    const result = await promiseTo(cb => cb(null, resolveValue));
-    expect(result).to.equal(resolveValue);
-  });
-
-  it('rejects callback promises with errors', async () => {
-    const rejectError = new Error();
-    let caught;
-    try {
-      await promiseTo(cb => cb(rejectError));
-    } catch (error) {
-      caught = error;
-    }
-    expect(caught).to.equal(rejectError);
-  });
-});
-
 [
   [connect, 'connect'],
   [express, 'express'],
@@ -846,17 +821,15 @@ describe('test harness', () => {
           })),
         );
 
-        const data = { query: '{ test(who: "World") }' };
-        const json = JSON.stringify(data);
-        const gzippedJson = await promiseTo(cb => zlib.gzip(json, cb));
-
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/json')
           .set('Content-Encoding', 'gzip');
-        req.write(gzippedJson);
-        const response = await req;
 
+        // eslint-disable-next-line no-sync
+        req.write(zlib.gzipSync('{ "query": "{ test }" }'));
+
+        const response = await req;
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
             test: 'Hello World',
@@ -875,17 +848,15 @@ describe('test harness', () => {
           })),
         );
 
-        const data = { query: '{ test(who: "World") }' };
-        const json = JSON.stringify(data);
-        const deflatedJson = await promiseTo(cb => zlib.deflate(json, cb));
-
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/json')
           .set('Content-Encoding', 'deflate');
-        req.write(deflatedJson);
-        const response = await req;
 
+        // eslint-disable-next-line no-sync
+        req.write(zlib.deflateSync('{ "query": "{ test }" }'));
+
+        const response = await req;
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
             test: 'Hello World',
