@@ -6,8 +6,4 @@
  *  LICENSE file in the root directory of this source tree. An additional grant
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
-/* eslint-disable no-console */
-
-require('babel-register')({
-  plugins: ['transform-async-to-generator', 'transform-runtime'],
-});
+require('babel-register')();
