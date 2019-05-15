@@ -20,6 +20,7 @@ import {
   getOperationAST,
   specifiedRules,
 } from 'graphql';
+import type { ExecutionArgs, ExecutionResult } from 'graphql';
 import httpError from 'http-errors';
 import url from 'url';
 
@@ -27,12 +28,11 @@ import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
 import type {
-  ExecutionArgs,
-  ExecutionResult,
   DocumentNode,
   GraphQLError,
   GraphQLSchema,
   GraphQLFieldResolver,
+  GraphQLTypeResolver,
   ValidationContext,
   ASTVisitor,
 } from 'graphql';
@@ -139,6 +139,13 @@ export type OptionsData = {
    * value or method on the source value with the field's name).
    */
   fieldResolver?: ?GraphQLFieldResolver<any, any>,
+
+  /**
+   * A type resolver function to use when none is provided by the schema.
+   * If not provided, the default type resolver is used (which looks for a
+   * `__typename` field or alternatively calls the `isTypeOf` method).
+   */
+  typeResolver?: ?GraphQLTypeResolver<any, any>,
 };
 
 /**
@@ -234,6 +241,7 @@ function graphqlHTTP(options: Options): Middleware {
         const schema = optionsData.schema;
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
+        const typeResolver = optionsData.typeResolver;
         const graphiql = optionsData.graphiql;
         context = optionsData.context || request;
 
@@ -327,6 +335,7 @@ function graphqlHTTP(options: Options): Middleware {
             variableValues: variables,
             operationName,
             fieldResolver,
+            typeResolver,
           });
         } catch (contextError) {
           // Return 400: Bad Request if any execution context errors exist.
