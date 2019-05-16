@@ -9,34 +9,32 @@
  *  @flow strict
  */
 
+import url from 'url';
 import accepts from 'accepts';
+import httpError from 'http-errors';
+import { type $Request, type $Response } from 'express';
 import {
   Source,
-  validateSchema,
   parse,
   validate,
   execute,
   formatError,
+  validateSchema,
   getOperationAST,
   specifiedRules,
+  type ASTVisitor,
+  type DocumentNode,
+  type ValidationContext,
+  type ExecutionArgs,
+  type ExecutionResult,
+  type GraphQLError,
+  type GraphQLSchema,
+  type GraphQLFieldResolver,
+  type GraphQLTypeResolver,
 } from 'graphql';
-import type { ExecutionArgs, ExecutionResult } from 'graphql';
-import httpError from 'http-errors';
-import url from 'url';
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
-
-import type {
-  DocumentNode,
-  GraphQLError,
-  GraphQLSchema,
-  GraphQLFieldResolver,
-  GraphQLTypeResolver,
-  ValidationContext,
-  ASTVisitor,
-} from 'graphql';
-import type { $Request, $Response } from 'express';
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
