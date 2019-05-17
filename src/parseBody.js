@@ -9,13 +9,13 @@
  *  @flow strict
  */
 
-import contentType from 'content-type';
+import zlib from 'zlib';
 import getBody from 'raw-body';
 import httpError from 'http-errors';
 import querystring from 'querystring';
-import zlib from 'zlib';
+import contentType from 'content-type';
 
-import type { $Request } from 'express';
+import { type $Request } from 'express';
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
