@@ -32,9 +32,6 @@
     "LICENSE",
     "PATENTS"
   ],
-  "options": {
-    "mocha": "--require babel-register src/**/__tests__/**/*.js"
-  },
   "babel": {
     "plugins": [
       "transform-es2015-modules-commonjs",
@@ -44,7 +41,7 @@
   "scripts": {
     "prepublish": ". ./resources/prepublish.sh",
     "test": "npm run lint && npm run check && npm run testonly",
-    "testonly": "mocha $npm_package_options_mocha",
+    "testonly": "mocha src/**/__tests__/**/*.js",
     "lint": "eslint src",
     "prettier": "prettier --write 'src/**/*.js'",
     "check": "flow check",
