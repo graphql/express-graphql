@@ -17,7 +17,7 @@ type GraphiQLData = {|
 |};
 
 // Current latest version of GraphiQL.
-const GRAPHIQL_VERSION = '0.12.0';
+const GRAPHIQL_VERSION = '0.13.0';
 
 // Ensures string values are safe to be used within a <script> tag.
 function safeSerialize(data) {
