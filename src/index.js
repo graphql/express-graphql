@@ -52,7 +52,7 @@ export type Options =
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
 
-export type OptionsData = {
+export type OptionsData = {|
   /**
    * A GraphQL schema from graphql-js.
    */
@@ -144,12 +144,12 @@ export type OptionsData = {
    * `__typename` field or alternatively calls the `isTypeOf` method).
    */
   typeResolver?: ?GraphQLTypeResolver<any, any>,
-};
+|};
 
 /**
  * All information about a GraphQL request.
  */
-export type RequestInfo = {
+export type RequestInfo = {|
   /**
    * The parsed GraphQL document.
    */
@@ -174,7 +174,7 @@ export type RequestInfo = {
    * A value to pass as the context to the graphql() function.
    */
   context?: ?mixed,
-};
+|};
 
 type Middleware = (request: $Request, response: $Response) => Promise<void>;
 
@@ -440,12 +440,12 @@ function graphqlHTTP(options: Options): Middleware {
   };
 }
 
-export type GraphQLParams = {
+export type GraphQLParams = {|
   query: ?string,
   variables: ?{ [name: string]: mixed },
   operationName: ?string,
   raw: ?boolean,
-};
+|};
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
