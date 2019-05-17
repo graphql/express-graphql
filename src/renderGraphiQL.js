@@ -14,6 +14,7 @@ type GraphiQLData = {|
   variables: ?{ [name: string]: mixed },
   operationName: ?string,
   result?: mixed,
+  autoPrettify?: boolean,
 |};
 
 // Current latest version of GraphiQL.
@@ -40,6 +41,7 @@ export function renderGraphiQL(data: GraphiQLData): string {
     ? JSON.stringify(data.result, null, 2)
     : null;
   const operationName = data.operationName;
+  const autoPrettify = data.autoPrettify;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -158,6 +160,7 @@ add "&raw" to the end of the URL within a browser.
         response: ${safeSerialize(resultString)},
         variables: ${safeSerialize(variablesString)},
         operationName: ${safeSerialize(operationName)},
+        ${autoPrettify ? 'autoPrettify: true,' : ''}
       }),
       document.getElementById('graphiql')
     );

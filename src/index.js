@@ -52,6 +52,10 @@ export type Options =
   | OptionsResult;
 export type OptionsResult = OptionsData | Promise<OptionsData>;
 
+type GraphiQLOptions = {|
+  autoPrettify: boolean,
+|};
+
 export type OptionsData = {|
   /**
    * A GraphQL schema from graphql-js.
@@ -129,7 +133,7 @@ export type OptionsData = {|
   /**
    * A boolean to optionally enable GraphiQL mode.
    */
-  graphiql?: ?boolean,
+  graphiql?: ?boolean | ?GraphiQLOptions,
 
   /**
    * A resolver function to use when one is not provided by the schema.
@@ -378,11 +382,15 @@ function graphqlHTTP(options: Options): Middleware {
 
         // If allowed to show GraphiQL, present it instead of JSON.
         if (showGraphiQL) {
+          const autoPrettify = Boolean(
+            typeof showGraphiQL === 'object' && showGraphiQL.autoPrettify,
+          );
           const payload = renderGraphiQL({
             query,
             variables,
             operationName,
             result,
+            autoPrettify,
           });
           return sendResponse(response, 'text/html', payload);
         }
