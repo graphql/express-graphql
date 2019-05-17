@@ -66,7 +66,7 @@ The `graphqlHTTP` function accepts the following options:
   * **`graphiql`**: If `true`, presents [GraphiQL][] when the GraphQL endpoint is
     loaded in a browser. We recommend that you set
     `graphiql` to `true` when your app is in development, because it's
-    quite useful. You may or may not want it in production.
+    quite useful. You may or may not want it in production. Alternatively, instead of `true` you can pass in an options object that currently supports a single field called `autoPrettify`. When setting that field to `true`, the GraphQL queries are automatically pretty printed when opened in GraphiQL.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
     function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
