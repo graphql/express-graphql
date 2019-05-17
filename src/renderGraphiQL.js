@@ -9,12 +9,12 @@
  *  @flow strict
  */
 
-type GraphiQLData = {
+type GraphiQLData = {|
   query: ?string,
   variables: ?{ [name: string]: mixed },
   operationName: ?string,
   result?: mixed,
-};
+|};
 
 // Current latest version of GraphiQL.
 const GRAPHIQL_VERSION = '0.12.0';
