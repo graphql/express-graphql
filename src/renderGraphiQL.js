@@ -14,6 +14,16 @@ type GraphiQLData = {|
   variables: ?{ [name: string]: mixed },
   operationName: ?string,
   result?: mixed,
+  options: GraphiQLOptions,
+|};
+
+export type GraphiQLOptions = {|
+  /**
+   * An optional GraphQL string to use when no query is provided and no stored
+   * query exists from a previous session.  If undefined is provided, GraphiQL
+   * will use its own default query.
+   */
+  defaultQuery?: ?string,
 |};
 
 // Current latest version of GraphiQL.
@@ -40,6 +50,7 @@ export function renderGraphiQL(data: GraphiQLData): string {
     ? JSON.stringify(data.result, null, 2)
     : null;
   const operationName = data.operationName;
+  const defaultQuery = data.options.defaultQuery;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -158,6 +169,7 @@ add "&raw" to the end of the URL within a browser.
         response: ${safeSerialize(resultString)},
         variables: ${safeSerialize(variablesString)},
         operationName: ${safeSerialize(operationName)},
+        defaultQuery: ${safeSerialize(defaultQuery)},
       }),
       document.getElementById('graphiql')
     );

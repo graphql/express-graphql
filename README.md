@@ -64,9 +64,13 @@ The `graphqlHTTP` function accepts the following options:
     A `schema` *must* be provided.
 
   * **`graphiql`**: If `true`, presents [GraphiQL][] when the GraphQL endpoint is
-    loaded in a browser. We recommend that you set
-    `graphiql` to `true` when your app is in development, because it's
-    quite useful. You may or may not want it in production.
+    loaded in a browser. We recommend that you set `graphiql` to `true` when your
+    app is in development, because it's quite useful. You may or may not want it
+    in production.
+    Alternatively, instead of `true` you can pass in an options object:
+      * **`defaultQuery`**: An optional GraphQL string to use when no query
+        is provided and no stored query exists from a previous session.
+        If undefined is provided, GraphiQL will use its own default query.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
     function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
