@@ -34,7 +34,7 @@ import {
 } from 'graphql';
 
 import { parseBody } from './parseBody';
-import { renderGraphiQL } from './renderGraphiQL';
+import { renderGraphiQL, type GraphiQLOptions } from './renderGraphiQL';
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -128,8 +128,9 @@ export type OptionsData = {|
 
   /**
    * A boolean to optionally enable GraphiQL mode.
+   * Alternatively, instead of `true` you can pass in an options object.
    */
-  graphiql?: ?boolean,
+  graphiql?: ?boolean | ?GraphiQLOptions,
 
   /**
    * A resolver function to use when one is not provided by the schema.
@@ -199,7 +200,7 @@ function graphqlHTTP(options: Options): Middleware {
     let executeFn = execute;
     let parseFn = parse;
     let extensionsFn;
-    let showGraphiQL;
+    let showGraphiQL = false;
     let query;
 
     let documentAST;
@@ -254,7 +255,7 @@ function graphqlHTTP(options: Options): Middleware {
         query = params.query;
         variables = params.variables;
         operationName = params.operationName;
-        showGraphiQL = graphiql && canDisplayGraphiQL(request, params);
+        showGraphiQL = canDisplayGraphiQL(request, params) && graphiql;
 
         // If there is no query, but GraphiQL will be displayed, do not produce
         // a result, otherwise return a 400: Bad Request.
@@ -383,6 +384,7 @@ function graphqlHTTP(options: Options): Middleware {
             variables,
             operationName,
             result,
+            options: typeof showGraphiQL !== 'boolean' ? showGraphiQL : {},
           });
           return sendResponse(response, 'text/html', payload);
         }

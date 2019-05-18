@@ -1638,6 +1638,29 @@ function urlString(urlParams?: ?{ [param: string]: mixed }) {
         expect(response.text).to.include('graphiql.min.js');
       });
 
+      it('contains a default query within GraphiQL', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP({
+            schema: TestSchema,
+            graphiql: { defaultQuery: 'query testDefaultQuery { hello }' },
+          }),
+        );
+
+        const response = await request(app)
+          .get(urlString())
+          .set('Accept', 'text/html');
+
+        expect(response.status).to.equal(200);
+        expect(response.type).to.equal('text/html');
+        expect(response.text).to.include(
+          'defaultQuery: "query testDefaultQuery { hello }"',
+        );
+      });
+
       it('contains a pre-run response within GraphiQL', async () => {
         const app = server();
 
