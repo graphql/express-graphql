@@ -71,6 +71,8 @@ The `graphqlHTTP` function accepts the following options:
       * **`defaultQuery`**: An optional GraphQL string to use when no query
         is provided and no stored query exists from a previous session.
         If undefined is provided, GraphiQL will use its own default query.
+      * **`autoPrettify`**: An optional boolean that when set to true causes the
+      query to be pretty printed before being displayed.
 
   * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
     function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).

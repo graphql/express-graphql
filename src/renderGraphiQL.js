@@ -9,6 +9,8 @@
  *  @flow strict
  */
 
+import { parse, print } from 'graphql';
+
 type GraphiQLData = {|
   query: ?string,
   variables: ?{ [name: string]: mixed },
@@ -24,6 +26,11 @@ export type GraphiQLOptions = {|
    * will use its own default query.
    */
   defaultQuery?: ?string,
+  /**
+   * An optional boolean that when set to true causes the query to be pretty
+   * printed before being displayed.
+   */
+  autoPrettify?: ?boolean,
 |};
 
 // Current latest version of GraphiQL.
@@ -42,7 +49,10 @@ function safeSerialize(data) {
  * requested query.
  */
 export function renderGraphiQL(data: GraphiQLData): string {
-  const queryString = data.query;
+  const queryString =
+    data.options.autoPrettify && data.query
+      ? print(parse(data.query))
+      : data.query;
   const variablesString = data.variables
     ? JSON.stringify(data.variables, null, 2)
     : null;
