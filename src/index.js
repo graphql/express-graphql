@@ -145,6 +145,8 @@ export type OptionsData = {|
    * `__typename` field or alternatively calls the `isTypeOf` method).
    */
   typeResolver?: ?GraphQLTypeResolver<any, any>,
+
+  subscriptionsEndpoint?: ?string,
 |};
 
 /**
@@ -202,6 +204,7 @@ function graphqlHTTP(options: Options): Middleware {
     let extensionsFn;
     let showGraphiQL = false;
     let query;
+    let subscriptionsEndpoint;
 
     let documentAST;
     let variables;
@@ -243,6 +246,7 @@ function graphqlHTTP(options: Options): Middleware {
         const typeResolver = optionsData.typeResolver;
         const validationRules = optionsData.validationRules || [];
         const graphiql = optionsData.graphiql;
+        subscriptionsEndpoint = optionsData.subscriptionsEndpoint;
         context = optionsData.context || request;
 
         // GraphQL HTTP only supports GET and POST methods.
@@ -385,6 +389,7 @@ function graphqlHTTP(options: Options): Middleware {
             operationName,
             result,
             options: typeof showGraphiQL !== 'boolean' ? showGraphiQL : {},
+            subscriptionsEndpoint,
           });
           return sendResponse(response, 'text/html', payload);
         }

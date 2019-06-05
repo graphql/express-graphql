@@ -15,6 +15,7 @@ type GraphiQLData = {|
   operationName: ?string,
   result?: mixed,
   options: GraphiQLOptions,
+  subscriptionsEndpoint: ?string,
 |};
 
 export type GraphiQLOptions = {|
@@ -51,6 +52,10 @@ export function renderGraphiQL(data: GraphiQLData): string {
     : null;
   const operationName = data.operationName;
   const defaultQuery = data.options.defaultQuery;
+  const subscriptionsEndpoint = data.subscriptionsEndpoint
+    ? data.subscriptionsEndpoint
+    : 'undefined';
+  const subscriptionsEndpointType = typeof subscriptionsEndpoint;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -83,6 +88,8 @@ add "&raw" to the end of the URL within a browser.
   <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
   <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
+  <script src="//unpkg.com/subscriptions-transport-ws@0.5.4/browser/client.js"></script>
+  <script src="//unpkg.com/graphiql-subscriptions-fetcher@0.0.2/browser/client.js"></script>
 </head>
 <body>
   <div id="graphiql">Loading...</div>
@@ -137,6 +144,19 @@ add "&raw" to the end of the URL within a browser.
       });
     }
 
+    // GraphiQLSubscriptionsFetcher checker
+    function makeFetcher() {
+      if('${subscriptionsEndpointType}' == 'string') {
+        let clientClass = window.SubscriptionsTransportWs.SubscriptionClient;
+        let client = new clientClass('${subscriptionsEndpoint}', {
+           reconnect: true
+        });
+        return window.GraphiQLSubscriptionsFetcher.graphQLFetcher(client, graphQLFetcher);
+      }else{
+        return graphQLFetcher;
+      }
+    }
+
     // When the query and variables string is edited, update the URL bar so
     // that it can be easily shared.
     function onEditQuery(newQuery) {
@@ -161,7 +181,7 @@ add "&raw" to the end of the URL within a browser.
     // Render <GraphiQL /> into the body.
     ReactDOM.render(
       React.createElement(GraphiQL, {
-        fetcher: graphQLFetcher,
+        fetcher: makeFetcher,
         onEditQuery: onEditQuery,
         onEditVariables: onEditVariables,
         onEditOperationName: onEditOperationName,
