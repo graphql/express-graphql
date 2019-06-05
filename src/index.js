@@ -146,6 +146,9 @@ export type OptionsData = {|
    */
   typeResolver?: ?GraphQLTypeResolver<any, any>,
 
+  /**
+   * A value to pass as subscriptions endpoint.
+   */
   subscriptionsEndpoint?: ?string,
 |};
 
