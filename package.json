@@ -2,7 +2,7 @@
   "name": "express-graphql",
   "version": "0.8.0",
   "description": "Production ready GraphQL HTTP middleware.",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/graphql/express-graphql/issues"
   },
