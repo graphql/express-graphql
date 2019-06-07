@@ -339,7 +339,7 @@ function graphqlHTTP(options: Options): Middleware {
       })
       .then(result => {
         // Collect and apply any metadata extensions if a function was provided.
-        // http://facebook.github.io/graphql/#sec-Response-Format
+        // http://graphql.github.io/graphql-spec/#sec-Response-Format
         if (result && extensionsFn) {
           return Promise.resolve(
             extensionsFn({
@@ -368,7 +368,7 @@ function graphqlHTTP(options: Options): Middleware {
         // error, indicate as such with a generic status code.
         // Note: Information about the error itself will still be contained in
         // the resulting JSON payload.
-        // http://facebook.github.io/graphql/#sec-Data
+        // http://graphql.github.io/graphql-spec/#sec-Data
         if (response.statusCode === 200 && result && !result.data) {
           response.statusCode = 500;
         }
