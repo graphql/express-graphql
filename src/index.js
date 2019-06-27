@@ -475,6 +475,8 @@ function parseGraphQLParams(
     }
   } else if (typeof variables !== 'object') {
     variables = null;
+  } else {
+    variables = { ...variables };
   }
 
   // Name of GraphQL operation to execute.
