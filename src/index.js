@@ -150,7 +150,7 @@ export type RequestInfo = {|
   /**
    * The variable values used at runtime.
    */
-  variables: ?{ [name: string]: mixed },
+  variables: ?{ +[name: string]: mixed },
 
   /**
    * The (optional) operation name requested.
@@ -435,7 +435,7 @@ function graphqlHTTP(options: Options): Middleware {
 
 export type GraphQLParams = {|
   query: ?string,
-  variables: ?{ [name: string]: mixed },
+  variables: ?{ +[name: string]: mixed },
   operationName: ?string,
   raw: ?boolean,
 |};
