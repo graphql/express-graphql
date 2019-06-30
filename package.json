@@ -32,12 +32,6 @@
     "LICENSE",
     "PATENTS"
   ],
-  "babel": {
-    "plugins": [
-      "transform-es2015-modules-commonjs",
-      "transform-flow-strip-types"
-    ]
-  },
   "scripts": {
     "prepublish": ". ./resources/prepublish.sh",
     "test": "npm run lint && npm run check && npm run testonly",
@@ -50,7 +44,7 @@
     "watch": "node resources/watch.js",
     "cover": "nyc npm run testonly",
     "preversion": "npm test",
-    "start": "node -r babel-register examples/index.js"
+    "start": "node -r @babel/register examples/index.js"
   },
   "dependencies": {
     "accepts": "^1.3.7",
@@ -59,11 +53,12 @@
     "raw-body": "^2.4.0"
   },
   "devDependencies": {
-    "babel-cli": "6.26.0",
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "7.4.5",
+    "@babel/plugin-transform-flow-strip-types": "7.4.4",
+    "@babel/plugin-transform-modules-commonjs": "7.4.4",
+    "@babel/register": "7.4.4",
     "babel-eslint": "10.0.1",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
-    "babel-plugin-transform-flow-strip-types": "6.22.0",
-    "babel-register": "6.26.0",
     "body-parser": "1.19.0",
     "chai": "4.2.0",
     "connect": "3.6.6",
