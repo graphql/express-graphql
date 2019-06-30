@@ -2,7 +2,7 @@
 
 type GraphiQLData = {|
   query: ?string,
-  variables: ?{ +[name: string]: mixed },
+  variables: ?{ +[name: string]: mixed, ... },
   operationName: ?string,
   result?: mixed,
   options: GraphiQLOptions,

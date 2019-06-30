@@ -14,7 +14,7 @@ import { type $Request } from 'express';
  */
 export async function parseBody(
   req: $Request,
-): Promise<{ [param: string]: mixed }> {
+): Promise<{ [param: string]: mixed, ... }> {
   const body = req.body;
 
   // If express has already parsed a body as a keyed object, use it.

@@ -59,7 +59,7 @@ const TestSchema = new GraphQLSchema({
   }),
 });
 
-function urlString(urlParams?: ?{ [param: string]: mixed }) {
+function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
   let string = '/graphql';
   if (urlParams) {
     string += '?' + stringify(urlParams);
