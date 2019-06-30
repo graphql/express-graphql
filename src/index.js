@@ -115,7 +115,7 @@ export type OptionsData = {|
    *
    * This function may be async.
    */
-  extensions?: ?(info: RequestInfo) => { [key: string]: mixed },
+  extensions?: ?(info: RequestInfo) => { [key: string]: mixed, ... },
 
   /**
    * A boolean to optionally enable GraphiQL mode.
@@ -150,7 +150,7 @@ export type RequestInfo = {|
   /**
    * The variable values used at runtime.
    */
-  variables: ?{ +[name: string]: mixed },
+  variables: ?{ +[name: string]: mixed, ... },
 
   /**
    * The (optional) operation name requested.
@@ -435,7 +435,7 @@ function graphqlHTTP(options: Options): Middleware {
 
 export type GraphQLParams = {|
   query: ?string,
-  variables: ?{ +[name: string]: mixed },
+  variables: ?{ +[name: string]: mixed, ... },
   operationName: ?string,
   raw: ?boolean,
 |};
@@ -456,8 +456,8 @@ async function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
  * Helper function to get the GraphQL params from the request.
  */
 function parseGraphQLParams(
-  urlData: { [param: string]: mixed },
-  bodyData: { [param: string]: mixed },
+  urlData: { [param: string]: mixed, ... },
+  bodyData: { [param: string]: mixed, ... },
 ): GraphQLParams {
   // GraphQL Query string.
   let query = urlData.query || bodyData.query;
