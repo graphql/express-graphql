@@ -20,7 +20,6 @@
 [include]
 
 [libs]
-./resources/interfaces
 
 [lints]
 sketchy-null-bool=off
@@ -28,7 +27,7 @@ sketchy-null-string=off
 sketchy-null-number=error
 sketchy-null-mixed=off
 sketchy-number=error
-untyped-type-import=off
+untyped-type-import=error
 nonstrict-import=off
 untyped-import=off
 unclear-type=off

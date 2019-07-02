@@ -1,12 +1,13 @@
 // @flow strict
 
+import { type IncomingMessage } from 'http';
 import zlib from 'zlib';
 import getBody from 'raw-body';
 import httpError from 'http-errors';
 import querystring from 'querystring';
 import contentType from 'content-type';
 
-import { type $Request } from 'express';
+type $Request = IncomingMessage & { body?: ?mixed, ... };
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
@@ -15,7 +16,7 @@ import { type $Request } from 'express';
 export async function parseBody(
   req: $Request,
 ): Promise<{ [param: string]: mixed, ... }> {
-  const body = req.body;
+  const { body } = req;
 
   // If express has already parsed a body as a keyed object, use it.
   if (typeof body === 'object' && !(body instanceof Buffer)) {
