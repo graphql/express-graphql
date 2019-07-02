@@ -1,9 +1,9 @@
 // @flow strict
 
+import { type IncomingMessage, type ServerResponse } from 'http';
 import url from 'url';
 import accepts from 'accepts';
 import httpError from 'http-errors';
-import { type $Request, type $Response } from 'express';
 import {
   Source,
   parse,
@@ -26,6 +26,9 @@ import {
 
 import { parseBody } from './parseBody';
 import { renderGraphiQL, type GraphiQLOptions } from './renderGraphiQL';
+
+type $Request = IncomingMessage;
+type $Response = ServerResponse & {| json?: ?(data: mixed) => void |};
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
