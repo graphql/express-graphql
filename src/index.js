@@ -71,7 +71,7 @@ export type OptionsData = {|
    * An optional array of validation rules that will be applied on the document
    * in additional to those defined by the GraphQL spec.
    */
-  validationRules?: ?Array<(ValidationContext) => ASTVisitor>,
+  validationRules?: ?$ReadOnlyArray<(ValidationContext) => ASTVisitor>,
 
   /**
    * An optional function which will be used to validate instead of default `validate`
