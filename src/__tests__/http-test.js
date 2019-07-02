@@ -2035,17 +2035,15 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         get(
           app,
           urlString(),
-          graphqlHTTP(() => {
-            return {
-              schema: TestSchema,
-              async customExecuteFn(args) {
-                seenExecuteArgs = args;
-                const result: any = await Promise.resolve(execute(args));
-                result.data.test2 = 'Modification';
-                return result;
-              },
-            };
-          }),
+          graphqlHTTP(() => ({
+            schema: TestSchema,
+            async customExecuteFn(args) {
+              seenExecuteArgs = args;
+              const result: any = await Promise.resolve(execute(args));
+              result.data.test2 = 'Modification';
+              return result;
+            },
+          })),
         );
 
         const response = await request(app).get(urlString({ query: '{test}' }));
@@ -2054,6 +2052,28 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           '{"data":{"test":"Hello World","test2":"Modification"}}',
         );
         expect(seenExecuteArgs).to.not.equal(null);
+      });
+
+      it('catches errors thrown from custom execute function', async () => {
+        const app = server();
+
+        get(
+          app,
+          urlString(),
+          graphqlHTTP(() => ({
+            schema: TestSchema,
+            customExecuteFn() {
+              throw new Error('I did something wrong');
+            },
+          })),
+        );
+
+        const response = await request(app).get(urlString({ query: '{test}' }));
+
+        expect(response.status).to.equal(400);
+        expect(response.text).to.equal(
+          '{"errors":[{"message":"I did something wrong"}]}',
+        );
       });
     });
 
