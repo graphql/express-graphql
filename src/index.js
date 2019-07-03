@@ -15,6 +15,7 @@ import {
   specifiedRules,
   type ASTVisitor,
   type DocumentNode,
+  type ValidationRule,
   type ValidationContext,
   type ExecutionArgs,
   type ExecutionResult,
@@ -80,7 +81,7 @@ export type OptionsData = {|
   customValidateFn?: ?(
     schema: GraphQLSchema,
     documentAST: DocumentNode,
-    rules: $ReadOnlyArray<any>,
+    rules: $ReadOnlyArray<ValidationRule>,
   ) => $ReadOnlyArray<GraphQLError>,
 
   /**
@@ -131,14 +132,14 @@ export type OptionsData = {|
    * If not provided, the default field resolver is used (which looks for a
    * value or method on the source value with the field's name).
    */
-  fieldResolver?: ?GraphQLFieldResolver<any, any>,
+  fieldResolver?: ?GraphQLFieldResolver<mixed, mixed>,
 
   /**
    * A type resolver function to use when none is provided by the schema.
    * If not provided, the default type resolver is used (which looks for a
    * `__typename` field or alternatively calls the `isTypeOf` method).
    */
-  typeResolver?: ?GraphQLTypeResolver<any, any>,
+  typeResolver?: ?GraphQLTypeResolver<mixed, mixed>,
 |};
 
 /**
