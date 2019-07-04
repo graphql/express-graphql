@@ -73,7 +73,7 @@
     "express": "4.17.1",
     "flow-bin": "0.102.0",
     "graphiql": "^0.13.2",
-    "graphql": "14.4.1",
+    "graphql": "14.4.2",
     "mocha": "6.1.4",
     "multer": "1.4.1",
     "nyc": "14.1.1",
