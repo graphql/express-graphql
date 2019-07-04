@@ -3,7 +3,6 @@
 
   "plugins": [
     "flowtype",
-    "prettier"
   ],
 
   "env": {
@@ -39,8 +38,6 @@
   },
 
   "rules": {
-    "prettier/prettier": 2,
-
     "flowtype/space-after-type-colon": [2, "always"],
     "flowtype/space-before-type-colon": [2, "never"],
     "flowtype/space-before-generic-bracket": [2, "never"],
