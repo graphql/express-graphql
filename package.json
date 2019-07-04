@@ -49,8 +49,6 @@
     "start": "node -r @babel/register examples/index.js"
   },
   "dependencies": {
-    "@types/graphql": "*",
-    "@types/node": "*",
     "accepts": "^1.3.7",
     "content-type": "^1.0.4",
     "http-errors": "^1.7.3",
