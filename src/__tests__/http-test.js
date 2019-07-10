@@ -791,7 +791,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/graphql; charset=utf-16');
-        req.write(new Buffer('{ test(who: "World") }', 'utf16le'));
+        req.write(Buffer.from('{ test(who: "World") }', 'utf16le'));
         const response = await req;
 
         expect(JSON.parse(response.text)).to.deep.equal({
@@ -940,7 +940,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/graphql');
-        req.write(new Buffer('{ test(who: "World") }'));
+        req.write(Buffer.from('{ test(who: "World") }'));
         const response = await req;
 
         expect(JSON.parse(response.text)).to.deep.equal({
@@ -957,7 +957,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         post(app, urlString(), graphqlHTTP({ schema: TestSchema }));
 
         const req = request(app).post(urlString());
-        req.write(new Buffer('{ test(who: "World") }'));
+        req.write(Buffer.from('{ test(who: "World") }'));
         const response = await req;
 
         expect(response.status).to.equal(400);
@@ -975,7 +975,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const req = request(app)
           .post(urlString())
           .set('Content-Type', 'application/graphql');
-        req.write(new Buffer('{ test(who: "World") }'));
+        req.write(Buffer.from('{ test(who: "World") }'));
         const response = await req;
 
         expect(response.status).to.equal(400);
