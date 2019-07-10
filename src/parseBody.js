@@ -69,12 +69,12 @@ export async function parseBody(
  * RegExp to match an Object-opening brace "{" as the first non-space
  * in a string. Allowed whitespace is defined in RFC 7159:
  *
- *     x20  Space
- *     x09  Horizontal tab
- *     x0A  Line feed or New line
- *     x0D  Carriage return
+ *     ' '   Space
+ *     '\t'  Horizontal tab
+ *     '\n'  Line feed or New line
+ *     '\r'  Carriage return
  */
-const jsonObjRegex = /^[\x20\x09\x0a\x0d]*\{/;
+const jsonObjRegex = /^[ \t\n\r]*\{/;
 
 // Read and parse a request body.
 async function readBody(req, typeInfo) {
