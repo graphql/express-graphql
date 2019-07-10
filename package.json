@@ -80,7 +80,6 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "restify": "4.3.2",
-    "sane": "4.1.0",
     "sinon": "7.3.2",
     "supertest": "4.0.2",
     "unfetch": "^4.1.0"
