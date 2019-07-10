@@ -2191,9 +2191,9 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           urlString(),
           graphqlHTTP({
             schema: TestSchema,
-            async extensions() {
-              // Note: you can await arbitrary things here!
-              return { eventually: 42 };
+            extensions() {
+              // Note: you can return arbitrary Promises here!
+              return Promise.resolve({ eventually: 42 });
             },
           }),
         );
