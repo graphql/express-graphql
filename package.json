@@ -55,10 +55,10 @@
     "raw-body": "^2.4.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "7.4.5",
+    "@babel/cli": "^7.5.0",
+    "@babel/core": "7.5.4",
     "@babel/plugin-transform-flow-strip-types": "7.4.4",
-    "@babel/plugin-transform-modules-commonjs": "7.4.4",
+    "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@babel/register": "7.4.4",
     "babel-eslint": "10.0.2",
     "body-parser": "1.19.0",
