@@ -43,6 +43,8 @@ unnecessary-invariant=error
 [options]
 include_warnings=true
 module.use_strict=true
+suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(<VERSION>\\)?)\\)
+suppress_comment=\\(.\\|\n\\)*\\$DisableFlowOnNegativeTest
 
 [version]
 ^0.102.0

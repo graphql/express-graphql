@@ -1,3 +1,5 @@
+// @flow strict
+
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import request from 'supertest';
@@ -8,6 +10,7 @@ import graphqlHTTP from '../';
 describe('Useful errors when incorrectly used', () => {
   it('requires an option factory function', () => {
     expect(() => {
+      // $DisableFlowOnNegativeTest
       graphqlHTTP();
     }).to.throw('GraphQL middleware requires options.');
   });
@@ -15,6 +18,7 @@ describe('Useful errors when incorrectly used', () => {
   it('requires option factory function to return object', async () => {
     const app = express();
 
+    // $DisableFlowOnNegativeTest
     app.use('/graphql', graphqlHTTP(() => null));
 
     const response = await request(app).get('/graphql?query={test}');
@@ -33,6 +37,7 @@ describe('Useful errors when incorrectly used', () => {
   it('requires option factory function to return object or promise of object', async () => {
     const app = express();
 
+    // $DisableFlowOnNegativeTest
     app.use('/graphql', graphqlHTTP(() => Promise.resolve(null)));
 
     const response = await request(app).get('/graphql?query={test}');
@@ -51,6 +56,7 @@ describe('Useful errors when incorrectly used', () => {
   it('requires option factory function to return object with schema', async () => {
     const app = express();
 
+    // $DisableFlowOnNegativeTest
     app.use('/graphql', graphqlHTTP(() => ({})));
 
     const response = await request(app).get('/graphql?query={test}');
@@ -66,6 +72,7 @@ describe('Useful errors when incorrectly used', () => {
   it('requires option factory function to return object or promise of object with schema', async () => {
     const app = express();
 
+    // $DisableFlowOnNegativeTest
     app.use('/graphql', graphqlHTTP(() => Promise.resolve({})));
 
     const response = await request(app).get('/graphql?query={test}');
@@ -79,6 +86,7 @@ describe('Useful errors when incorrectly used', () => {
   });
 
   it('validates schema before executing request', async () => {
+    // $DisableFlowOnNegativeTest
     const schema = new GraphQLSchema({ directives: [null] });
 
     const app = express();
