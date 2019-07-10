@@ -903,12 +903,10 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         post(
           app,
           urlString(),
-          graphqlHTTP(req => {
-            return {
-              schema: TestMutationSchema,
-              rootValue: { request: req },
-            };
-          }),
+          graphqlHTTP(req => ({
+            schema: TestMutationSchema,
+            rootValue: { request: req },
+          })),
         );
 
         const response = await request(app)
@@ -1060,13 +1058,11 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         get(
           app,
           urlString(),
-          graphqlHTTP(req => {
-            return {
-              schema: TestSchema,
-              pretty:
-                ((url.parse(req.url, true) || {}).query || {}).pretty === '1',
-            };
-          }),
+          graphqlHTTP(req => ({
+            schema: TestSchema,
+            pretty:
+              ((url.parse(req.url, true) || {}).query || {}).pretty === '1',
+          })),
         );
 
         const defaultResponse = await request(app).get(
@@ -2086,15 +2082,13 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         get(
           app,
           urlString(),
-          graphqlHTTP(() => {
-            return {
-              schema: TestSchema,
-              customParseFn(args) {
-                seenParseArgs = args;
-                return parse(new Source('{test}', 'Custom parse function'));
-              },
-            };
-          }),
+          graphqlHTTP(() => ({
+            schema: TestSchema,
+            customParseFn(args) {
+              seenParseArgs = args;
+              return parse(new Source('{test}', 'Custom parse function'));
+            },
+          })),
         );
 
         const response = await request(app).get(urlString({ query: '----' }));
@@ -2108,14 +2102,12 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         get(
           app,
           urlString(),
-          graphqlHTTP(() => {
-            return {
-              schema: TestSchema,
-              customParseFn() {
-                throw new GraphQLError('my custom parse error');
-              },
-            };
-          }),
+          graphqlHTTP(() => ({
+            schema: TestSchema,
+            customParseFn() {
+              throw new GraphQLError('my custom parse error');
+            },
+          })),
         );
 
         const response = await request(app).get(urlString({ query: '----' }));
@@ -2134,15 +2126,13 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         get(
           app,
           urlString(),
-          graphqlHTTP(() => {
-            return {
-              schema: TestSchema,
-              context: { foo: 'bar' },
-              extensions({ context }) {
-                return { contextValue: JSON.stringify(context) };
-              },
-            };
-          }),
+          graphqlHTTP(() => ({
+            schema: TestSchema,
+            context: { foo: 'bar' },
+            extensions({ context }) {
+              return { contextValue: JSON.stringify(context) };
+            },
+          })),
         );
 
         const response = await request(app)
