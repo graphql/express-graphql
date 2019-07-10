@@ -309,8 +309,7 @@ function graphqlHTTP(options: Options): Middleware {
             response.setHeader('Allow', 'POST');
             throw httpError(
               405,
-              `Can only perform a ${operationAST.operation} operation ` +
-                'from a POST request.',
+              `Can only perform a ${operationAST.operation} operation from a POST request.`,
             );
           }
         }
@@ -411,8 +410,7 @@ function graphqlHTTP(options: Options): Middleware {
       // Assert that optionsData is in fact an Object.
       if (!optionsData || typeof optionsData !== 'object') {
         throw new Error(
-          'GraphQL middleware option function must return an options object ' +
-            'or a promise which will be resolved to an options object.',
+          'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
         );
       }
 
