@@ -1,5 +1,4 @@
-GraphQL HTTP Server Middleware
-==============================
+# GraphQL HTTP Server Middleware
 
 [![Build Status](https://travis-ci.org/graphql/express-graphql.svg?branch=master)](https://travis-ci.org/graphql/express-graphql)
 [![Coverage Status](https://coveralls.io/repos/graphql/express-graphql/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql/express-graphql?branch=master)
@@ -33,14 +32,16 @@ const graphqlHTTP = require('express-graphql');
 
 const app = express();
 
-app.use('/graphql', graphqlHTTP({
-  schema: MyGraphQLSchema,
-  graphiql: true
-}));
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: MyGraphQLSchema,
+    graphiql: true,
+  }),
+);
 
 app.listen(4000);
 ```
-
 
 ## Setup with Restify
 
@@ -52,70 +53,76 @@ const graphqlHTTP = require('express-graphql');
 
 const app = restify.createServer();
 
-app.post('/graphql', graphqlHTTP({
-  schema: MyGraphQLSchema,
-  graphiql: false
-}));
+app.post(
+  '/graphql',
+  graphqlHTTP({
+    schema: MyGraphQLSchema,
+    graphiql: false,
+  }),
+);
 
-app.get('/graphql', graphqlHTTP({
-  schema: MyGraphQLSchema,
-  graphiql: true
-}));
+app.get(
+  '/graphql',
+  graphqlHTTP({
+    schema: MyGraphQLSchema,
+    graphiql: true,
+  }),
+);
 
 app.listen(4000);
 ```
-
 
 ## Options
 
 The `graphqlHTTP` function accepts the following options:
 
-  * **`schema`**: A `GraphQLSchema` instance from [`GraphQL.js`][].
-    A `schema` *must* be provided.
+- **`schema`**: A `GraphQLSchema` instance from [`GraphQL.js`][].
+  A `schema` _must_ be provided.
 
-  * **`graphiql`**: If `true`, presents [GraphiQL][] when the GraphQL endpoint is
-    loaded in a browser. We recommend that you set `graphiql` to `true` when your
-    app is in development, because it's quite useful. You may or may not want it
-    in production.
-    Alternatively, instead of `true` you can pass in an options object:
-      * **`defaultQuery`**: An optional GraphQL string to use when no query
-        is provided and no stored query exists from a previous session.
-        If undefined is provided, GraphiQL will use its own default query.
+- **`graphiql`**: If `true`, presents [GraphiQL][] when the GraphQL endpoint is
+  loaded in a browser. We recommend that you set `graphiql` to `true` when your
+  app is in development, because it's quite useful. You may or may not want it
+  in production.
+  Alternatively, instead of `true` you can pass in an options object:
 
-  * **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
-    function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
+  - **`defaultQuery`**: An optional GraphQL string to use when no query
+    is provided and no stored query exists from a previous session.
+    If undefined is provided, GraphiQL will use its own default query.
 
-  * **`context`**: A value to pass as the `context` to the `graphql()`
-    function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L120). If `context` is not provided, the
-    `request` object is passed as the context.
+- **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
+  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
 
-  * **`pretty`**: If `true`, any JSON response will be pretty-printed.
+- **`context`**: A value to pass as the `context` to the `graphql()`
+  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L120). If `context` is not provided, the
+  `request` object is passed as the context.
 
-  * **`extensions`**: An optional function for adding additional metadata to the
-    GraphQL response as a key-value object. The result will be added to
-    `"extensions"` field in the resulting JSON. This is often a useful place to
-    add development time metadata such as the runtime of a query or the amount
-    of resources consumed. This may be an async function. The function is
-    given one object as an argument: `{ document, variables, operationName, result, context }`.
+- **`pretty`**: If `true`, any JSON response will be pretty-printed.
 
-  * **`validationRules`**: Optional additional validation rules queries must
-    satisfy in addition to those defined by the GraphQL spec.
+- **`extensions`**: An optional function for adding additional metadata to the
+  GraphQL response as a key-value object. The result will be added to
+  `"extensions"` field in the resulting JSON. This is often a useful place to
+  add development time metadata such as the runtime of a query or the amount
+  of resources consumed. This may be an async function. The function is
+  given one object as an argument: `{ document, variables, operationName, result, context }`.
 
-  * **`customValidateFn`**: An optional function which will be used to validate
-    instead of default `validate` from `graphql-js`.
+- **`validationRules`**: Optional additional validation rules queries must
+  satisfy in addition to those defined by the GraphQL spec.
 
-  * **`customExecuteFn`**: An optional function which will be used to execute
-    instead of default `execute` from `graphql-js`.
+- **`customValidateFn`**: An optional function which will be used to validate
+  instead of default `validate` from `graphql-js`.
 
-  * **`customFormatErrorFn`**:  An optional function which will be used to format any
-    errors produced by fulfilling a GraphQL operation. If no function is
-    provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
+- **`customExecuteFn`**: An optional function which will be used to execute
+  instead of default `execute` from `graphql-js`.
 
-  * **`customParseFn`**: An optional function which will be used to create a document
-    instead of the default `parse` from `graphql-js`.
+- **`customFormatErrorFn`**: An optional function which will be used to format any
+  errors produced by fulfilling a GraphQL operation. If no function is
+  provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
 
-  * **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be
-    removed in version 1.0.0.
+- **`customParseFn`**: An optional function which will be used to create a document
+  instead of the default `parse` from `graphql-js`.
+
+- **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be
+  removed in version 1.0.0.
 
 In addition to an object defining each option, options can also be provided as
 a function (or async function) which returns this options object. This function
@@ -125,32 +132,34 @@ after the request has been parsed.
 The `graphQLParams` is provided as the object `{ query, variables, operationName, raw }`.
 
 ```js
-app.use('/graphql', graphqlHTTP(async (request, response, graphQLParams) => ({
-  schema: MyGraphQLSchema,
-  rootValue: await someFunctionToGetRootValue(request),
-  graphiql: true
-})));
+app.use(
+  '/graphql',
+  graphqlHTTP(async (request, response, graphQLParams) => ({
+    schema: MyGraphQLSchema,
+    rootValue: await someFunctionToGetRootValue(request),
+    graphiql: true,
+  })),
+);
 ```
-
 
 ## HTTP Usage
 
 Once installed at a path, `express-graphql` will accept requests with
 the parameters:
 
-  * **`query`**: A string GraphQL document to be executed.
+- **`query`**: A string GraphQL document to be executed.
 
-  * **`variables`**: The runtime values to use for any GraphQL query variables
-    as a JSON object.
+- **`variables`**: The runtime values to use for any GraphQL query variables
+  as a JSON object.
 
-  * **`operationName`**: If the provided `query` contains multiple named
-    operations, this specifies which operation should be executed. If not
-    provided, a 400 error will be returned if the `query` contains multiple
-    named operations.
+- **`operationName`**: If the provided `query` contains multiple named
+  operations, this specifies which operation should be executed. If not
+  provided, a 400 error will be returned if the `query` contains multiple
+  named operations.
 
-  * **`raw`**: If the `graphiql` option is enabled and the `raw` parameter is
-    provided raw JSON will always be returned instead of GraphiQL even when
-    loaded from a browser.
+- **`raw`**: If the `graphiql` option is enabled and the `raw` parameter is
+  provided raw JSON will always be returned instead of GraphiQL even when
+  loaded from a browser.
 
 GraphQL will first look for each parameter in the URL's query-string:
 
@@ -166,17 +175,16 @@ for `multipart/form-data` content, which may be useful for GraphQL mutations
 involving uploading files. See an [example using multer](https://github.com/graphql/express-graphql/blob/304b24b993c8f16fffff8d23b0fa4088e690874b/src/__tests__/http-test.js#L674-L741).
 
 If the POST body has not yet been parsed, express-graphql will interpret it
-depending on the provided *Content-Type* header.
+depending on the provided _Content-Type_ header.
 
-  * **`application/json`**: the POST body will be parsed as a JSON
-    object of parameters.
+- **`application/json`**: the POST body will be parsed as a JSON
+  object of parameters.
 
-  * **`application/x-www-form-urlencoded`**: this POST body will be
-    parsed as a url-encoded string of key-value pairs.
+- **`application/x-www-form-urlencoded`**: this POST body will be
+  parsed as a url-encoded string of key-value pairs.
 
-  * **`application/graphql`**: The POST body will be parsed as GraphQL
-    query string, which provides the `query` parameter.
-
+- **`application/graphql`**: The POST body will be parsed as GraphQL
+  query string, which provides the `query` parameter.
 
 ## Combining with Other Express Middleware
 
@@ -192,12 +200,15 @@ const graphqlHTTP = require('express-graphql');
 
 const app = express();
 
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
+app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 } }));
 
-app.use('/graphql', graphqlHTTP({
-  schema: MySessionAwareGraphQLSchema,
-  graphiql: true
-}));
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: MySessionAwareGraphQLSchema,
+    graphiql: true,
+  }),
+);
 ```
 
 Then in your type definitions, you can access the request via the third "context" argument in your `resolve` function:
@@ -210,12 +221,11 @@ new GraphQLObjectType({
       type: GraphQLString,
       resolve(parentValue, args, request) {
         // use `request.session` here
-      }
-    }
-  }
+      },
+    },
+  },
 });
 ```
-
 
 ## Providing Extensions
 
@@ -237,22 +247,31 @@ const graphqlHTTP = require('express-graphql');
 
 const app = express();
 
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 }}));
+app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 } }));
 
-const extensions = ({ document, variables, operationName, result, context }) => {
+const extensions = ({
+  document,
+  variables,
+  operationName,
+  result,
+  context,
+}) => {
   return {
-    runTime: Date.now() - context.startTime
-  }
-}
-
-app.use('/graphql', graphqlHTTP(request => {
-  return {
-    schema: MyGraphQLSchema,
-    context: { startTime: Date.now() },
-    graphiql: true,
-    extensions
+    runTime: Date.now() - context.startTime,
   };
-}));
+};
+
+app.use(
+  '/graphql',
+  graphqlHTTP(request => {
+    return {
+      schema: MyGraphQLSchema,
+      context: { startTime: Date.now() },
+      graphiql: true,
+      extensions,
+    };
+  }),
+);
 ```
 
 When querying this endpoint, it would include this information in the result,
@@ -266,7 +285,6 @@ for example:
   }
 }
 ```
-
 
 ## Additional Validation Rules
 
@@ -282,14 +300,14 @@ export function DisallowMetadataQueries(context) {
     Field(node) {
       const fieldName = node.name.value;
 
-      if (fieldName === "metadata") {
+      if (fieldName === 'metadata') {
         context.reportError(
           new GraphQLError(
             `Validation: Requesting the field ${fieldName} is not allowed`,
           ),
         );
       }
-    }
+    },
   };
 }
 ```
@@ -307,9 +325,8 @@ const graphqlHTTP = require('express-graphql');
 
 graphqlHTTP.getGraphQLParams(request).then(params => {
   // do something...
-})
+});
 ```
-
 
 ## Debugging Tips
 
@@ -321,13 +338,12 @@ customFormatErrorFn: error => ({
   message: error.message,
   locations: error.locations,
   stack: error.stack ? error.stack.split('\n') : [],
-  path: error.path
-})
+  path: error.path,
+});
 ```
 
-
-[`GraphQL.js`]: https://github.com/graphql/graphql-js
-[`formatError`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
-[GraphiQL]: https://github.com/graphql/graphiql
+[`graphql.js`]: https://github.com/graphql/graphql-js
+[`formaterror`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
+[graphiql]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session

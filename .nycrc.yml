@@ -1,8 +1,8 @@
 include:
-  - "src/"
+  - 'src/'
 exclude:
-  - "src/polyfills"
+  - 'src/polyfills'
 clean: true
-temp-directory: "coverage"
+temp-directory: 'coverage'
 skip-full: true
 reporter: [lcov, html, text]
