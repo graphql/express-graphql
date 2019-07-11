@@ -3,6 +3,7 @@
   "version": "0.8.0",
   "description": "Production ready GraphQL HTTP middleware.",
   "license": "MIT",
+  "homepage": "https://github.com/graphql/express-graphql",
   "bugs": {
     "url": "https://github.com/graphql/express-graphql/issues"
   },
@@ -31,11 +32,9 @@
     "dist",
     "types/index.d.ts",
     "README.md",
-    "LICENSE",
-    "PATENTS"
+    "LICENSE"
   ],
   "scripts": {
-    "prepublish": ". ./resources/prepublish.sh",
     "test": "npm run prettier:check && npm run lint && npm run check && npm run testonly",
     "test:ci": "yarn check --integrity && npm run prettier:check && npm run lint && npm run check && npm run testonly:cover && npm run build",
     "testonly": "mocha src/**/__tests__/**/*.js",
