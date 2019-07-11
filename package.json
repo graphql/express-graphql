@@ -37,14 +37,14 @@
   "scripts": {
     "prepublish": ". ./resources/prepublish.sh",
     "test": "npm run lint && npm run check && npm run testonly",
+    "test:ci": "yarn check --integrity && npm run lint && npm run check && npm run testonly:cover && npm run build",
     "testonly": "mocha src/**/__tests__/**/*.js",
+    "testonly:cover": "nyc npm run testonly",
     "lint": "prettier --ignore-path .gitignore --check '**/*.{js,ts,md,json,yml}' && eslint src resources",
     "prettier": "prettier --ignore-path .gitignore --write '**/*.{js,ts,md,json,yml}'",
     "check": "flow check",
     "build": "rm -rf dist/* && babel src --ignore '**/__tests__' --out-dir dist && npm run build:flow",
     "build:flow": "find ./src -name '*.js' -not -path '*/__tests__*' | while read filepath; do cp $filepath `echo $filepath | sed 's/\\/src\\//\\/dist\\//g'`.flow; done",
-    "watch": "node resources/watch.js",
-    "cover": "nyc npm run testonly",
     "preversion": "npm test",
     "start": "node -r @babel/register examples/index.js"
   },

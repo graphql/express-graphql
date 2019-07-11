@@ -1,4 +1,7 @@
+git:
+  depth: 5
 language: node_js
+cache: yarn
 
 # https://github.com/nodejs/Release
 node_js:
@@ -6,10 +9,13 @@ node_js:
   - '10'
   - '8'
 
-git:
-  depth: 5
-
-cache: yarn
+script: |
+  if [[ "$(node -pe process.version)" == v10.* ]]; then # Is latest LTS?
+    npm run test:ci &&
+    cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+  else
+    npm run testonly
+  fi
 
 notifications:
   irc:
@@ -21,17 +27,3 @@ notifications:
       - 'chat.freenode.net#graphql'
   slack:
     secure: eFMk+9i9G0F8VYd0cd+qfBXEcngR1odYzGapdSSPH0Ag6Ck1sjK64n0iFwz+RDV2sSVnjnAA5qbXNcltBhEe1DkNsZVXOp4cDxKiFQOH1NJu9m29rYx+dZ4H93JjuDtH0u2o2op/PhtXlwAjr8GBcdGgFNTUbiJv9nIj4sYudQJFL8VUQwYviRO28xx12hG7cmKvQ7YZ/OKz52oGnIOM4yoQgPKFRY4ztMr6OrHwDwWMAxptZjKYY0i2hE3ot+OkWeWteZvE9E2Q0OJI7C6XlZg+bR6Mu7VS5s6jjL21luJJBgwihLuWVNMXxxEfoUCldo0s/RX8lObuFocKpnAtqVimr1rPZtUYZzy/Jjd1fxa27TgONZUgibWoRbAFDCdKhJOsBSLGfvQw+a3sxkV5zD5DKpgaNavT+GbOZJn4KGw3i1M/5Gp1tqB+RsTMjRvXQH5rsc+9z/flys1K9sNrc7O0NS2sVPayf4U5ECgT6t0y6NM1hQNepNHbvPSU/I/dUPYQEMcWMtdgtApAeUcbsRFUgFejNwp4hhTz0MS6k9AtmLJ79mNQBqDgZ3/pnW/YjW7BsK8/f6xOabxJjwIdLJvAifxRy/oj8wd5ttx8u+qKZ547PhdNJiMV7H60tGqkJshqbphlvWr48l0EV0A635uY24VefYoTeMIXZSeueME=
-
-before_install:
-  - npm config set spin false --global
-
-script:
-  - if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]]; then npm run lint && npm run check && npm run cover; else npm run testonly; fi
-
-after_failure:
-  - (cd resources; python travis_after_all.py)
-
-after_success:
-  - (cd resources; python travis_after_all.py)
-  - export $(cat resources/.to_export_back)
-  - if [[ "$TRAVIS_JOB_NUMBER" == *.1 ]]; then cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js; fi
