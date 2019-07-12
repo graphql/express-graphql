@@ -27,14 +27,15 @@
     "node": ">= 8.x"
   },
   "scripts": {
-    "test": "npm run prettier:check && npm run lint && npm run check && npm run testonly",
-    "test:ci": "yarn check --integrity && npm run prettier:check && npm run lint && npm run check && npm run testonly:cover && npm run build",
+    "test": "npm run prettier:check && npm run lint && npm run check && npm run check:ts && npm run testonly",
+    "test:ci": "yarn check --integrity && npm run prettier:check && npm run lint && npm run check && npm run check:ts && npm run testonly:cover && npm run build",
     "testonly": "mocha src/**/__tests__/**/*.js",
     "testonly:cover": "nyc npm run testonly",
     "lint": "eslint src resources",
     "prettier": "prettier --ignore-path .gitignore --write --list-different '**/*.{js,ts,md,json,yml}'",
-    "prettier:check": "prettier --ignore-path .gitignore --check '**/*.{js,md,json,yml}'",
+    "prettier:check": "prettier --ignore-path .gitignore --check '**/*.{js,ts,md,json,yml}'",
     "check": "flow check",
+    "check:ts": "dtslint types",
     "build": "node resources/build.js",
     "preversion": ". ./resources/checkgit.sh",
     "start": "node -r @babel/register examples/index.js"
@@ -50,6 +51,8 @@
     "@babel/plugin-transform-flow-strip-types": "7.4.4",
     "@babel/plugin-transform-modules-commonjs": "7.5.0",
     "@babel/register": "7.4.4",
+    "@types/graphql": "^14.2.2",
+    "@types/node": "^12.6.2",
     "babel-eslint": "10.0.2",
     "body-parser": "1.19.0",
     "chai": "4.2.0",
