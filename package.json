@@ -37,6 +37,7 @@
     "check": "flow check",
     "check:ts": "dtslint types",
     "build": "node resources/build.js",
+    "changelog": "node resources/gen-changelog.js",
     "preversion": ". ./resources/checkgit.sh",
     "start": "node -r @babel/register examples/index.js"
   },
