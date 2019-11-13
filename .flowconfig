@@ -26,12 +26,12 @@
 
 [lints]
 sketchy-null-bool=off
-sketchy-null-string=off
+sketchy-null-string=error
 sketchy-null-number=error
 sketchy-null-mixed=off
 sketchy-number=error
 untyped-type-import=error
-nonstrict-import=off
+nonstrict-import=error
 untyped-import=off
 unclear-type=off
 deprecated-type=error
