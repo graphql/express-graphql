@@ -35,7 +35,7 @@ const QueryRootType = new GraphQLObjectType({
       args: {
         who: { type: GraphQLString },
       },
-      resolve: (root, { who }) => 'Hello ' + ((who: any) || 'World'),
+      resolve: (root, args) => 'Hello ' + (args.who || 'World'),
     },
     thrower: {
       type: GraphQLString,
@@ -411,7 +411,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             fields: {
               test: {
                 type: GraphQLString,
-                resolve: (obj, args, context) => (context: any).foo,
+                resolve: (obj, args, context) => context.foo,
               },
             },
           }),
@@ -2023,7 +2023,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
     });
 
     describe('Custom execute', () => {
-      it('allow to replace default execute.', async () => {
+      it('allow to replace default execute', async () => {
         const app = server();
 
         let seenExecuteArgs;
@@ -2035,9 +2035,14 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             schema: TestSchema,
             async customExecuteFn(args) {
               seenExecuteArgs = args;
-              const result: any = await Promise.resolve(execute(args));
-              result.data.test2 = 'Modification';
-              return result;
+              const result = await Promise.resolve(execute(args));
+              return {
+                ...result,
+                data: {
+                  ...result.data,
+                  test2: 'Modification',
+                },
+              };
             },
           })),
         );
@@ -2156,7 +2161,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             schema: TestSchema,
             customFormatErrorFn: () => null,
             extensions({ result }) {
-              return { preservedErrors: (result: any).errors };
+              return { preservedResult: { ...result } };
             },
           }),
         );
@@ -2172,13 +2177,16 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           data: { thrower: null },
           errors: [null],
           extensions: {
-            preservedErrors: [
-              {
-                message: 'Throws!',
-                locations: [{ line: 1, column: 2 }],
-                path: ['thrower'],
-              },
-            ],
+            preservedResult: {
+              data: { thrower: null },
+              errors: [
+                {
+                  message: 'Throws!',
+                  locations: [{ line: 1, column: 2 }],
+                  path: ['thrower'],
+                },
+              ],
+            },
           },
         });
       });

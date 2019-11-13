@@ -19,7 +19,9 @@ export type GraphiQLOptions = {|
 
 // Ensures string values are safe to be used within a <script> tag.
 function safeSerialize(data) {
-  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'undefined';
+  return data != null
+    ? JSON.stringify(data).replace(/\//g, '\\/')
+    : 'undefined';
 }
 
 // Implemented as Babel transformation, see ../resources/load-staticly-from-npm.js
@@ -34,12 +36,10 @@ declare function loadFileStaticlyFromNPM(npmPath: string): string;
  */
 export function renderGraphiQL(data: GraphiQLData): string {
   const queryString = data.query;
-  const variablesString = data.variables
-    ? JSON.stringify(data.variables, null, 2)
-    : null;
-  const resultString = data.result
-    ? JSON.stringify(data.result, null, 2)
-    : null;
+  const variablesString =
+    data.variables != null ? JSON.stringify(data.variables, null, 2) : null;
+  const resultString =
+    data.result != null ? JSON.stringify(data.result, null, 2) : null;
   const operationName = data.operationName;
   const defaultQuery = data.options.defaultQuery;
 

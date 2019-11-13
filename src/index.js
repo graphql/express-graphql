@@ -164,7 +164,7 @@ export type RequestInfo = {|
   /**
    * The result of executing the operation.
    */
-  result: ?mixed,
+  result: ?ExecutionResult,
 
   /**
    * A value to pass as the context to the graphql() function.
@@ -254,7 +254,7 @@ function graphqlHTTP(options: Options): Middleware {
 
         // If there is no query, but GraphiQL will be displayed, do not produce
         // a result, otherwise return a 400: Bad Request.
-        if (!query) {
+        if (query == null) {
           if (showGraphiQL) {
             return null;
           }
@@ -469,7 +469,7 @@ function parseGraphQLParams(
 
   // Parse the variables if needed.
   let variables = urlData.variables || bodyData.variables;
-  if (variables && typeof variables === 'string') {
+  if (typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
     } catch (error) {
