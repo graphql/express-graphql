@@ -17,6 +17,9 @@
 !<PROJECT_ROOT>/node_modules/multer
 !<PROJECT_ROOT>/node_modules/supertest
 
+[declarations]
+<PROJECT_ROOT>/node_modules/graphql
+
 [include]
 
 [libs]
@@ -36,9 +39,13 @@ deprecated-utility=error
 dynamic-export=off
 unsafe-getters-setters=error
 inexact-spread=error
-implicit-inexact-object=error
 unnecessary-optional-chain=error
 unnecessary-invariant=error
+signature-verification-failure=error
+implicit-inexact-object=error
+ambiguous-object-type=error
+uninitialized-instance-property=error
+non-array-spread=off
 
 [options]
 include_warnings=true
@@ -47,4 +54,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(<VERSION>\\)?)\\)
 suppress_comment=\\(.\\|\n\\)*\\$DisableFlowOnNegativeTest
 
 [version]
-^0.102.0
+^0.112.0
