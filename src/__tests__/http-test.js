@@ -817,7 +817,6 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           .set('Content-Type', 'application/json')
           .set('Content-Encoding', 'gzip');
 
-        // eslint-disable-next-line no-sync
         req.write(zlib.gzipSync('{ "query": "{ test }" }'));
 
         const response = await req;
@@ -844,7 +843,6 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           .set('Content-Type', 'application/json')
           .set('Content-Encoding', 'deflate');
 
-        // eslint-disable-next-line no-sync
         req.write(zlib.deflateSync('{ "query": "{ test }" }'));
 
         const response = await req;
