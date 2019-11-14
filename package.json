@@ -63,7 +63,7 @@
     "eslint-plugin-flowtype": "4.4.1",
     "express": "4.17.1",
     "flow-bin": "0.112.0",
-    "graphiql": "^0.13.2",
+    "graphiql": "^0.14.0",
     "graphql": "14.5.8",
     "mocha": "6.2.2",
     "multer": "1.4.2",
