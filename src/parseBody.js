@@ -48,13 +48,11 @@ export async function parseBody(
       return { query: rawBody };
     case 'application/json':
       if (jsonObjRegex.test(rawBody)) {
-        /* eslint-disable no-empty */
         try {
           return JSON.parse(rawBody);
         } catch (error) {
           // Do nothing
         }
-        /* eslint-enable no-empty */
       }
       throw httpError(400, 'POST body sent invalid JSON.');
     case 'application/x-www-form-urlencoded':

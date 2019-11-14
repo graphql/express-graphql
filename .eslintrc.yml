@@ -4,11 +4,12 @@ parserOptions:
 env:
   es6: true
   node: true
+reportUnusedDisableDirectives: true
 plugins:
   - flowtype
 
 rules:
-  # `eslint-plugin-flowtype` rule list based on `v3.11.x`
+  # `eslint-plugin-flowtype` rule list based on `v4.4.x`
   # https://github.com/gajus/eslint-plugin-flowtype#eslint-plugin-flowtype
 
   flowtype/array-style-complex-type: [error, verbose]
@@ -16,7 +17,7 @@ rules:
   flowtype/define-flow-type: error
   flowtype/newline-after-flow-annotation: [error, always]
   flowtype/no-dupe-keys: error
-  flowtype/no-existential-type: error
+  flowtype/no-existential-type: off # checked by Flow
   flowtype/no-flow-fix-me-comments: error
   flowtype/no-mixed: off
   flowtype/no-mutable-array: off
@@ -26,6 +27,7 @@ rules:
   flowtype/no-weak-types: [error, { any: false }]
   flowtype/require-compound-type-alias: off
   flowtype/require-exact-type: error
+  flowtype/require-indexer-name: error
   flowtype/require-inexact-type: off # checked by Flow
   flowtype/require-parameter-type: off
   flowtype/require-readonly-react-props: off
@@ -53,7 +55,7 @@ rules:
   flowtype/union-intersection-spacing: off
 
   ##################################################
-  # ESLint builtin rules list based on `v5.16.x`
+  # ESLint builtin rules list based on `v6.6.x`
   ##################################################
 
   # Possible Errors
@@ -77,6 +79,7 @@ rules:
   no-ex-assign: error
   no-extra-boolean-cast: error
   no-func-assign: error
+  no-import-assign: error
   no-inner-declarations: [error, both]
   no-invalid-regexp: error
   no-irregular-whitespace: error
@@ -104,6 +107,7 @@ rules:
   consistent-return: off # TODO
   curly: [error, all]
   default-case: off
+  default-param-last: off # TODO
   dot-notation: off
   eqeqeq: [error, smart]
   guard-for-in: error
@@ -161,6 +165,7 @@ rules:
   no-with: error
   prefer-named-capture-group: off # ES2018
   prefer-promise-reject-errors: error
+  prefer-regex-literals: error
   radix: error
   require-await: error
   require-unicode-regexp: off
@@ -295,6 +300,7 @@ rules:
   dot-location: off
   eol-last: off
   func-call-spacing: off
+  function-call-argument-newline: off
   function-paren-newline: off
   generator-star-spacing: off
   implicit-arrow-linebreak: off
@@ -345,6 +351,9 @@ rules:
   yield-star-spacing: off
 
 overrides:
+  - files: '**/__tests__/**'
+    rules:
+      no-sync: off
   - files: 'resources/**'
     parserOptions:
       sourceType: script
