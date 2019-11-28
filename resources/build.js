@@ -16,7 +16,7 @@ const {
 } = require('./utils');
 
 if (require.main === module) {
-  rmdirRecursive('./dist');
+  // rmdirRecursive('./dist');
   mkdirRecursive('./dist');
 
   copyFile('./LICENSE', './dist/LICENSE');
