@@ -137,10 +137,11 @@ declare namespace graphqlHTTP {
      * `__typename` field or alternatively calls the `isTypeOf` method).
      */
     typeResolver?: GraphQLTypeResolver<unknown, unknown> | null;
+
     /**
-     * ssssss
+     * A optional string which will used to predefined fragments
      */
-    serverFragments: string,
+    serverFragments?: string;
   }
 
   /**

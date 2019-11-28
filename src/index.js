@@ -140,6 +140,11 @@ export type OptionsData = {|
    * `__typename` field or alternatively calls the `isTypeOf` method).
    */
   typeResolver?: ?GraphQLTypeResolver<mixed, mixed>,
+
+  /**
+   * A optional string which will used to predefined fragments
+   */
+  serverFragments?: ?string,
 |};
 
 /**
