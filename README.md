@@ -19,7 +19,7 @@ information for TypeScript projects. This module depends on 'graphql' and the No
 types, so install `@types/graphql` and `@types/node`:
 
 ```sh
-$ npm install --save --dev @types/graphql @types/node
+$ npm install --save-dev @types/graphql @types/node
 ```
 
 ## Simple Setup
