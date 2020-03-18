@@ -368,6 +368,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
         // Format any encountered errors.
         if (result && result.errors) {
+          (result: any).errors = result.errors.map(err => ({...err, result: result.data}));
           (result: any).errors = result.errors.map(formatErrorFn);
         }
 
