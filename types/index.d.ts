@@ -39,6 +39,15 @@ declare namespace graphqlHTTP {
     | OptionsResult;
   type OptionsResult = OptionsData | Promise<OptionsData>;
 
+  interface GraphiQLOptions {
+    /**
+     * An optional GraphQL string to use when no query is provided and no stored
+     * query exists from a previous session.  If undefined is provided, GraphiQL
+     * will use its own default query.
+     */
+    defaultQuery: string;
+  }
+
   interface OptionsData {
     /**
      * A GraphQL schema from graphql-js.
@@ -121,8 +130,9 @@ declare namespace graphqlHTTP {
 
     /**
      * A boolean to optionally enable GraphiQL mode.
+     * Alternatively, instead of `true` you can pass in an options object.
      */
-    graphiql?: boolean | null;
+    graphiql?: boolean | GraphiQLOptions;
 
     /**
      * A resolver function to use when one is not provided by the schema.
