@@ -85,7 +85,7 @@ declare namespace graphqlHTTP {
      * from `graphql-js`.
      */
     customExecuteFn?:
-      | ((args: ExecutionArgs) => Promise<ExecutionResult>)
+      | ((args: ExecutionArgs) => ExecutionResult | Promise<ExecutionResult>)
       | null;
 
     /**

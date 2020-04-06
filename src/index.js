@@ -88,7 +88,9 @@ export type OptionsData = {|
    * An optional function which will be used to execute instead of default `execute`
    * from `graphql-js`.
    */
-  customExecuteFn?: ?(args: ExecutionArgs) => Promise<ExecutionResult>,
+  customExecuteFn?: ?(
+    args: ExecutionArgs,
+  ) => ExecutionResult | Promise<ExecutionResult>,
 
   /**
    * An optional function which will be used to format any errors produced by
