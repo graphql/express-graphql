@@ -363,7 +363,7 @@ function graphqlHTTP(options: Options): Middleware {
         // Note: Information about the error itself will still be contained in
         // the resulting JSON payload.
         // https://graphql.github.io/graphql-spec/#sec-Data
-        if (response.statusCode === 200 && result && !result.data) {
+        if (response.statusCode !== 200 && result && !result.data) {
           response.statusCode = 500;
         }
         // Format any encountered errors.
