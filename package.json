@@ -1,5 +1,5 @@
 {
-  "name": "express-graphql",
+  "name": "@chance-get-yours/express-graphql",
   "version": "0.9.0",
   "description": "Production ready GraphQL HTTP middleware.",
   "license": "MIT",
