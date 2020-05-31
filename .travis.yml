@@ -5,9 +5,10 @@ cache: yarn
 
 # https://github.com/nodejs/Release
 node_js:
+  - '14'
+  - '13'
   - '12'
   - '10'
-  - '8'
 
 script: |
   if [[ "$(node -pe process.version)" == v10.* ]]; then # Is latest LTS?
