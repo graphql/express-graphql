@@ -6,13 +6,13 @@
   "private": true,
   "main": "index.js",
   "types": "index.d.ts",
-  "homepage": "https://github.com/graphql/express-graphql",
+  "homepage": "https://github.com/Ariel-Dayan/express-graphql.git",
   "bugs": {
     "url": "https://github.com/graphql/express-graphql/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/graphql/express-graphql.git"
+    "url": "https://github.com/Ariel-Dayan/express-graphql.git"
   },
   "keywords": [
     "express",

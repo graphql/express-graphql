@@ -142,6 +142,11 @@ export type OptionsData = {|
    * `__typename` field or alternatively calls the `isTypeOf` method).
    */
   typeResolver?: ?GraphQLTypeResolver<mixed, mixed>,
+
+  /**
+   * A optional string which will used to predefined fragments
+   */
+  serverFragments?: ?string,
 |};
 
 /**
@@ -240,6 +245,8 @@ function graphqlHTTP(options: Options): Middleware {
         const typeResolver = optionsData.typeResolver;
         const validationRules = optionsData.validationRules || [];
         const graphiql = optionsData.graphiql;
+        const serverFragments = optionsData.serverFragments;
+
         context = optionsData.context || request;
 
         // GraphQL HTTP only supports GET and POST methods.
@@ -249,7 +256,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
 
         // Get GraphQL params from the request and POST body data.
-        query = params.query;
+        query = serverFragments ? addServerFragments(serverFragments, params.query) : params.query;
         variables = params.variables;
         operationName = params.operationName;
         showGraphiQL = canDisplayGraphiQL(request, params) && graphiql;
@@ -510,4 +517,88 @@ function sendResponse(response: $Response, type: string, data: string): void {
   response.setHeader('Content-Type', type + '; charset=utf-8');
   response.setHeader('Content-Length', String(chunk.length));
   response.end(chunk);
+}
+
+/**
+ * Helper function to get the first word from string.
+ * 
+ * @param   { string } text - The full string.
+ * 
+ * @returns { string }      - First word.
+ */
+function sliceFirstWord(text: string): string {
+  let slicedText = text; 
+
+  const firstSpaceIndex = slicedText.indexOf(' ');
+
+  if(firstSpaceIndex !== -1) {
+    slicedText = slicedText.slice(0, firstSpaceIndex);
+  }
+
+  const firstEndRowIndex = slicedText.indexOf('\n');
+
+  if(firstEndRowIndex !== -1) {
+    slicedText = slicedText.slice(0, firstEndRowIndex);
+  }
+
+  return slicedText;
+}
+
+/**
+ * Helper recursive function that finds all the fragments from the server that are used in the current request.
+ * 
+ * @param   { string }      serverFragments - Fragments from the server.
+ * @param   { string }      query           - Query from the request.
+ * @param   { Set<string> } fragmentsInUsed - Set of relevant fragments.
+ * 
+ * @returns { Set<string> }                 - relevant fragments for current request.
+ */
+function findFragments(serverFragments: string, query: string, fragmentsInUsed: Set<string>): Set<string> {
+  // Fragment declaration starts with 'fragment' key word
+  // Slice to remove text before the first fragment declaration
+  let fragmentDeclarationFields = serverFragments.split('fragment ').slice(1);
+
+  // Fragment variable starts with spread - '...' 
+  // Slice to remove text before the first fragment variable
+  let fragmentVariableFields = query.split('...').slice(1);
+
+  fragmentVariableFields.forEach(fragmentVariable => {
+    const currFragmentVariableKeyName = sliceFirstWord(fragmentVariable);
+
+    for (let index = 0; index < fragmentDeclarationFields.length; index++) {
+      const currFragmentDeclaration = fragmentDeclarationFields[index];
+      const currFragmentDeclarationKeyName = sliceFirstWord(currFragmentDeclaration);
+
+      if(currFragmentDeclarationKeyName === currFragmentVariableKeyName) {
+
+        fragmentsInUsed.add(currFragmentDeclaration);
+
+        // Find fragments in the matching fragments
+        fragmentsInUsed = findFragments(serverFragments, currFragmentDeclaration, fragmentsInUsed)
+
+        break;
+      }
+
+    }
+  })
+
+  return fragmentsInUsed;
+}
+
+/**
+ * Add to query the relevant server fragments
+ * 
+ * @param {*} serverFragments - Fragments from the server.
+ * @param {*} query           - Query from the request.
+ * 
+ * @returns                   - Concat relevant fragments to request query
+ */
+function addServerFragments(serverFragments: string, query: string): string {
+  let fragmentsInUsed = '';
+
+  [...(findFragments(serverFragments, query, new Set()))].forEach(fullFragment => {
+    fragmentsInUsed += `fragment ${fullFragment} `;
+  })
+
+  return `${fragmentsInUsed}\n${query}`;
 }
