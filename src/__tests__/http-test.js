@@ -79,7 +79,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
       // 0 only in "production" mode.
       app.set('json spaces', 0);
     }
-    app.on('error', error => {
+    app.on('error', (error) => {
       // eslint-disable-next-line no-console
       console.warn('App encountered an error:', error);
     });
@@ -721,10 +721,8 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           })),
         );
 
-        const response = await request(app)
-          .post(urlString())
-          .send({
-            query: `
+        const response = await request(app).post(urlString()).send({
+          query: `
               query helloYou { test(who: "You"), ...shared }
               query helloWorld { test(who: "World"), ...shared }
               query helloDolly { test(who: "Dolly"), ...shared }
@@ -732,8 +730,8 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
                 shared: test(who: "Everyone")
               }
             `,
-            operationName: 'helloWorld',
-          });
+          operationName: 'helloWorld',
+        });
 
         expect(JSON.parse(response.text)).to.deep.equal({
           data: {
@@ -901,7 +899,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         post(
           app,
           urlString(),
-          graphqlHTTP(req => ({
+          graphqlHTTP((req) => ({
             schema: TestMutationSchema,
             rootValue: { request: req },
           })),
@@ -1056,7 +1054,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         get(
           app,
           urlString(),
-          graphqlHTTP(req => ({
+          graphqlHTTP((req) => ({
             schema: TestSchema,
             pretty:
               ((url.parse(req.url, true) || {}).query || {}).pretty === '1',
@@ -1979,7 +1977,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
     });
 
     describe('Custom validation rules', () => {
-      const AlwaysInvalidRule = function(context) {
+      const AlwaysInvalidRule = function (context) {
         return {
           enter() {
             context.reportError(

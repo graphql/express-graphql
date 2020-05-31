@@ -263,7 +263,7 @@ const extensions = ({
 
 app.use(
   '/graphql',
-  graphqlHTTP(request => {
+  graphqlHTTP((request) => {
     return {
       schema: MyGraphQLSchema,
       context: { startTime: Date.now() },
@@ -323,7 +323,7 @@ incoming request, you may use it directly for building other similar services.
 ```js
 const graphqlHTTP = require('express-graphql');
 
-graphqlHTTP.getGraphQLParams(request).then(params => {
+graphqlHTTP.getGraphQLParams(request).then((params) => {
   // do something...
 });
 ```
@@ -334,7 +334,7 @@ During development, it's useful to get more information from errors, such as
 stack traces. Providing a function to `customFormatErrorFn` enables this:
 
 ```js
-customFormatErrorFn: error => ({
+customFormatErrorFn: (error) => ({
   message: error.message,
   locations: error.locations,
   stack: error.stack ? error.stack.split('\n') : [],

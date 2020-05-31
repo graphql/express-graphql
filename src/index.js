@@ -210,12 +210,12 @@ function graphqlHTTP(options: Options): Middleware {
     // Parse the Request to get GraphQL request parameters.
     return getGraphQLParams(request)
       .then(
-        graphQLParams => {
+        (graphQLParams) => {
           params = graphQLParams;
           // Then, resolve the Options to get OptionsData.
           return resolveOptions(params);
         },
-        error => {
+        (error) => {
           // When we failed to parse the GraphQL parameters, we still need to get
           // the options object, so make an options call to resolve just that.
           const dummyParams = {
@@ -227,7 +227,7 @@ function graphqlHTTP(options: Options): Middleware {
           return resolveOptions(dummyParams).then(() => Promise.reject(error));
         },
       )
-      .then(optionsData => {
+      .then((optionsData) => {
         // Assert that schema is required.
         if (!optionsData.schema) {
           throw new Error('GraphQL middleware options must contain a schema.');
@@ -333,7 +333,7 @@ function graphqlHTTP(options: Options): Middleware {
           return { errors: [contextError] };
         }
       })
-      .then(result => {
+      .then((result) => {
         // Collect and apply any metadata extensions if a function was provided.
         // https://graphql.github.io/graphql-spec/#sec-Response-Format
         if (result && extensionsFn) {
@@ -345,7 +345,7 @@ function graphqlHTTP(options: Options): Middleware {
               result,
               context,
             }),
-          ).then(extensions => {
+          ).then((extensions) => {
             if (extensions && typeof extensions === 'object') {
               (result: any).extensions = extensions;
             }
@@ -354,12 +354,12 @@ function graphqlHTTP(options: Options): Middleware {
         }
         return result;
       })
-      .catch(error => {
+      .catch((error) => {
         // If an error was caught, report the httpError status, or 500.
         response.statusCode = error.status || 500;
         return { errors: [error] };
       })
-      .then(result => {
+      .then((result) => {
         // If no data was included in the result, that indicates a runtime query
         // error, indicate as such with a generic status code.
         // Note: Information about the error itself will still be contained in

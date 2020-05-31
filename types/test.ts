@@ -21,14 +21,14 @@ graphqlHTTP({
   }),
 });
 
-graphqlHTTP(request => ({
+graphqlHTTP((request) => ({
   graphiql: true,
   schema,
   context: request.headers,
   validationRules,
 }));
 
-graphqlHTTP(async request => {
+graphqlHTTP(async (request) => {
   return {
     graphiql: true,
     schema: await Promise.resolve(schema),
