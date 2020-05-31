@@ -76,7 +76,7 @@ const jsonObjRegex = /^[ \t\n\r]*\{/;
 
 // Read and parse a request body.
 async function readBody(req, typeInfo) {
-  const charset = (typeInfo.parameters.charset || 'utf-8').toLowerCase();
+  const charset = (typeInfo.parameters.charset ?? 'utf-8').toLowerCase();
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
   if (charset.slice(0, 4) !== 'utf-') {
