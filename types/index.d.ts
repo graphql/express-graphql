@@ -185,10 +185,10 @@ declare namespace graphqlHTTP {
   ) => Promise<undefined>;
 
   interface GraphQLParams {
-    query: string | null | undefined;
-    variables: { readonly [name: string]: unknown } | null | undefined;
-    operationName: string | null | undefined;
-    raw: boolean | null | undefined;
+    query: string | null;
+    variables: { readonly [name: string]: unknown } | null;
+    operationName: string | null;
+    raw: boolean | null;
   }
 }
 
