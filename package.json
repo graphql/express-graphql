@@ -50,7 +50,7 @@
   "devDependencies": {
     "@babel/core": "7.10.2",
     "@babel/plugin-transform-flow-strip-types": "7.10.1",
-    "@babel/plugin-transform-modules-commonjs": "7.10.1",
+    "@babel/preset-env": "^7.10.2",
     "@babel/register": "7.10.1",
     "@types/node": "12.12.7",
     "babel-eslint": "10.0.3",
