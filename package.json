@@ -24,7 +24,7 @@
     "api"
   ],
   "engines": {
-    "node": ">= 8.x"
+    "node": ">= 10.x"
   },
   "scripts": {
     "test": "npm run prettier:check && npm run lint && npm run check && npm run check:ts && npm run testonly",
