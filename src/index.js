@@ -215,17 +215,9 @@ function graphqlHTTP(options: Options): Middleware {
           // Then, resolve the Options to get OptionsData.
           return resolveOptions(params);
         },
-        (error) => {
-          // When we failed to parse the GraphQL parameters, we still need to get
-          // the options object, so make an options call to resolve just that.
-          const dummyParams = {
-            query: null,
-            variables: null,
-            operationName: null,
-            raw: null,
-          };
-          return resolveOptions(dummyParams).then(() => Promise.reject(error));
-        },
+        // When we failed to parse the GraphQL parameters, we still need to get
+        // the options object, so make an options call to resolve just that.
+        (error) => resolveOptions().then(() => Promise.reject(error)),
       )
       .then((optionsData) => {
         // Assert that schema is required.
@@ -402,7 +394,7 @@ function graphqlHTTP(options: Options): Middleware {
         }
       });
 
-    async function resolveOptions(requestParams) {
+    async function resolveOptions(requestParams?: GraphQLParams) {
       const optionsResult =
         typeof options === 'function'
           ? options(request, response, requestParams)
@@ -438,10 +430,10 @@ function graphqlHTTP(options: Options): Middleware {
 }
 
 export type GraphQLParams = {|
-  query: ?string,
-  variables: ?{ +[name: string]: mixed, ... },
-  operationName: ?string,
-  raw: ?boolean,
+  query: string | null,
+  variables: { +[name: string]: mixed, ... } | null,
+  operationName: string | null,
+  raw: boolean,
 |};
 
 /**
@@ -496,9 +488,8 @@ function parseGraphQLParams(
  * Helper function to determine if GraphiQL can be displayed.
  */
 function canDisplayGraphiQL(request: $Request, params: GraphQLParams): boolean {
-  // If `raw` exists, GraphiQL mode is not enabled.
-  // Allowed to show GraphiQL if not requested as raw and this request
-  // prefers HTML over JSON.
+  // If `raw` false, GraphiQL mode is not enabled.
+  // Allowed to show GraphiQL if not requested as raw and this request prefers HTML over JSON.
   return !params.raw && accepts(request).types(['json', 'html']) === 'html';
 }
 
