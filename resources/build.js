@@ -5,34 +5,67 @@
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
+
 const babel = require('@babel/core');
-const {
-  copyFile,
-  writeFile,
-  rmdirRecursive,
-  mkdirRecursive,
-  readdirRecursive,
-  parseSemver,
-} = require('./utils');
+
+const { rmdirRecursive, readdirRecursive } = require('./utils');
 
 if (require.main === module) {
   rmdirRecursive('./dist');
-  mkdirRecursive('./dist');
-
-  copyFile('./LICENSE', './dist/LICENSE');
-  copyFile('./README.md', './dist/README.md');
-  copyFile('./types/index.d.ts', './dist/index.d.ts');
+  fs.mkdirSync('./dist');
 
   const srcFiles = readdirRecursive('./src', { ignoreDir: /^__.*__$/ });
   for (const filepath of srcFiles) {
+    const srcPath = path.join('./src', filepath);
+    const destPath = path.join('./dist', filepath);
+
+    fs.mkdirSync(path.dirname(destPath), { recursive: true });
     if (filepath.endsWith('.js')) {
-      buildJSFile(filepath);
+      fs.copyFileSync(srcPath, destPath + '.flow');
+
+      const cjs = babelBuild(srcPath, { envName: 'cjs' });
+      fs.writeFileSync(destPath, cjs);
     }
   }
 
+  fs.copyFileSync('./types/index.d.ts', './dist/index.d.ts');
+  fs.copyFileSync('./LICENSE', './dist/LICENSE');
+  fs.copyFileSync('./README.md', './dist/README.md');
+
+  // Should be done as the last step so only valid packages can be published
   const packageJSON = buildPackageJSON();
-  writeFile('./dist/package.json', JSON.stringify(packageJSON, null, 2));
+  fs.writeFileSync('./dist/package.json', JSON.stringify(packageJSON, null, 2));
+
   showStats();
+}
+
+function babelBuild(srcPath, options) {
+  return babel.transformFileSync(srcPath, options).code + '\n';
+}
+
+function buildPackageJSON() {
+  const packageJSON = require('../package.json');
+  delete packageJSON.private;
+  delete packageJSON.scripts;
+  delete packageJSON.devDependencies;
+
+  const { version } = packageJSON;
+  const versionMatch = /^\d+\.\d+\.\d+-?(.*)?$/.exec(version);
+  if (!versionMatch) {
+    throw new Error('Version does not match semver spec: ' + version);
+  }
+
+  const [, preReleaseTag] = versionMatch;
+
+  if (preReleaseTag != null) {
+    const [tag] = preReleaseTag.split('.');
+    assert(['alpha', 'beta', 'rc'].includes(tag), `"${tag}" tag is supported.`);
+
+    assert(!packageJSON.publishConfig, 'Can not override "publishConfig".');
+    packageJSON.publishConfig = { tag: tag || 'latest' };
+  }
+
+  return packageJSON;
 }
 
 function showStats() {
@@ -41,8 +74,8 @@ function showStats() {
 
   for (const filepath of readdirRecursive('./dist')) {
     const name = filepath.split(path.sep).pop();
-    const [base, ...splitedExt] = name.split('.');
-    const ext = splitedExt.join('.');
+    const [base, ...splitExt] = name.split('.');
+    const ext = splitExt.join('.');
 
     const filetype = ext ? '*.' + ext : base;
     fileTypes[filetype] = fileTypes[filetype] || { filepaths: [], size: 0 };
@@ -79,34 +112,4 @@ function showStats() {
   console.log(
     'Total'.padStart(typeMaxLength) + ' | ' + totalMB.padStart(sizeMaxLength),
   );
-}
-
-function babelBuild(srcPath, envName) {
-  return babel.transformFileSync(srcPath, { envName }).code + '\n';
-}
-
-function buildJSFile(filepath) {
-  const srcPath = path.join('./src', filepath);
-  const destPath = path.join('./dist', filepath);
-
-  copyFile(srcPath, destPath + '.flow');
-  writeFile(destPath, babelBuild(srcPath, 'cjs'));
-}
-
-function buildPackageJSON() {
-  const packageJSON = require('../package.json');
-  delete packageJSON.private;
-  delete packageJSON.scripts;
-  delete packageJSON.devDependencies;
-
-  const { preReleaseTag } = parseSemver(packageJSON.version);
-  if (preReleaseTag != null) {
-    const [tag] = preReleaseTag.split('.');
-    assert(tag === 'rc', 'Only "rc" tag is supported.');
-
-    assert(!packageJSON.publishConfig, 'Can not override "publishConfig".');
-    packageJSON.publishConfig = { tag: tag || 'latest' };
-  }
-
-  return packageJSON;
 }
