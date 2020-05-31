@@ -460,7 +460,7 @@ async function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
  * Helper function to get the GraphQL params from the request.
  */
 function parseGraphQLParams(
-  urlData: { [param: string]: mixed, ... },
+  urlData: { [param: string]: string, ... },
   bodyData: { [param: string]: mixed, ... },
 ): GraphQLParams {
   // GraphQL Query string.
