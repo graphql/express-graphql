@@ -57,8 +57,8 @@ if (match == null) {
 const [, githubOrg, githubRepo] = match;
 
 getChangeLog()
-  .then(changelog => process.stdout.write(changelog))
-  .catch(error => console.error(error));
+  .then((changelog) => process.stdout.write(changelog))
+  .catch((error) => console.error(error));
 
 function getChangeLog() {
   const { version } = packageJSON;
@@ -73,7 +73,7 @@ function getChangeLog() {
   }
 
   const date = exec('git log -1 --format=%cd --date=short');
-  return getCommitsInfo(commitsList.split('\n')).then(commitsInfo =>
+  return getCommitsInfo(commitsList.split('\n')).then((commitsInfo) =>
     genChangeLog(tag, date, commitsInfo),
   );
 }
@@ -138,12 +138,12 @@ function graphqlRequestImpl(query, variables, cb) {
     },
   });
 
-  req.on('response', res => {
+  req.on('response', (res) => {
     let responseBody = '';
 
     res.setEncoding('utf8');
-    res.on('data', d => (responseBody += d));
-    res.on('error', error => resultCB(error));
+    res.on('data', (d) => (responseBody += d));
+    res.on('error', (error) => resultCB(error));
 
     res.on('end', () => {
       if (res.statusCode !== 200) {
@@ -172,7 +172,7 @@ function graphqlRequestImpl(query, variables, cb) {
     });
   });
 
-  req.on('error', error => cb(error));
+  req.on('error', (error) => cb(error));
   req.write(JSON.stringify({ query, variables }));
   req.end();
 }
@@ -231,7 +231,7 @@ function commitsInfoToPRs(commits) {
   const prs = {};
   for (const commit of commits) {
     const associatedPRs = commit.associatedPullRequests.nodes.filter(
-      pr => pr.repository.nameWithOwner === `${githubOrg}/${githubRepo}`,
+      (pr) => pr.repository.nameWithOwner === `${githubOrg}/${githubRepo}`,
     );
     if (associatedPRs.length === 0) {
       throw new Error(
@@ -246,8 +246,8 @@ function commitsInfoToPRs(commits) {
 
     const pr = associatedPRs[0];
     const labels = pr.labels.nodes
-      .map(label => label.name)
-      .filter(label => label.startsWith('PR: '));
+      .map((label) => label.name)
+      .filter((label) => label.startsWith('PR: '));
 
     if (labels.length === 0) {
       throw new Error(`PR #${pr.number} missing label`);
