@@ -238,9 +238,9 @@ function graphqlHTTP(options: Options): Middleware {
         const rootValue = optionsData.rootValue;
         const fieldResolver = optionsData.fieldResolver;
         const typeResolver = optionsData.typeResolver;
-        const validationRules = optionsData.validationRules || [];
+        const validationRules = optionsData.validationRules ?? [];
         const graphiql = optionsData.graphiql;
-        context = optionsData.context || request;
+        context = optionsData.context ?? request;
 
         // GraphQL HTTP only supports GET and POST methods.
         if (request.method !== 'GET' && request.method !== 'POST') {
@@ -356,7 +356,7 @@ function graphqlHTTP(options: Options): Middleware {
       })
       .catch((error) => {
         // If an error was caught, report the httpError status, or 500.
-        response.statusCode = error.status || 500;
+        response.statusCode = error.status ?? 500;
         return { errors: [error] };
       })
       .then((result) => {
@@ -423,12 +423,12 @@ function graphqlHTTP(options: Options): Middleware {
         );
       }
 
-      validateFn = optionsData.customValidateFn || validateFn;
-      executeFn = optionsData.customExecuteFn || executeFn;
-      parseFn = optionsData.customParseFn || parseFn;
+      validateFn = optionsData.customValidateFn ?? validateFn;
+      executeFn = optionsData.customExecuteFn ?? executeFn;
+      parseFn = optionsData.customParseFn ?? parseFn;
       formatErrorFn =
-        optionsData.customFormatErrorFn ||
-        optionsData.formatError ||
+        optionsData.customFormatErrorFn ??
+        optionsData.formatError ??
         formatErrorFn;
       extensionsFn = optionsData.extensions;
       pretty = optionsData.pretty;
@@ -464,13 +464,13 @@ function parseGraphQLParams(
   bodyData: { [param: string]: mixed, ... },
 ): GraphQLParams {
   // GraphQL Query string.
-  let query = urlData.query || bodyData.query;
+  let query = urlData.query ?? bodyData.query;
   if (typeof query !== 'string') {
     query = null;
   }
 
   // Parse the variables if needed.
-  let variables = urlData.variables || bodyData.variables;
+  let variables = urlData.variables ?? bodyData.variables;
   if (typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);

@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import sinon from 'sinon';
 import { stringify } from 'querystring';
-import url from 'url';
 import zlib from 'zlib';
 import multer from 'multer';
 import bodyParser from 'body-parser';
@@ -35,7 +34,7 @@ const QueryRootType = new GraphQLObjectType({
       args: {
         who: { type: GraphQLString },
       },
-      resolve: (root, args) => 'Hello ' + (args.who || 'World'),
+      resolve: (root, args) => 'Hello ' + (args.who ?? 'World'),
     },
     thrower: {
       type: GraphQLString,
@@ -1050,17 +1049,18 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
 
       it('supports pretty printing configured by request', async () => {
         const app = server();
+        let pretty;
 
         get(
           app,
           urlString(),
-          graphqlHTTP((req) => ({
+          graphqlHTTP(() => ({
             schema: TestSchema,
-            pretty:
-              ((url.parse(req.url, true) || {}).query || {}).pretty === '1',
+            pretty,
           })),
         );
 
+        pretty = undefined;
         const defaultResponse = await request(app).get(
           urlString({
             query: '{test}',
@@ -1071,6 +1071,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
           '{"data":{"test":"Hello World"}}',
         );
 
+        pretty = true;
         const prettyResponse = await request(app).get(
           urlString({
             query: '{test}',
@@ -1086,6 +1087,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             '}',
         );
 
+        pretty = false;
         const unprettyResponse = await request(app).get(
           urlString({
             query: '{test}',
