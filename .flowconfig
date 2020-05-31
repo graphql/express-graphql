@@ -38,20 +38,21 @@ deprecated-type=error
 deprecated-utility=error
 dynamic-export=off
 unsafe-getters-setters=error
-inexact-spread=error
 unnecessary-optional-chain=error
 unnecessary-invariant=error
 signature-verification-failure=error
 implicit-inexact-object=error
 ambiguous-object-type=error
 uninitialized-instance-property=error
-non-array-spread=off
+unsafe-addition=error
 
 [options]
 include_warnings=true
 module.use_strict=true
+babel_loose_array_spread=true
+esproposal.optional_chaining=enable
 suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(<VERSION>\\)?)\\)
 suppress_comment=\\(.\\|\n\\)*\\$DisableFlowOnNegativeTest
 
 [version]
-^0.112.0
+^0.125.0
