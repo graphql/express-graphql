@@ -357,11 +357,15 @@ function graphqlHTTP(options: Options): Middleware {
         // Note: Information about the error itself will still be contained in
         // the resulting JSON payload.
         // https://graphql.github.io/graphql-spec/#sec-Data
-        if (response.statusCode === 200 && result && !result.data) {
+        if (
+          response.statusCode === 200 &&
+          result != null &&
+          result.data == null
+        ) {
           response.statusCode = 500;
         }
         // Format any encountered errors.
-        if (result && result.errors) {
+        if (result?.errors) {
           (result: any).errors = result.errors.map(formatErrorFn);
         }
 
@@ -443,7 +447,8 @@ export type GraphQLParams = {|
 module.exports.getGraphQLParams = getGraphQLParams;
 async function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
   const bodyData = await parseBody(request);
-  const urlData = (request.url && url.parse(request.url, true).query) || {};
+  const urlData =
+    (request.url != null && url.parse(request.url, true).query) || {};
 
   return parseGraphQLParams(urlData, bodyData);
 }
