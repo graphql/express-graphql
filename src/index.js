@@ -222,7 +222,10 @@ function graphqlHTTP(options: Options): Middleware {
       .then((optionsData) => {
         // Assert that schema is required.
         if (!optionsData.schema) {
-          throw new Error('GraphQL middleware options must contain a schema.');
+          throw httpError(
+            500,
+            'GraphQL middleware options must contain a schema.',
+          );
         }
 
         // Collect information from the options data object.
@@ -236,8 +239,9 @@ function graphqlHTTP(options: Options): Middleware {
 
         // GraphQL HTTP only supports GET and POST methods.
         if (request.method !== 'GET' && request.method !== 'POST') {
-          response.setHeader('Allow', 'GET, POST');
-          throw httpError(405, 'GraphQL only supports GET and POST requests.');
+          throw httpError(405, 'GraphQL only supports GET and POST requests.', {
+            headers: { Allow: 'GET, POST' },
+          });
         }
 
         // Get GraphQL params from the request and POST body data.
@@ -259,8 +263,9 @@ function graphqlHTTP(options: Options): Middleware {
         const schemaValidationErrors = validateSchema(schema);
         if (schemaValidationErrors.length > 0) {
           // Return 500: Internal Server Error if invalid schema.
-          response.statusCode = 500;
-          return { errors: schemaValidationErrors };
+          throw httpError(500, 'GraphQL schema validation error.', {
+            graphqlErrors: schemaValidationErrors,
+          });
         }
 
         //  GraphQL source.
@@ -271,8 +276,9 @@ function graphqlHTTP(options: Options): Middleware {
           documentAST = parseFn(source);
         } catch (syntaxError) {
           // Return 400: Bad Request if any syntax errors errors exist.
-          response.statusCode = 400;
-          return { errors: [syntaxError] };
+          throw httpError(400, 'GraphQL syntax error.', {
+            graphqlErrors: [syntaxError],
+          });
         }
 
         // Validate AST, reporting any errors.
@@ -283,8 +289,9 @@ function graphqlHTTP(options: Options): Middleware {
 
         if (validationErrors.length > 0) {
           // Return 400: Bad Request if any validation errors exist.
-          response.statusCode = 400;
-          return { errors: validationErrors };
+          throw httpError(400, 'GraphQL validation error.', {
+            graphqlErrors: validationErrors,
+          });
         }
 
         // Only query operations are allowed on GET requests.
@@ -300,10 +307,10 @@ function graphqlHTTP(options: Options): Middleware {
             }
 
             // Otherwise, report a 405: Method Not Allowed error.
-            response.setHeader('Allow', 'POST');
             throw httpError(
               405,
               `Can only perform a ${operationAST.operation} operation from a POST request.`,
+              { headers: { Allow: 'POST' } },
             );
           }
         }
@@ -321,8 +328,9 @@ function graphqlHTTP(options: Options): Middleware {
           });
         } catch (contextError) {
           // Return 400: Bad Request if any execution context errors exist.
-          response.statusCode = 400;
-          return { errors: [contextError] };
+          throw httpError(400, 'GraphQL execution context error.', {
+            graphqlErrors: [contextError],
+          });
         }
       })
       .then((result) => {
@@ -349,7 +357,14 @@ function graphqlHTTP(options: Options): Middleware {
       .catch((error) => {
         // If an error was caught, report the httpError status, or 500.
         response.statusCode = error.status ?? 500;
-        return { errors: [error] };
+
+        if (error.headers != null) {
+          for (const [key, value] of Object.entries(error.headers)) {
+            (response: any).setHeader(key, value);
+          }
+        }
+
+        return { errors: error.graphqlErrors ?? [error] };
       })
       .then((result) => {
         // If no data was included in the result, that indicates a runtime query
