@@ -1,11 +1,13 @@
 // @flow strict
 
+import { type ExecutionResult } from 'graphql';
+
 type GraphiQLData = {|
   query: ?string,
   variables: ?{ +[name: string]: mixed, ... },
   operationName: ?string,
-  result?: mixed,
-  options: GraphiQLOptions,
+  result: ?ExecutionResult,
+  options: ?GraphiQLOptions,
 |};
 
 export type GraphiQLOptions = {|
@@ -41,7 +43,7 @@ export function renderGraphiQL(data: GraphiQLData): string {
   const resultString =
     data.result != null ? JSON.stringify(data.result, null, 2) : null;
   const operationName = data.operationName;
-  const defaultQuery = data.options.defaultQuery;
+  const defaultQuery = data.options?.defaultQuery;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
