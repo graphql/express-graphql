@@ -1,16 +1,18 @@
 // @flow strict
 
-import { expect } from 'chai';
-import { describe, it } from 'mocha';
-import sinon from 'sinon';
-import { stringify } from 'querystring';
 import zlib from 'zlib';
-import multer from 'multer';
-import bodyParser from 'body-parser';
-import request from 'supertest';
+import { stringify } from 'querystring';
+
 import connect from 'connect';
 import express from 'express';
 import restify from 'restify';
+import request from 'supertest';
+import bodyParser from 'body-parser';
+
+import sinon from 'sinon';
+import multer from 'multer';
+import { expect } from 'chai';
+import { describe, it } from 'mocha';
 import {
   buildSchema,
   GraphQLSchema,
@@ -24,7 +26,8 @@ import {
   execute,
   parse,
 } from 'graphql';
-import graphqlHTTP from '../';
+
+import graphqlHTTP from '../index';
 
 const QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
@@ -34,7 +37,7 @@ const QueryRootType = new GraphQLObjectType({
       args: {
         who: { type: GraphQLString },
       },
-      resolve: (root, args) => 'Hello ' + (args.who ?? 'World'),
+      resolve: (_root, args) => 'Hello ' + (args.who ?? 'World'),
     },
     thrower: {
       type: GraphQLString,
@@ -328,7 +331,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             fields: {
               test: {
                 type: GraphQLString,
-                resolve: (obj, args, context) => context,
+                resolve: (_obj, _args, context) => context,
               },
             },
           }),
@@ -438,7 +441,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             fields: {
               test: {
                 type: GraphQLString,
-                resolve: (obj, args, context) => context.foo,
+                resolve: (_obj, _args, context) => context.foo,
               },
             },
           }),
@@ -446,7 +449,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const app = server();
 
         // Middleware that adds req.foo to every request
-        app.use((req, res, next) => {
+        app.use((req, _res, next) => {
           req.foo = 'bar';
           next();
         });
@@ -1013,7 +1016,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         let spySend = {};
 
         // mount a middleware to spy on response methods
-        app.use((req, res, next) => {
+        app.use((_req, res, next) => {
           spyEnd = sinon.spy(res, 'end');
           try {
             // res.send is undefined with connect

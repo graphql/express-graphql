@@ -1,11 +1,12 @@
 // @flow strict
 
+import express from 'express';
+import request from 'supertest';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import request from 'supertest';
-import express from 'express';
 import { GraphQLSchema } from 'graphql';
-import graphqlHTTP from '../';
+
+import graphqlHTTP from '../index';
 
 describe('Useful errors when incorrectly used', () => {
   it('requires an option factory function', () => {

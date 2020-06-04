@@ -1,7 +1,8 @@
 // @flow strict
 
-import { type IncomingMessage, type ServerResponse } from 'http';
 import url from 'url';
+import { type IncomingMessage, type ServerResponse } from 'http';
+
 import accepts from 'accepts';
 import httpError from 'http-errors';
 import {
