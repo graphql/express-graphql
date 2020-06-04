@@ -5,6 +5,7 @@ import {
   Source,
   ASTVisitor,
   DocumentNode,
+  ValidationRule,
   ValidationContext,
   ExecutionArgs,
   ExecutionResult,
@@ -13,9 +14,6 @@ import {
   GraphQLFieldResolver,
   GraphQLTypeResolver,
 } from 'graphql';
-
-// TODO: Temporary until we update TS typings for 'graphql' package
-import { ValidationRule } from 'graphql/validation/ValidationContext';
 
 export = graphqlHTTP;
 

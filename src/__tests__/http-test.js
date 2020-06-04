@@ -1312,7 +1312,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         expect(JSON.parse(response.text)).to.deep.equal({
           errors: [
             {
-              message: 'Syntax Error: Unexpected Name "syntaxerror"',
+              message: 'Syntax Error: Unexpected Name "syntaxerror".',
               locations: [{ line: 1, column: 1 }],
             },
           ],
@@ -1587,7 +1587,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             {
               locations: [{ column: 16, line: 1 }],
               message:
-                'Variable "$who" got invalid value ["Dolly", "Jonty"]; Expected type String. String cannot represent a non string value: ["Dolly", "Jonty"]',
+                'Variable "$who" got invalid value ["Dolly", "Jonty"]; String cannot represent a non string value: ["Dolly", "Jonty"]',
             },
           ],
         });
