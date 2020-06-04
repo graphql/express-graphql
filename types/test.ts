@@ -1,7 +1,8 @@
-import graphqlHTTP = require('express-graphql');
 import { buildSchema } from 'graphql';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import graphqlHTTP = require('express-graphql');
 
-const schema = buildSchema(`type Query { hello: String }`);
+const schema = buildSchema('type Query { hello: String }');
 
 const validationRules = [
   () => ({ Field: () => false }),
@@ -15,7 +16,7 @@ graphqlHTTP({
     message: error.message,
   }),
   validationRules,
-  extensions: ({ document, variables, operationName, result }) => ({
+  extensions: () => ({
     key: 'value',
     key2: 'value',
   }),
@@ -28,12 +29,10 @@ graphqlHTTP((request) => ({
   validationRules,
 }));
 
-graphqlHTTP(async (request) => {
-  return {
-    graphiql: true,
-    schema: await Promise.resolve(schema),
-    context: request.headers,
-    extensions: (args: graphqlHTTP.RequestInfo) => ({}),
-    validationRules,
-  };
-});
+graphqlHTTP(async (request) => ({
+  graphiql: true,
+  schema: await Promise.resolve(schema),
+  context: request.headers,
+  extensions: (_args: graphqlHTTP.RequestInfo) => ({}),
+  validationRules,
+}));

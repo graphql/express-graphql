@@ -1,6 +1,7 @@
 // TypeScript Version: 3.0
 
 import { IncomingMessage, ServerResponse } from 'http';
+
 import {
   Source,
   ASTVisitor,
@@ -194,6 +195,7 @@ declare namespace graphqlHTTP {
  * Middleware for express; takes an options object or function as input to
  * configure behavior, and returns an express middleware.
  */
+// eslint-disable-next-line no-redeclare
 declare function graphqlHTTP(
   options: graphqlHTTP.Options,
 ): graphqlHTTP.Middleware;

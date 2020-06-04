@@ -31,7 +31,7 @@
     "test:ci": "yarn check --integrity && npm run prettier:check && npm run lint && npm run check && npm run check:ts && npm run testonly:cover && npm run build",
     "testonly": "mocha src/**/__tests__/**/*.js",
     "testonly:cover": "nyc npm run testonly",
-    "lint": "eslint src resources",
+    "lint": "eslint src types resources",
     "prettier": "prettier --ignore-path .gitignore --write --list-different '**/*.{js,ts,md,json,yml}'",
     "prettier:check": "prettier --ignore-path .gitignore --check '**/*.{js,ts,md,json,yml}'",
     "check": "flow check",

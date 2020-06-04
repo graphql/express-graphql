@@ -473,7 +473,7 @@ overrides:
   - files: '**/*.ts'
     parser: '@typescript-eslint/parser'
     parserOptions:
-      tsconfigRootDir: './src/'
+      tsconfigRootDir: './types/'
       project: ['tsconfig.json']
     plugins:
       - '@typescript-eslint'
