@@ -6,12 +6,20 @@ env:
   node: true
 reportUnusedDisableDirectives: true
 plugins:
+  - internal-rules
   - flowtype
   - node
   - istanbul
   - import
 
 rules:
+  ##############################################################################
+  # Internal rules located in 'resources/eslint-internal-rules'.
+  # See './resources/eslint-internal-rules/README.md'
+  ##############################################################################
+
+  internal-rules/no-dir-import: error
+
   ##############################################################################
   # `eslint-plugin-flowtype` rule list based on `v5.1.x`
   # https://github.com/gajus/eslint-plugin-flowtype#eslint-plugin-flowtype
