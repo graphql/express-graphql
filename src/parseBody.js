@@ -2,9 +2,10 @@
 
 import { type IncomingMessage } from 'http';
 import zlib from 'zlib';
+import querystring from 'querystring';
+
 import getBody from 'raw-body';
 import httpError from 'http-errors';
-import querystring from 'querystring';
 import contentType from 'content-type';
 
 type $Request = IncomingMessage & { body?: ?mixed, ... };
