@@ -6,6 +6,7 @@
   "private": true,
   "main": "index.js",
   "types": "index.d.ts",
+  "sideEffects": false,
   "homepage": "https://github.com/graphql/express-graphql",
   "bugs": {
     "url": "https://github.com/graphql/express-graphql/issues"
@@ -27,7 +28,7 @@
     "node": ">= 10.x"
   },
   "scripts": {
-    "test": "npm run prettier:check && npm run lint && npm run check && npm run check:ts && npm run testonly",
+    "test": "npm run prettier:check && npm run lint && npm run check && npm run testonly && npm run check:ts",
     "test:ci": "yarn check --integrity && npm run prettier:check && npm run lint && npm run check && npm run check:ts && npm run testonly:cover && npm run build",
     "testonly": "mocha src/**/__tests__/**/*.js",
     "testonly:cover": "nyc npm run testonly",
