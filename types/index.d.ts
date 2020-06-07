@@ -19,7 +19,7 @@ import {
 export = graphqlHTTP;
 
 type Request = IncomingMessage;
-type Response = ServerResponse;
+type Response = ServerResponse & { json?: (data: unknown) => void };
 
 declare namespace graphqlHTTP {
   /**
@@ -44,7 +44,7 @@ declare namespace graphqlHTTP {
      * query exists from a previous session.  If undefined is provided, GraphiQL
      * will use its own default query.
      */
-    defaultQuery: string;
+    defaultQuery?: string;
   }
 
   interface OptionsData {
@@ -66,54 +66,50 @@ declare namespace graphqlHTTP {
     /**
      * A boolean to configure whether the output should be pretty-printed.
      */
-    pretty?: boolean | null;
+    pretty?: boolean;
 
     /**
      * An optional array of validation rules that will be applied on the document
      * in additional to those defined by the GraphQL spec.
      */
-    validationRules?: ReadonlyArray<
-      (ctx: ValidationContext) => ASTVisitor
-    > | null;
+    validationRules?: ReadonlyArray<(ctx: ValidationContext) => ASTVisitor>;
 
     /**
      * An optional function which will be used to validate instead of default `validate`
      * from `graphql-js`.
      */
-    customValidateFn?:
-      | ((
-          schema: GraphQLSchema,
-          documentAST: DocumentNode,
-          rules: ReadonlyArray<ValidationRule>,
-        ) => ReadonlyArray<GraphQLError>)
-      | null;
+    customValidateFn?: (
+      schema: GraphQLSchema,
+      documentAST: DocumentNode,
+      rules: ReadonlyArray<ValidationRule>,
+    ) => ReadonlyArray<GraphQLError>;
 
     /**
      * An optional function which will be used to execute instead of default `execute`
      * from `graphql-js`.
      */
-    customExecuteFn?:
-      | ((args: ExecutionArgs) => ExecutionResult | Promise<ExecutionResult>)
-      | null;
+    customExecuteFn?: (
+      args: ExecutionArgs,
+    ) => ExecutionResult | Promise<ExecutionResult>;
 
     /**
      * An optional function which will be used to format any errors produced by
      * fulfilling a GraphQL operation. If no function is provided, GraphQL's
      * default spec-compliant `formatError` function will be used.
      */
-    customFormatErrorFn?: ((error: GraphQLError) => unknown) | null;
+    customFormatErrorFn?: (error: GraphQLError) => unknown;
 
     /**
      * An optional function which will be used to create a document instead of
      * the default `parse` from `graphql-js`.
      */
-    customParseFn?: (source: Source) => DocumentNode | null;
+    customParseFn?: (source: Source) => DocumentNode;
 
     /**
      * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
      *  be removed in version 1.0.0.
      */
-    formatError?: ((error: GraphQLError) => unknown) | null;
+    formatError?: (error: GraphQLError) => unknown;
 
     /**
      * An optional function for adding additional metadata to the GraphQL response
@@ -125,7 +121,7 @@ declare namespace graphqlHTTP {
      *
      * This function may be async.
      */
-    extensions?: ((info: RequestInfo) => { [key: string]: unknown }) | null;
+    extensions?: (info: RequestInfo) => { [key: string]: unknown };
 
     /**
      * A boolean to optionally enable GraphiQL mode.
@@ -138,14 +134,14 @@ declare namespace graphqlHTTP {
      * If not provided, the default field resolver is used (which looks for a
      * value or method on the source value with the field's name).
      */
-    fieldResolver?: GraphQLFieldResolver<unknown, unknown> | null;
+    fieldResolver?: GraphQLFieldResolver<unknown, unknown>;
 
     /**
      * A type resolver function to use when none is provided by the schema.
      * If not provided, the default type resolver is used (which looks for a
      * `__typename` field or alternatively calls the `isTypeOf` method).
      */
-    typeResolver?: GraphQLTypeResolver<unknown, unknown> | null;
+    typeResolver?: GraphQLTypeResolver<unknown, unknown>;
   }
 
   /**
@@ -155,17 +151,17 @@ declare namespace graphqlHTTP {
     /**
      * The parsed GraphQL document.
      */
-    document: DocumentNode | null | undefined;
+    document: DocumentNode;
 
     /**
      * The variable values used at runtime.
      */
-    variables: { readonly [name: string]: unknown } | null | undefined;
+    variables: { readonly [name: string]: unknown };
 
     /**
      * The (optional) operation name requested.
      */
-    operationName: string | null | undefined;
+    operationName: string;
 
     /**
      * The result of executing the operation.
@@ -178,16 +174,13 @@ declare namespace graphqlHTTP {
     context?: unknown;
   }
 
-  type Middleware = (
-    request: Request,
-    response: Response,
-  ) => Promise<undefined>;
+  type Middleware = (request: Request, response: Response) => Promise<void>;
 
   interface GraphQLParams {
     query: string | null;
     variables: { readonly [name: string]: unknown } | null;
     operationName: string | null;
-    raw: boolean | null;
+    raw: boolean;
   }
 }
 
