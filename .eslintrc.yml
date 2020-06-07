@@ -190,7 +190,7 @@ rules:
   import/dynamic-import-chunkname: off
 
   ##############################################################################
-  # ESLint builtin rules list based on `v7.1.x`
+  # ESLint builtin rules list based on `v7.2.x`
   ##############################################################################
 
   # Possible Errors
