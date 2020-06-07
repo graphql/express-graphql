@@ -104,7 +104,7 @@ rules:
 
   # Best Practices
   # https://github.com/mysticatea/eslint-plugin-node#best-practices
-  node/no-deprecated-api: off # FIXME
+  node/no-deprecated-api: error
 
   # Stylistic Issues
   # https://github.com/mysticatea/eslint-plugin-node#stylistic-issues

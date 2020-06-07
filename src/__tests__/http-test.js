@@ -1,7 +1,6 @@
 // @flow strict
 
 import zlib from 'zlib';
-import { stringify } from 'querystring';
 
 import connect from 'connect';
 import express from 'express';
@@ -61,10 +60,17 @@ const TestSchema = new GraphQLSchema({
   }),
 });
 
-function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
+function stringifyURLParams(urlParams?: {
+  [param: string]: string,
+  ...
+}): string {
+  return new URLSearchParams(urlParams).toString();
+}
+
+function urlString(urlParams?: { [param: string]: string, ... }): string {
   let string = '/graphql';
   if (urlParams) {
-    string += '?' + stringify(urlParams);
+    string += '?' + stringifyURLParams(urlParams);
   }
   return string;
 }
@@ -599,7 +605,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
 
         const response = await request(app)
           .post(urlString())
-          .send(stringify({ query: '{test}' }));
+          .send(stringifyURLParams({ query: '{test}' }));
 
         expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
       });
@@ -660,7 +666,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const response = await request(app)
           .post(urlString())
           .send(
-            stringify({
+            stringifyURLParams({
               query: 'query helloWho($who: String){ test(who: $who) }',
               variables: JSON.stringify({ who: 'Dolly' }),
             }),
@@ -709,7 +715,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
             }),
           )
           .send(
-            stringify({
+            stringifyURLParams({
               query: 'query helloWho($who: String){ test(who: $who) }',
             }),
           );
@@ -1106,7 +1112,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const prettyResponse = await request(app).get(
           urlString({
             query: '{test}',
-            pretty: 1,
+            pretty: '1',
           }),
         );
 
@@ -1122,7 +1128,7 @@ function urlString(urlParams?: ?{ [param: string]: mixed, ... }) {
         const unprettyResponse = await request(app).get(
           urlString({
             query: '{test}',
-            pretty: 0,
+            pretty: '0',
           }),
         );
 
