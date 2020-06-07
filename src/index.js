@@ -1,6 +1,5 @@
 // @flow strict
 
-import url from 'url';
 import { type IncomingMessage, type ServerResponse } from 'http';
 
 import accepts from 'accepts';
@@ -447,9 +446,9 @@ export type GraphQLParams = {|
  */
 module.exports.getGraphQLParams = getGraphQLParams;
 async function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
+  const { url = '' } = request;
+  const urlData = new URLSearchParams(url.split('?')[1]);
   const bodyData = await parseBody(request);
-  const urlData =
-    (request.url != null && url.parse(request.url, true).query) || {};
 
   return parseGraphQLParams(urlData, bodyData);
 }
@@ -458,17 +457,17 @@ async function getGraphQLParams(request: $Request): Promise<GraphQLParams> {
  * Helper function to get the GraphQL params from the request.
  */
 function parseGraphQLParams(
-  urlData: { [param: string]: string, ... },
+  urlData: URLSearchParams,
   bodyData: { [param: string]: mixed, ... },
 ): GraphQLParams {
   // GraphQL Query string.
-  let query = urlData.query ?? bodyData.query;
+  let query = urlData.get('query') ?? bodyData.query;
   if (typeof query !== 'string') {
     query = null;
   }
 
   // Parse the variables if needed.
-  let variables = urlData.variables ?? bodyData.variables;
+  let variables = urlData.get('variables') ?? bodyData.variables;
   if (typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
@@ -480,12 +479,12 @@ function parseGraphQLParams(
   }
 
   // Name of GraphQL operation to execute.
-  let operationName = urlData.operationName || bodyData.operationName;
+  let operationName = urlData.get('operationName') || bodyData.operationName;
   if (typeof operationName !== 'string') {
     operationName = null;
   }
 
-  const raw = urlData.raw !== undefined || bodyData.raw !== undefined;
+  const raw = urlData.get('raw') != null || bodyData.raw !== undefined;
 
   return { query, variables, operationName, raw };
 }
