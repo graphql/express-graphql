@@ -2,12 +2,11 @@
 
 import { type ExecutionResult } from 'graphql';
 
-type GraphiQLData = {|
-  query: ?string,
-  variables: ?{ +[name: string]: mixed, ... },
-  operationName: ?string,
-  result: ?ExecutionResult,
-  options: ?GraphiQLOptions,
+export type GraphiQLData = {|
+  query?: string | null,
+  variables?: { +[name: string]: mixed, ... } | null,
+  operationName?: string | null,
+  result?: ExecutionResult,
 |};
 
 export type GraphiQLOptions = {|
@@ -16,7 +15,7 @@ export type GraphiQLOptions = {|
    * query exists from a previous session.  If undefined is provided, GraphiQL
    * will use its own default query.
    */
-  defaultQuery?: ?string,
+  defaultQuery?: string,
 |};
 
 // Ensures string values are safe to be used within a <script> tag.
@@ -36,14 +35,17 @@ declare function loadFileStaticlyFromNPM(npmPath: string): string;
  * When shown, it will be pre-populated with the result of having executed the
  * requested query.
  */
-export function renderGraphiQL(data: GraphiQLData): string {
+export function renderGraphiQL(
+  data: GraphiQLData,
+  options?: GraphiQLOptions,
+): string {
   const queryString = data.query;
   const variablesString =
     data.variables != null ? JSON.stringify(data.variables, null, 2) : null;
   const resultString =
     data.result != null ? JSON.stringify(data.result, null, 2) : null;
   const operationName = data.operationName;
-  const defaultQuery = data.options?.defaultQuery;
+  const defaultQuery = options?.defaultQuery;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"

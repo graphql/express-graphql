@@ -8,7 +8,7 @@ import getBody from 'raw-body';
 import httpError from 'http-errors';
 import contentType from 'content-type';
 
-type $Request = IncomingMessage & { body?: ?mixed, ... };
+type $Request = IncomingMessage & { body?: mixed, ... };
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
