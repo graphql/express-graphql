@@ -1,6 +1,7 @@
 import { buildSchema } from 'graphql';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import graphqlHTTP = require('express-graphql');
+
+// eslint-disable-next-line import/no-unresolved, node/no-missing-import
+import { graphqlHTTP, RequestInfo } from 'express-graphql';
 
 const schema = buildSchema('type Query { hello: String }');
 
@@ -33,6 +34,6 @@ graphqlHTTP(async (request) => ({
   graphiql: true,
   schema: await Promise.resolve(schema),
   context: request.headers,
-  extensions: (_args: graphqlHTTP.RequestInfo) => ({}),
+  extensions: (_args: RequestInfo) => ({}),
   validationRules,
 }));
