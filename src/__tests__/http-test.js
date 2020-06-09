@@ -29,6 +29,15 @@ import {
 
 import { graphqlHTTP } from '../index';
 
+// TODO Improve typings after converting to TypeScript
+type Server = () => {|
+  get: (...args: Array<mixed>) => mixed,
+  post: (...args: Array<mixed>) => mixed,
+  put: (...args: Array<mixed>) => mixed,
+  request: () => any,
+  use: (...args: Array<mixed>) => any,
+|};
+
 const QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
   fields: {
@@ -137,7 +146,7 @@ describe('GraphQL-HTTP tests for restify', () => {
   });
 });
 
-function runTests(server) {
+function runTests(server: Server) {
   describe('GET functionality', () => {
     it('allows GET with query param', async () => {
       const app = server();
