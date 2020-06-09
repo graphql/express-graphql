@@ -25,10 +25,11 @@ if (require.main === module) {
 
       const cjs = babelBuild(srcPath, { envName: 'cjs' });
       fs.writeFileSync(destPath, cjs);
+    } else if (filepath.endsWith('d.ts')) {
+      fs.copyFileSync(srcPath, destPath);
     }
   }
 
-  fs.copyFileSync('./types/index.d.ts', './dist/index.d.ts');
   fs.copyFileSync('./LICENSE', './dist/LICENSE');
   fs.copyFileSync('./README.md', './dist/README.md');
 

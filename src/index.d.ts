@@ -16,10 +16,15 @@ import {
   GraphQLTypeResolver,
 } from 'graphql';
 
+import { GraphiQLOptions } from './renderGraphiQL';
+
 export {};
 
 type Request = IncomingMessage;
+
 type Response = ServerResponse & { json?: (data: unknown) => void };
+
+type Middleware = (request: Request, response: Response) => Promise<void>;
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -36,15 +41,6 @@ export type Options =
     ) => OptionsResult)
   | OptionsResult;
 type OptionsResult = OptionsData | Promise<OptionsData>;
-
-export interface GraphiQLOptions {
-  /**
-   * An optional GraphQL string to use when no query is provided and no stored
-   * query exists from a previous session.  If undefined is provided, GraphiQL
-   * will use its own default query.
-   */
-  defaultQuery?: string;
-}
 
 export interface OptionsData {
   /**
@@ -175,7 +171,11 @@ export interface RequestInfo {
   context?: unknown;
 }
 
-type Middleware = (request: Request, response: Response) => Promise<void>;
+/**
+ * Middleware for express; takes an options object or function as input to
+ * configure behavior, and returns an express middleware.
+ */
+export function graphqlHTTP(options: Options): Middleware;
 
 export interface GraphQLParams {
   query: string | null;
@@ -184,8 +184,4 @@ export interface GraphQLParams {
   raw: boolean;
 }
 
-/**
- * Middleware for express; takes an options object or function as input to
- * configure behavior, and returns an express middleware.
- */
-export function graphqlHTTP(options: Options): Middleware;
+export function getGraphQLParams(request: Request): Promise<GraphQLParams>;
