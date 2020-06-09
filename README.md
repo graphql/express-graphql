@@ -15,12 +15,7 @@ npm install --save express-graphql
 
 This module includes a [TypeScript](https://www.typescriptlang.org/)
 declaration file to enable auto complete in compatible editors and type
-information for TypeScript projects. This module depends on 'graphql' and the Node.js
-types, so install `@types/graphql` and `@types/node`:
-
-```sh
-$ npm install --save-dev @types/graphql @types/node
-```
+information for TypeScript projects.
 
 ## Simple Setup
 
