@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { GraphQLSchema } from 'graphql';
 
-import graphqlHTTP from '../index';
+import { graphqlHTTP } from '../index';
 
 describe('Useful errors when incorrectly used', () => {
   it('requires an option factory function', () => {
