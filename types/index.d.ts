@@ -120,7 +120,9 @@ export interface OptionsData {
    *
    * This function may be async.
    */
-  extensions?: (info: RequestInfo) => { [key: string]: unknown };
+  extensions?: (
+    info: RequestInfo,
+  ) => { [key: string]: unknown } | Promise<{ [key: string]: unknown }>;
 
   /**
    * A boolean to optionally enable GraphiQL mode.
