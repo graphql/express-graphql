@@ -194,7 +194,7 @@ export function graphqlHTTP(options: Options): Middleware {
   return async function graphqlMiddleware(
     request: $Request,
     response: $Response,
-  ) {
+  ): Promise<void> {
     // Higher scoped variables are referred to at various stages in the asynchronous state machine below.
     let params: GraphQLParams;
     let showGraphiQL = false;

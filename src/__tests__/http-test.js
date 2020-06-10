@@ -19,11 +19,13 @@ import {
   GraphQLNonNull,
   GraphQLString,
   GraphQLError,
+  ValidationContext,
   BREAK,
   Source,
   validate,
   execute,
   parse,
+  type ASTVisitor,
 } from 'graphql';
 
 import { graphqlHTTP } from '../index';
@@ -1962,7 +1964,9 @@ function runTests(server) {
   });
 
   describe('Custom validation rules', () => {
-    const AlwaysInvalidRule = function (context) {
+    const AlwaysInvalidRule = function (
+      context: ValidationContext,
+    ): ASTVisitor {
       return {
         enter() {
           context.reportError(

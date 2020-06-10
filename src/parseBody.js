@@ -1,7 +1,7 @@
 // @flow strict
 
 import { type IncomingMessage } from 'http';
-import zlib from 'zlib';
+import zlib, { type Inflate, type Gunzip } from 'zlib';
 import querystring from 'querystring';
 
 import getBody from 'raw-body';
@@ -76,7 +76,11 @@ export async function parseBody(
 const jsonObjRegex = /^[ \t\n\r]*\{/;
 
 // Read and parse a request body.
-async function readBody(req, typeInfo) {
+async function readBody(
+  req: $Request,
+  // TODO: Import the appropriate TS type and use it here instead
+  typeInfo: {| type: string, parameters: { [param: string]: string, ... } |},
+): Promise<string> {
   const charset = (typeInfo.parameters.charset ?? 'utf-8').toLowerCase();
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
@@ -105,7 +109,10 @@ async function readBody(req, typeInfo) {
 }
 
 // Return a decompressed stream, given an encoding.
-function decompressed(req, encoding) {
+function decompressed(
+  req: $Request,
+  encoding: string,
+): $Request | Inflate | Gunzip {
   switch (encoding) {
     case 'identity':
       return req;
