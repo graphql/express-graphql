@@ -19,7 +19,7 @@ export type GraphiQLOptions = {|
 |};
 
 // Ensures string values are safe to be used within a <script> tag.
-function safeSerialize(data) {
+function safeSerialize(data: ?string): string {
   return data != null
     ? JSON.stringify(data).replace(/\//g, '\\/')
     : 'undefined';
