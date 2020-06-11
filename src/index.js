@@ -460,20 +460,9 @@ export type GraphQLParams = {|
 export async function getGraphQLParams(
   request: $Request,
 ): Promise<GraphQLParams> {
-  const { url = '' } = request;
-  const urlData = new URLSearchParams(url.split('?')[1]);
+  const urlData = new URLSearchParams(request.url.split('?')[1]);
   const bodyData = await parseBody(request);
 
-  return parseGraphQLParams(urlData, bodyData);
-}
-
-/**
- * Helper function to get the GraphQL params from the request.
- */
-function parseGraphQLParams(
-  urlData: URLSearchParams,
-  bodyData: { [param: string]: mixed, ... },
-): GraphQLParams {
   // GraphQL Query string.
   let query = urlData.get('query') ?? bodyData.query;
   if (typeof query !== 'string') {
