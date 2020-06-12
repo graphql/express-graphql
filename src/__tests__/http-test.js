@@ -13,19 +13,18 @@ import multer from 'multer';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import {
-  buildSchema,
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLNonNull,
-  GraphQLString,
-  GraphQLError,
-  ValidationContext,
-  BREAK,
-  Source,
-  validate,
-  execute,
-  parse,
   type ASTVisitor,
+  type ValidationContext,
+  Source,
+  GraphQLError,
+  GraphQLString,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLSchema,
+  parse,
+  execute,
+  validate,
+  buildSchema,
 } from 'graphql';
 
 import { graphqlHTTP } from '../index';
@@ -1939,9 +1938,7 @@ function runTests(server) {
           customValidateFn(schema, documentAST, validationRules) {
             const errors = validate(schema, documentAST, validationRules);
 
-            const error = new GraphQLError(`custom error ${errors.length}`);
-
-            return [error];
+            return [new GraphQLError(`custom error ${errors.length}`)];
           },
         }),
       );
@@ -1968,11 +1965,10 @@ function runTests(server) {
       context: ValidationContext,
     ): ASTVisitor {
       return {
-        enter() {
+        Document() {
           context.reportError(
             new GraphQLError('AlwaysInvalidRule was really invalid!'),
           );
-          return BREAK;
         },
       };
     };
