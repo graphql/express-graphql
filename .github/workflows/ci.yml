@@ -61,9 +61,12 @@ jobs:
       - name: Run tests and measure code coverage
         run: npm run testonly:cover
 
-      - name: Upload coverage to Coveralls
+      - name: Upload coverage to Codecov
         if: ${{ always() }}
-        run: cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage/coverage-final.json
+          fail_ci_if_error: true
 
   test:
     name: Run tests on Node v${{ matrix.node_version_to_setup }}

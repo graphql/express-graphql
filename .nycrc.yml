@@ -1,8 +1,10 @@
+all: true
 include:
   - 'src/'
 exclude:
   - 'src/polyfills'
 clean: true
 temp-directory: 'coverage'
+report-dir: 'coverage'
 skip-full: true
-reporter: [lcov, html, text]
+reporter: [json, html, text]
