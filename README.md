@@ -1,6 +1,7 @@
 # GraphQL HTTP Server Middleware
 
-[![Build Status](https://travis-ci.org/graphql/express-graphql.svg?branch=master)](https://travis-ci.org/graphql/express-graphql)
+[![npm version](https://badge.fury.io/js/express-graphql.svg)](https://badge.fury.io/js/express-graphql)
+[![Build Status](https://github.com/graphql/express-graphql/workflows/CI/badge.svg?branch=master)](https://github.com/graphql/express-graphql/actions?query=branch%3Amaster)
 [![Coverage Status](https://coveralls.io/repos/graphql/express-graphql/badge.svg?branch=master&service=github)](https://coveralls.io/github/graphql/express-graphql?branch=master)
 
 Create a GraphQL HTTP server with any HTTP web framework that supports connect styled middleware, including [Connect](https://github.com/senchalabs/connect) itself, [Express](https://expressjs.com) and [Restify](http://restify.com/).
