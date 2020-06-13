@@ -6,8 +6,6 @@
     "noImplicitThis": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": { "express-graphql": ["."] }
+    "noEmit": true
   }
 }
