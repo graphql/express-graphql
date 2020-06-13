@@ -7,5 +7,6 @@
 npm-debug.log
 
 dist
+integrationTmp
 node_modules
 coverage
