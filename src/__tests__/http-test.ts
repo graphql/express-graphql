@@ -1,5 +1,3 @@
-// @flow strict
-
 import zlib from 'zlib';
 
 import connect from 'connect';
@@ -28,14 +26,14 @@ import {
 
 import { graphqlHTTP } from '../index';
 
-// TODO Improve typings after converting to TypeScript
-type Server = () => {|
-  get: (...args: Array<mixed>) => mixed,
-  post: (...args: Array<mixed>) => mixed,
-  put: (...args: Array<mixed>) => mixed,
-  request: () => any,
-  use: (...args: Array<mixed>) => any,
-|};
+type Middleware = (req: any, res: any, next: () => void) => unknown;
+type Server = () => {
+  request: () => supertest.SuperTest<supertest.Test>;
+  use: (middleware: Middleware) => unknown;
+  get: (path: string, middleware: Middleware) => unknown;
+  post: (path: string, middleware: Middleware) => unknown;
+  put: (path: string, middleware: Middleware) => unknown;
+};
 
 const QueryRootType = new GraphQLObjectType({
   name: 'QueryRoot',
@@ -45,7 +43,8 @@ const QueryRootType = new GraphQLObjectType({
       args: {
         who: { type: GraphQLString },
       },
-      resolve: (_root, args) => 'Hello ' + (args.who ?? 'World'),
+      resolve: (_root, args: { who?: string }) =>
+        'Hello ' + (args.who ?? 'World'),
     },
     thrower: {
       type: GraphQLString,
@@ -69,14 +68,11 @@ const TestSchema = new GraphQLSchema({
   }),
 });
 
-function stringifyURLParams(urlParams?: {
-  [param: string]: string,
-  ...
-}): string {
+function stringifyURLParams(urlParams?: { [param: string]: string }): string {
   return new URLSearchParams(urlParams).toString();
 }
 
-function urlString(urlParams?: { [param: string]: string, ... }): string {
+function urlString(urlParams?: { [param: string]: string }): string {
   let string = '/graphql';
   if (urlParams) {
     string += '?' + stringifyURLParams(urlParams);
@@ -1057,7 +1053,7 @@ function runTests(server: Server) {
 
     it('supports pretty printing configured by request', async () => {
       const app = server();
-      let pretty;
+      let pretty: boolean | undefined;
 
       app.get(
         urlString(),
@@ -1567,7 +1563,7 @@ function runTests(server: Server) {
       const response = await app.request().put(urlString({ query: '{test}' }));
 
       expect(response.status).to.equal(405);
-      expect(response.headers.allow).to.equal('GET, POST');
+      expect(response.get('allow')).to.equal('GET, POST');
       expect(JSON.parse(response.text)).to.deep.equal({
         errors: [{ message: 'GraphQL only supports GET and POST requests.' }],
       });
