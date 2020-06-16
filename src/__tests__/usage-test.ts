@@ -1,5 +1,3 @@
-// @flow strict
-
 import express from 'express';
 import request from 'supertest';
 import { expect } from 'chai';
@@ -11,7 +9,7 @@ import { graphqlHTTP } from '../index';
 describe('Useful errors when incorrectly used', () => {
   it('requires an option factory function', () => {
     expect(() => {
-      // $DisableFlowOnNegativeTest
+      // @ts-expect-error
       graphqlHTTP();
     }).to.throw('GraphQL middleware requires options.');
   });
@@ -21,7 +19,7 @@ describe('Useful errors when incorrectly used', () => {
 
     app.use(
       '/graphql',
-      // $DisableFlowOnNegativeTest
+      // @ts-expect-error
       graphqlHTTP(() => null),
     );
 
@@ -43,7 +41,7 @@ describe('Useful errors when incorrectly used', () => {
 
     app.use(
       '/graphql',
-      // $DisableFlowOnNegativeTest
+      // @ts-expect-error
       graphqlHTTP(() => Promise.resolve(null)),
     );
 
@@ -65,7 +63,7 @@ describe('Useful errors when incorrectly used', () => {
 
     app.use(
       '/graphql',
-      // $DisableFlowOnNegativeTest
+      // @ts-expect-error
       graphqlHTTP(() => ({})),
     );
 
@@ -84,7 +82,7 @@ describe('Useful errors when incorrectly used', () => {
 
     app.use(
       '/graphql',
-      // $DisableFlowOnNegativeTest
+      // @ts-expect-error
       graphqlHTTP(() => Promise.resolve({})),
     );
 
@@ -99,7 +97,7 @@ describe('Useful errors when incorrectly used', () => {
   });
 
   it('validates schema before executing request', async () => {
-    // $DisableFlowOnNegativeTest
+    // @ts-expect-error
     const schema = new GraphQLSchema({ directives: [null] });
 
     const app = express();
