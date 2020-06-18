@@ -95,11 +95,11 @@ describe('GraphQL-HTTP tests for connect', () => {
 
     return {
       request: () => supertest(app),
-      use: (...args) => app.use(...args),
+      use: app.use.bind(app),
       // Connect only likes using app.use.
-      get: (...args) => app.use(...args),
-      put: (...args) => app.use(...args),
-      post: (...args) => app.use(...args),
+      get: app.use.bind(app),
+      put: app.use.bind(app),
+      post: app.use.bind(app),
     };
   });
 });
@@ -118,10 +118,10 @@ describe('GraphQL-HTTP tests for express', () => {
 
     return {
       request: () => supertest(app),
-      use: (...args) => app.use(...args),
-      get: (...args) => app.get(...args),
-      put: (...args) => app.put(...args),
-      post: (...args) => app.post(...args),
+      use: app.use.bind(app),
+      get: app.get.bind(app),
+      put: app.put.bind(app),
+      post: app.post.bind(app),
     };
   });
 });
@@ -137,10 +137,10 @@ describe('GraphQL-HTTP tests for restify', () => {
 
     return {
       request: () => supertest(app),
-      use: (...args) => app.use(...args),
-      get: (...args) => app.get(...args),
-      put: (...args) => app.put(...args),
-      post: (...args) => app.post(...args),
+      use: app.use.bind(app),
+      get: app.get.bind(app),
+      put: app.put.bind(app),
+      post: app.post.bind(app),
     };
   });
 });
