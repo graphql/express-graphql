@@ -1,7 +1,8 @@
 // @flow strict
 
-import { type IncomingMessage } from 'http';
-import zlib, { type Inflate, type Gunzip } from 'zlib';
+import type { IncomingMessage } from 'http';
+import type { Inflate, Gunzip } from 'zlib';
+import zlib from 'zlib';
 import querystring from 'querystring';
 
 import getBody from 'raw-body';

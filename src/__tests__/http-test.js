@@ -8,13 +8,12 @@ import restify from 'restify';
 import supertest from 'supertest';
 import bodyParser from 'body-parser';
 
+import type { ASTVisitor, ValidationContext } from 'graphql';
 import sinon from 'sinon';
 import multer from 'multer';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import {
-  type ASTVisitor,
-  type ValidationContext,
   Source,
   GraphQLError,
   GraphQLString,

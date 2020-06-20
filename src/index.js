@@ -1,7 +1,19 @@
 // @flow strict
 
-import { type IncomingMessage, type ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 
+import type {
+  ASTVisitor,
+  DocumentNode,
+  ValidationRule,
+  ValidationContext,
+  ExecutionArgs,
+  ExecutionResult,
+  GraphQLError,
+  GraphQLSchema,
+  GraphQLFieldResolver,
+  GraphQLTypeResolver,
+} from 'graphql';
 import accepts from 'accepts';
 import httpError from 'http-errors';
 import {
@@ -13,24 +25,11 @@ import {
   validateSchema,
   getOperationAST,
   specifiedRules,
-  type ASTVisitor,
-  type DocumentNode,
-  type ValidationRule,
-  type ValidationContext,
-  type ExecutionArgs,
-  type ExecutionResult,
-  type GraphQLError,
-  type GraphQLSchema,
-  type GraphQLFieldResolver,
-  type GraphQLTypeResolver,
 } from 'graphql';
 
+import type { GraphiQLOptions, GraphiQLData } from './renderGraphiQL';
 import { parseBody } from './parseBody';
-import {
-  renderGraphiQL,
-  type GraphiQLOptions,
-  type GraphiQLData,
-} from './renderGraphiQL';
+import { renderGraphiQL } from './renderGraphiQL';
 
 type $Request = IncomingMessage;
 type $Response = ServerResponse & {| json?: (data: mixed) => void |};

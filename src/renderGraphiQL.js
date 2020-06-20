@@ -1,6 +1,6 @@
 // @flow strict
 
-import { type ExecutionResult } from 'graphql';
+import type { ExecutionResult } from 'graphql';
 
 export type GraphiQLData = {|
   query?: string | null,
