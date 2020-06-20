@@ -1110,26 +1110,22 @@ function runTests(server: Server) {
   it('will send request and response when using thunk', async () => {
     const app = server();
 
-    let hasRequest = false;
-    let hasResponse = false;
+    let seenRequest;
+    let seenResponse;
 
     app.get(
       urlString(),
       graphqlHTTP((req, res) => {
-        if (req) {
-          hasRequest = true;
-        }
-        if (res) {
-          hasResponse = true;
-        }
+        seenRequest = req;
+        seenResponse = res;
         return { schema: TestSchema };
       }),
     );
 
     await app.request().get(urlString({ query: '{test}' }));
 
-    expect(hasRequest).to.equal(true);
-    expect(hasResponse).to.equal(true);
+    expect(seenRequest).to.not.equal(undefined);
+    expect(seenResponse).to.not.equal(undefined);
   });
 
   describe('Error handling functionality', () => {
