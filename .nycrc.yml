@@ -1,8 +1,7 @@
 all: true
 include:
   - 'src/'
-exclude:
-  - 'src/polyfills'
+exclude: []
 clean: true
 temp-directory: 'coverage'
 report-dir: 'coverage'
