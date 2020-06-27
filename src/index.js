@@ -171,7 +171,7 @@ export type RequestInfo = {|
   /**
    * The result of executing the operation.
    */
-  result: ExecutionResult | null,
+  result: ExecutionResult,
 
   /**
    * A value to pass as the context to the graphql() function.

@@ -153,17 +153,17 @@ export interface RequestInfo {
   /**
    * The variable values used at runtime.
    */
-  variables: { readonly [name: string]: unknown };
+  variables: { readonly [name: string]: unknown } | null;
 
   /**
    * The (optional) operation name requested.
    */
-  operationName: string;
+  operationName: string | null;
 
   /**
    * The result of executing the operation.
    */
-  result: unknown;
+  result: ExecutionResult;
 
   /**
    * A value to pass as the context to the graphql() function.
