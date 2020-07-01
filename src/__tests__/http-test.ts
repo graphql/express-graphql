@@ -1,8 +1,8 @@
 import zlib from 'zlib';
 
+import type { Server as Restify } from 'restify';
 import connect from 'connect';
 import express from 'express';
-import restify from 'restify';
 import supertest from 'supertest';
 import bodyParser from 'body-parser';
 
@@ -126,7 +126,12 @@ describe('GraphQL-HTTP tests for express', () => {
 
 describe('GraphQL-HTTP tests for restify', () => {
   runTests(() => {
-    const app = restify.createServer();
+    // We're lazily loading the restify module so as to avoid issues caused by it patching the
+    // native IncomingMessage and ServerResponse classes. See https://github.com/restify/node-restify/issues/1540
+    // Using require instead of import here to avoid using Promises.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-require-imports,node/global-require
+    const restify = require('restify');
+    const app: Restify = restify.createServer();
 
     /* istanbul ignore next Error handler added only for debugging failed tests */
     app.on('error', (error) => {
