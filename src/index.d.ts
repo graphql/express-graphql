@@ -23,6 +23,7 @@ export {};
 type Request = IncomingMessage;
 
 type Response = ServerResponse & { json?: (data: unknown) => void };
+type MaybePromise<T> = Promise<T> | T;
 
 type Middleware = (request: Request, response: Response) => Promise<void>;
 
@@ -38,9 +39,8 @@ export type Options =
       request: Request,
       response: Response,
       params?: GraphQLParams,
-    ) => OptionsResult)
-  | OptionsResult;
-type OptionsResult = OptionsData | Promise<OptionsData>;
+    ) => MaybePromise<OptionsData>)
+  | MaybePromise<OptionsData>;
 
 export interface OptionsData {
   /**
@@ -83,9 +83,7 @@ export interface OptionsData {
    * An optional function which will be used to execute instead of default `execute`
    * from `graphql-js`.
    */
-  customExecuteFn?: (
-    args: ExecutionArgs,
-  ) => ExecutionResult | Promise<ExecutionResult>;
+  customExecuteFn?: (args: ExecutionArgs) => MaybePromise<ExecutionResult>;
 
   /**
    * An optional function which will be used to format any errors produced by
@@ -118,7 +116,7 @@ export interface OptionsData {
    */
   extensions?: (
     info: RequestInfo,
-  ) => { [key: string]: unknown } | Promise<{ [key: string]: unknown }>;
+  ) => MaybePromise<undefined | { [key: string]: unknown }>;
 
   /**
    * A boolean to optionally enable GraphiQL mode.

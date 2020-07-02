@@ -2251,13 +2251,10 @@ function runTests(server: Server) {
 
       app.get(
         urlString(),
-        // @ts-expect-error
         graphqlHTTP(() => ({
           schema: TestSchema,
           context: { foo: 'bar' },
-          extensions({ context }) {
-            return () => ({ contextValue: JSON.stringify(context) });
-          },
+          extensions: () => undefined,
         })),
       );
 
