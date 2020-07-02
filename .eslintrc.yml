@@ -11,6 +11,11 @@ plugins:
   - node
   - istanbul
   - import
+settings:
+  flowtype:
+    onlyFilesWithFlowAnnotation: true
+  node:
+    tryExtensions: ['.js', '.json', '.node', '.ts', '.d.ts']
 
 rules:
   ##############################################################################
@@ -21,7 +26,7 @@ rules:
   internal-rules/no-dir-import: error
 
   ##############################################################################
-  # `eslint-plugin-flowtype` rule list based on `v5.1.x`
+  # `eslint-plugin-flowtype` rule list based on `v5.2.x`
   # https://github.com/gajus/eslint-plugin-flowtype#eslint-plugin-flowtype
   ##############################################################################
 
@@ -69,7 +74,7 @@ rules:
   flowtype/union-intersection-spacing: off
 
   ##############################################################################
-  # `eslint-plugin-istanbul` rule list based on `v0.1.1`
+  # `eslint-plugin-istanbul` rule list based on `v0.1.2`
   # https://github.com/istanbuljs/eslint-plugin-istanbul#rules
   ##############################################################################
 
@@ -129,7 +134,7 @@ rules:
   node/prefer-promises/fs: error
 
   ##############################################################################
-  # `eslint-plugin-import` rule list based on `v2.20.x`
+  # `eslint-plugin-import` rule list based on `v2.22.x`
   ##############################################################################
 
   # Static analysis
@@ -190,7 +195,7 @@ rules:
   import/dynamic-import-chunkname: off
 
   ##############################################################################
-  # ESLint builtin rules list based on `v7.2.x`
+  # ESLint builtin rules list based on `v7.3.x`
   ##############################################################################
 
   # Possible Errors
@@ -222,12 +227,14 @@ rules:
   no-loss-of-precision: error
   no-misleading-character-class: error
   no-obj-calls: error
+  no-promise-executor-return: off # TODO
   no-prototype-builtins: error
   no-regex-spaces: error
   no-setter-return: error
   no-sparse-arrays: error
   no-template-curly-in-string: error
   no-unreachable: error
+  no-unreachable-loop: error
   no-unsafe-finally: error
   no-unsafe-negation: error
   no-useless-backreference: error
@@ -487,15 +494,11 @@ overrides:
       - '@typescript-eslint'
     extends:
       - plugin:import/typescript
-    settings:
-      node:
-        tryExtensions: ['.js', '.json', '.node', '.ts', '.d.ts']
     rules:
-      flowtype/require-valid-file-annotation: off
       flowtype/no-types-missing-file-annotation: off
 
       ##########################################################################
-      # `@typescript-eslint/eslint-plugin` rule list based on `v3.0.x`
+      # `@typescript-eslint/eslint-plugin` rule list based on `v3.5.x`
       ##########################################################################
 
       # Supported Rules
@@ -504,6 +507,7 @@ overrides:
       '@typescript-eslint/array-type': [error, { default: generic }]
       '@typescript-eslint/await-thenable': error
       '@typescript-eslint/ban-ts-comment': [error, { 'ts-expect-error': false }]
+      '@typescript-eslint/ban-tslint-comment': error
       '@typescript-eslint/ban-types': error
       '@typescript-eslint/class-literal-property-style': off
       '@typescript-eslint/consistent-type-assertions':
@@ -516,6 +520,7 @@ overrides:
       '@typescript-eslint/method-signature-style': error
       '@typescript-eslint/naming-convention': off # TODO consider
       '@typescript-eslint/no-base-to-string': error
+      '@typescript-eslint/no-confusing-non-null-assertion': error
       '@typescript-eslint/no-dynamic-delete': off
       '@typescript-eslint/no-empty-interface': error
       '@typescript-eslint/no-explicit-any': off # TODO error
@@ -584,6 +589,7 @@ overrides:
       no-dupe-class-members: off
       no-empty-function: off
       no-invalid-this: off
+      no-loss-of-precision: off
       no-unused-expressions: off
       no-unused-vars: off
       no-useless-constructor: off
@@ -597,6 +603,7 @@ overrides:
       '@typescript-eslint/no-dupe-class-members': error
       '@typescript-eslint/no-empty-function': error
       '@typescript-eslint/no-invalid-this': error
+      '@typescript-eslint/no-loss-of-precision': error
       '@typescript-eslint/no-unused-expressions': error
       '@typescript-eslint/no-unused-vars':
         [error, { vars: all, args: all, argsIgnorePattern: '^_' }]
@@ -631,7 +638,6 @@ overrides:
       import/no-restricted-paths: off
       import/no-extraneous-dependencies: [error, { devDependencies: true }]
       import/no-nodejs-modules: off
-      no-sync: off
   - files: 'integrationTests/**'
     parserOptions:
       sourceType: script

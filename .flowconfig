@@ -45,14 +45,18 @@ implicit-inexact-object=error
 ambiguous-object-type=error
 uninitialized-instance-property=error
 unsafe-addition=error
+default-import-access=error
+invalid-import-star-use=error
+non-const-var-export=error
+this-in-exported-function=error
+mixed-import-and-require=error
+export-renamed-default=error
 
 [options]
 include_warnings=true
 module.use_strict=true
 babel_loose_array_spread=true
 esproposal.optional_chaining=enable
-suppress_comment=\\(.\\|\n\\)*\\$FlowFixMe\\($\\|[^(]\\|(\\(<VERSION>\\)?)\\)
-suppress_comment=\\(.\\|\n\\)*\\$DisableFlowOnNegativeTest
 
 [version]
-^0.126.0
+^0.128.0
