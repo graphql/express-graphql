@@ -33,6 +33,7 @@ import { renderGraphiQL } from './renderGraphiQL';
 
 type $Request = IncomingMessage;
 type $Response = ServerResponse & {| json?: (data: mixed) => void |};
+type MaybePromise<T> = Promise<T> | T;
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -46,9 +47,8 @@ export type Options =
       request: $Request,
       response: $Response,
       params?: GraphQLParams,
-    ) => OptionsResult)
-  | OptionsResult;
-export type OptionsResult = OptionsData | Promise<OptionsData>;
+    ) => MaybePromise<OptionsData>)
+  | MaybePromise<OptionsData>;
 
 export type OptionsData = {|
   /**
@@ -91,9 +91,7 @@ export type OptionsData = {|
    * An optional function which will be used to execute instead of default `execute`
    * from `graphql-js`.
    */
-  customExecuteFn?: (
-    args: ExecutionArgs,
-  ) => ExecutionResult | Promise<ExecutionResult>,
+  customExecuteFn?: (args: ExecutionArgs) => MaybePromise<ExecutionResult>,
 
   /**
    * An optional function which will be used to format any errors produced by
@@ -126,7 +124,7 @@ export type OptionsData = {|
    */
   extensions?: (
     info: RequestInfo,
-  ) => { [key: string]: mixed, ... } | Promise<{ [key: string]: mixed, ... }>,
+  ) => MaybePromise<void | { [key: string]: mixed, ... }>,
 
   /**
    * A boolean to optionally enable GraphiQL mode.
@@ -347,7 +345,7 @@ export function graphqlHTTP(options: Options): Middleware {
       // Collect and apply any metadata extensions if a function was provided.
       // https://graphql.github.io/graphql-spec/#sec-Response-Format
       if (extensionsFn) {
-        const extensionsObj = await extensionsFn({
+        const extensions = await extensionsFn({
           document: documentAST,
           variables,
           operationName,
@@ -355,8 +353,8 @@ export function graphqlHTTP(options: Options): Middleware {
           context,
         });
 
-        if (extensionsObj != null && typeof extensionsObj === 'object') {
-          (result: any).extensions = extensionsObj;
+        if (extensions != null) {
+          result = { ...result, extensions };
         }
       }
     } catch (error) {
