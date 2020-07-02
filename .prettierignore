@@ -1,0 +1,5 @@
+# Copied from '.gitignore', please keep it in sync.
+node_modules
+coverage
+dist
+integrationTmp
