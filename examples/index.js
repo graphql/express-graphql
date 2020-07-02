@@ -1,3 +1,4 @@
+/* eslint-disable */
 import express from 'express';
 import graphqlHTTP from '../src/';
 import { buildSchema } from 'graphql';

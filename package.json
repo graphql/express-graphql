@@ -28,18 +28,17 @@
     "node": ">= 10.x"
   },
   "scripts": {
-    "test": "npm run prettier:check && npm run lint && npm run check && npm run testonly:cover && npm run build && npm run check:integrations",
-    "test:ci": "npm ci && npm run prettier:check && npm run lint && npm run check && npm run testonly:cover && npm run build && npm run check:integrations",
+    "preversion": ". ./resources/checkgit.sh && npm ci",
+    "changelog": "node resources/gen-changelog.js",
+    "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run build && npm run check:integrations",
+    "lint": "eslint .",
+    "check": "flow check",
     "testonly": "mocha src/**/__tests__/**/*.ts",
     "testonly:cover": "nyc npm run testonly",
-    "lint": "eslint src resources integrationTests",
-    "prettier": "prettier --ignore-path .gitignore --write --list-different '**/*.{js,ts,md,json,yml}'",
-    "prettier:check": "prettier --ignore-path .gitignore --check '**/*.{js,ts,md,json,yml}'",
-    "check": "flow check",
+    "prettier": "prettier --write --list-different .",
+    "prettier:check": "prettier --check .",
     "check:integrations": "mocha --full-trace integrationTests/*-test.js",
     "build": "node resources/build.js",
-    "changelog": "node resources/gen-changelog.js",
-    "preversion": ". ./resources/checkgit.sh",
     "start": "node -r @babel/register examples/index.js"
   },
   "dependencies": {
