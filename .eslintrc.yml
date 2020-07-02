@@ -662,3 +662,11 @@ overrides:
       import/no-commonjs: off
       no-await-in-loop: off
       no-console: off
+  - files: 'examples/**'
+    parserOptions:
+      sourceType: module
+    rules:
+      internal-rules/no-dir-import: off
+      node/no-unpublished-import: off
+      import/no-extraneous-dependencies: [error, { devDependencies: true }]
+      no-console: off

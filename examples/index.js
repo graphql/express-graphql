@@ -1,26 +1,26 @@
-/* eslint-disable */
 import express from 'express';
-import graphqlHTTP from '../src/';
 import { buildSchema } from 'graphql';
 
+import { graphqlHTTP } from '../src';
+
 // Construct a schema, using GraphQL schema language
-var schema = buildSchema(`
+const schema = buildSchema(`
   type Query {
     hello: String
   }
 `);
 
 // The root provides a resolver function for each API endpoint
-var root = {
+const rootValue = {
   hello: () => 'Hello world!',
 };
 
-var app = express();
+const app = express();
 app.use(
   '/graphql',
   graphqlHTTP({
-    schema: schema,
-    rootValue: root,
+    schema,
+    rootValue,
     graphiql: true,
   }),
 );
