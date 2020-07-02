@@ -7,3 +7,8 @@ temp-directory: 'coverage'
 report-dir: 'coverage'
 skip-full: true
 reporter: [json, html, text]
+check-coverage: true
+branches: 100
+lines: 100
+functions: 100
+statements: 100

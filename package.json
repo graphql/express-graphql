@@ -28,7 +28,7 @@
     "node": ">= 10.x"
   },
   "scripts": {
-    "test": "npm run prettier:check && npm run lint && npm run check && npm run testonly && npm run build && npm run check:integrations",
+    "test": "npm run prettier:check && npm run lint && npm run check && npm run testonly:cover && npm run build && npm run check:integrations",
     "test:ci": "npm ci && npm run prettier:check && npm run lint && npm run check && npm run testonly:cover && npm run build && npm run check:integrations",
     "testonly": "mocha src/**/__tests__/**/*.ts",
     "testonly:cover": "nyc npm run testonly",
