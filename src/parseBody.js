@@ -82,7 +82,8 @@ async function readBody(
   // TODO: Import the appropriate TS type and use it here instead
   typeInfo: {| type: string, parameters: { [param: string]: string, ... } |},
 ): Promise<string> {
-  const charset = (typeInfo.parameters.charset ?? 'utf-8').toLowerCase();
+  // flowlint-next-line unnecessary-optional-chain:off
+  const charset = typeInfo.parameters.charset?.toLowerCase() ?? 'utf-8';
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
   if (charset.slice(0, 4) !== 'utf-') {

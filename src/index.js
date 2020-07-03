@@ -255,7 +255,7 @@ export function graphqlHTTP(options: Options): Middleware {
 
       // Get GraphQL params from the request and POST body data.
       const { query, variables, operationName } = params;
-      showGraphiQL = canDisplayGraphiQL(request, params) && graphiql;
+      showGraphiQL = canDisplayGraphiQL(request, params) && graphiql !== false;
       if (typeof graphiql !== 'boolean') {
         graphiqlOptions = graphiql;
       }
