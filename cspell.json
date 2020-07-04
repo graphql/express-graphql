@@ -1,0 +1,31 @@
+{
+  "language": "en",
+  "ignorePaths": [
+    // Copied from '.gitignore', please keep it in sync.
+    ".eslintcache",
+    "node_modules",
+    "coverage",
+    "dist",
+    "integrationTmp",
+
+    // Excluded from spelling check
+    "cspell.json",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json"
+  ],
+  "words": [
+    "graphiql",
+    "unfetch",
+    "noindex",
+    "codecov",
+    "recognise",
+    "serializable",
+    "subcommand",
+    "charsets",
+
+    // TODO: remove bellow words
+    "Graphi", // GraphiQL
+    "QL's" // GraphQL's
+  ]
+}
