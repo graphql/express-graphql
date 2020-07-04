@@ -1,7 +1,8 @@
 import express from 'express';
 import { buildSchema } from 'graphql';
 
-import { graphqlHTTP } from '../src';
+// eslint-disable-next-line node/no-missing-import, import/no-unresolved
+import { graphqlHTTP } from 'graphql-express';
 
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
