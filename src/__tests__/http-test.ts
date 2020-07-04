@@ -8,7 +8,7 @@ import bodyParser from 'body-parser';
 
 import type { ASTVisitor, ValidationContext } from 'graphql';
 import sinon from 'sinon';
-import multer from 'multer';
+import multer from 'multer'; // cSpell:words mimetype originalname
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import {
@@ -1277,7 +1277,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: 'syntaxerror',
+          query: 'syntax_error',
         }),
       );
 
@@ -1285,7 +1285,7 @@ function runTests(server: Server) {
       expect(JSON.parse(response.text)).to.deep.equal({
         errors: [
           {
-            message: 'Syntax Error: Unexpected Name "syntaxerror".',
+            message: 'Syntax Error: Unexpected Name "syntax_error".',
             locations: [{ line: 1, column: 1 }],
           },
         ],
@@ -1594,7 +1594,7 @@ function runTests(server: Server) {
         .post(urlString())
         .send({
           query: 'query helloWho($who: String){ test(who: $who) }',
-          variables: { who: ['Dolly', 'Jonty'] },
+          variables: { who: ['John', 'Jane'] },
         });
 
       expect(response.status).to.equal(500);
@@ -1603,7 +1603,7 @@ function runTests(server: Server) {
           {
             locations: [{ column: 16, line: 1 }],
             message:
-              'Variable "$who" got invalid value ["Dolly", "Jonty"]; String cannot represent a non string value: ["Dolly", "Jonty"]',
+              'Variable "$who" got invalid value ["John", "Jane"]; String cannot represent a non string value: ["John", "Jane"]',
           },
         ],
       });

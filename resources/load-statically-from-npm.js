@@ -9,7 +9,7 @@ const fs = require('fs');
  *
  * Transforms:
  *
- *  loadStaticlyFromNPM(<npm path>)
+ *  loadFileStaticallyFromNPM(<npm path>)
  *
  * to:
  *
@@ -23,7 +23,7 @@ module.exports = function inlineInvariant(context) {
 
         if (
           node.callee.type === 'Identifier' &&
-          node.callee.name === 'loadFileStaticlyFromNPM'
+          node.callee.name === 'loadFileStaticallyFromNPM'
         ) {
           const npmPath = node.arguments[0].value;
           const filePath = require.resolve(npmPath);
