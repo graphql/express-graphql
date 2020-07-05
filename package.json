@@ -1,6 +1,6 @@
 {
   "name": "express-graphql",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Production ready GraphQL HTTP middleware.",
   "license": "MIT",
   "private": true,
