@@ -78,7 +78,7 @@
     "eslint-plugin-node": "11.1.0",
     "express": "4.17.1",
     "flow-bin": "0.128.0",
-    "graphiql": "0.17.5",
+    "graphiql": "1.0.3",
     "graphql": "15.2.0",
     "mocha": "8.0.1",
     "multer": "1.4.2",

@@ -14,6 +14,12 @@ export interface GraphiQLOptions {
    * will use its own default query.
    */
   defaultQuery?: string;
+
+  /**
+   * An optional boolean which enables the header editor when true.
+   * Defaults to false.
+   */
+  headerEditorEnabled?: boolean;
 }
 
 /**
