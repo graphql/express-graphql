@@ -16,10 +16,16 @@ export type GraphiQLOptions = {|
    * will use its own default query.
    */
   defaultQuery?: string,
+
+  /**
+   * An optional boolean which enables the header editor when true.
+   * Defaults to false.
+   */
+  headerEditorEnabled?: boolean,
 |};
 
 // Ensures string values are safe to be used within a <script> tag.
-function safeSerialize(data: ?string): string {
+function safeSerialize(data: string | boolean | null | void): string {
   return data != null
     ? JSON.stringify(data).replace(/\//g, '\\/')
     : 'undefined';
@@ -46,6 +52,7 @@ export function renderGraphiQL(
     data.result != null ? JSON.stringify(data.result, null, 2) : null;
   const operationName = data.operationName;
   const defaultQuery = options?.defaultQuery;
+  const headerEditorEnabled = options?.headerEditorEnabled;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -183,6 +190,7 @@ add "&raw" to the end of the URL within a browser.
         variables: ${safeSerialize(variablesString)},
         operationName: ${safeSerialize(operationName)},
         defaultQuery: ${safeSerialize(defaultQuery)},
+        headerEditorEnabled: ${safeSerialize(headerEditorEnabled)},
       }),
       document.getElementById('graphiql')
     );
