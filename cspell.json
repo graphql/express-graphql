@@ -6,7 +6,6 @@
     "node_modules",
     "coverage",
     "dist",
-    "integrationTmp",
 
     // Excluded from spelling check
     "cspell.json",

@@ -2,7 +2,6 @@
 /node_modules
 /coverage
 /dist
-/integrationTmp
 
 # Ignore TS files inside integration test
 /integrationTests/ts/*.ts
