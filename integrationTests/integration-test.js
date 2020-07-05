@@ -2,6 +2,7 @@
 
 'use strict';
 
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
@@ -16,9 +17,14 @@ function exec(command, options = {}) {
 }
 
 describe('Integration Tests', () => {
-  const tmpDir = path.resolve('./integrationTmp');
+  const tmpDir = path.join(os.tmpdir(), 'graphql-js-integrationTmp');
   fs.rmdirSync(tmpDir, { recursive: true });
   fs.mkdirSync(tmpDir);
+
+  const distDir = path.resolve('./dist');
+  exec(`npm pack ${distDir} && cp express-graphql-*.tgz express-graphql.tgz`, {
+    cwd: tmpDir,
+  });
 
   it('Should compile with all supported TS versions', () => {
     exec(`cp -R ${path.join(__dirname, 'ts')} ${tmpDir}`);
