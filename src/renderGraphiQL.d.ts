@@ -1,10 +1,10 @@
-import { ExecutionResult } from 'graphql';
+import { FormattedExecutionResult } from 'graphql';
 
 export interface GraphiQLData {
   query?: string | null;
   variables?: { readonly [name: string]: unknown } | null;
   operationName?: string | null;
-  result?: ExecutionResult;
+  result?: FormattedExecutionResult;
 }
 
 export interface GraphiQLOptions {

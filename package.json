@@ -79,7 +79,7 @@
     "express": "4.17.1",
     "flow-bin": "0.128.0",
     "graphiql": "1.0.3",
-    "graphql": "15.2.0",
+    "graphql": "15.3.0",
     "mocha": "8.0.1",
     "multer": "1.4.2",
     "nyc": "15.1.0",
@@ -95,6 +95,6 @@
     "unfetch": "4.1.0"
   },
   "peerDependencies": {
-    "graphql": "^14.6.0 || ^15.0.0"
+    "graphql": "^14.7.0 || ^15.3.0"
   }
 }
