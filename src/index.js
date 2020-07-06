@@ -9,10 +9,12 @@ import type {
   ValidationContext,
   ExecutionArgs,
   ExecutionResult,
+  FormattedExecutionResult,
   GraphQLError,
   GraphQLSchema,
   GraphQLFieldResolver,
   GraphQLTypeResolver,
+  GraphQLFormattedError,
 } from 'graphql';
 import accepts from 'accepts';
 import httpError from 'http-errors';
@@ -98,7 +100,7 @@ export type OptionsData = {|
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
    */
-  customFormatErrorFn?: (error: GraphQLError) => mixed,
+  customFormatErrorFn?: (error: GraphQLError) => GraphQLFormattedError,
 
   /**
    * An optional function which will be used to create a document instead of
@@ -110,7 +112,7 @@ export type OptionsData = {|
    * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
    *  be removed in version 1.0.0.
    */
-  formatError?: (error: GraphQLError) => mixed,
+  formatError?: (error: GraphQLError) => GraphQLFormattedError,
 
   /**
    * An optional function for adding additional metadata to the GraphQL response
@@ -380,22 +382,28 @@ export function graphqlHTTP(options: Options): Middleware {
     }
 
     // Format any encountered errors.
-    if (result.errors) {
-      (result: any).errors = result.errors.map(formatErrorFn);
-    }
+    const formattedResult: FormattedExecutionResult = {
+      ...result,
+      errors: result.errors?.map(formatErrorFn),
+    };
 
     // If allowed to show GraphiQL, present it instead of JSON.
     if (showGraphiQL) {
-      return respondWithGraphiQL(response, graphiqlOptions, params, result);
+      return respondWithGraphiQL(
+        response,
+        graphiqlOptions,
+        params,
+        formattedResult,
+      );
     }
 
     // If "pretty" JSON isn't requested, and the server provides a
     // response.json method (express), use that directly.
     // Otherwise use the simplified sendResponse method.
     if (!pretty && typeof response.json === 'function') {
-      response.json(result);
+      response.json(formattedResult);
     } else {
-      const payload = JSON.stringify(result, null, pretty ? 2 : 0);
+      const payload = JSON.stringify(formattedResult, null, pretty ? 2 : 0);
       sendResponse(response, 'application/json', payload);
     }
 
@@ -431,7 +439,7 @@ function respondWithGraphiQL(
   response: $Response,
   options?: GraphiQLOptions,
   params?: GraphQLParams,
-  result?: ExecutionResult,
+  result?: FormattedExecutionResult,
 ): void {
   const data: GraphiQLData = {
     query: params?.query,

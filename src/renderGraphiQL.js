@@ -1,12 +1,12 @@
 // @flow strict
 
-import type { ExecutionResult } from 'graphql';
+import type { FormattedExecutionResult } from 'graphql';
 
 export type GraphiQLData = {|
   query?: string | null,
   variables?: { +[name: string]: mixed, ... } | null,
   operationName?: string | null,
-  result?: ExecutionResult,
+  result?: FormattedExecutionResult,
 |};
 
 export type GraphiQLOptions = {|

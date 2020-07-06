@@ -11,6 +11,7 @@ import {
   ExecutionArgs,
   ExecutionResult,
   GraphQLError,
+  GraphQLFormattedError,
   GraphQLSchema,
   GraphQLFieldResolver,
   GraphQLTypeResolver,
@@ -90,7 +91,7 @@ export interface OptionsData {
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
    */
-  customFormatErrorFn?: (error: GraphQLError) => unknown;
+  customFormatErrorFn?: (error: GraphQLError) => GraphQLFormattedError;
 
   /**
    * An optional function which will be used to create a document instead of
@@ -102,7 +103,7 @@ export interface OptionsData {
    * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
    *  be removed in version 1.0.0.
    */
-  formatError?: (error: GraphQLError) => unknown;
+  formatError?: (error: GraphQLError) => GraphQLFormattedError;
 
   /**
    * An optional function for adding additional metadata to the GraphQL response
