@@ -22,6 +22,7 @@
     "serializable",
     "subcommand",
     "charsets",
+    "downlevel",
 
     // TODO: remove bellow words
     "Graphi", // GraphiQL

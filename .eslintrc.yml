@@ -542,7 +542,8 @@ overrides:
       '@typescript-eslint/no-throw-literal': error
       '@typescript-eslint/no-type-alias': off # TODO consider
       '@typescript-eslint/no-unnecessary-boolean-literal-compare': error
-      '@typescript-eslint/no-unnecessary-condition': error
+      # FIXME: Disabled to enable checking conditions that would be prevented by types anyway
+      '@typescript-eslint/no-unnecessary-condition': off
       '@typescript-eslint/no-unnecessary-qualifier': error
       '@typescript-eslint/no-unnecessary-type-arguments': error
       '@typescript-eslint/no-unnecessary-type-assertion': error

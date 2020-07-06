@@ -1,5 +1,3 @@
-// @flow strict
-
 import type { IncomingMessage } from 'http';
 import type { Inflate, Gunzip } from 'zlib';
 import zlib from 'zlib';
@@ -9,20 +7,24 @@ import getBody from 'raw-body';
 import httpError from 'http-errors';
 import contentType from 'content-type';
 
-type $Request = IncomingMessage & { body?: mixed, ... };
+type Request = IncomingMessage & { body?: unknown };
+interface ParsedMediaType {
+  type: string;
+  parameters: { [key: string]: string | undefined };
+}
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the body data contained.
  */
 export async function parseBody(
-  req: $Request,
-): Promise<{ [param: string]: mixed, ... }> {
+  req: Request,
+): Promise<{ [param: string]: unknown }> {
   const { body } = req;
 
   // If express has already parsed a body as a keyed object, use it.
   if (typeof body === 'object' && !(body instanceof Buffer)) {
-    return (body: any);
+    return body as { [param: string]: unknown };
   }
 
   // Skip requests without content types.
@@ -78,11 +80,9 @@ const jsonObjRegex = /^[ \t\n\r]*\{/;
 
 // Read and parse a request body.
 async function readBody(
-  req: $Request,
-  // TODO: Import the appropriate TS type and use it here instead
-  typeInfo: {| type: string, parameters: { [param: string]: string, ... } |},
+  req: Request,
+  typeInfo: ParsedMediaType,
 ): Promise<string> {
-  // flowlint-next-line unnecessary-optional-chain:off
   const charset = typeInfo.parameters.charset?.toLowerCase() ?? 'utf-8';
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
@@ -106,15 +106,15 @@ async function readBody(
   } catch (err) {
     throw err.type === 'encoding.unsupported'
       ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
-      : httpError(400, `Invalid body: ${err.message}.`);
+      : httpError(400, `Invalid body: ${err.message as string}.`);
   }
 }
 
 // Return a decompressed stream, given an encoding.
 function decompressed(
-  req: $Request,
+  req: Request,
   encoding: string,
-): $Request | Inflate | Gunzip {
+): Request | Inflate | Gunzip {
   switch (encoding) {
     case 'identity':
       return req;

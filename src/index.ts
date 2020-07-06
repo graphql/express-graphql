@@ -1,5 +1,3 @@
-// @flow strict
-
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type {
@@ -17,7 +15,7 @@ import type {
   GraphQLFormattedError,
 } from 'graphql';
 import accepts from 'accepts';
-import httpError from 'http-errors';
+import httpError, { HttpError } from 'http-errors';
 import {
   Source,
   parse,
@@ -33,8 +31,8 @@ import type { GraphiQLOptions, GraphiQLData } from './renderGraphiQL';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
-type $Request = IncomingMessage;
-type $Response = ServerResponse & {| json?: (data: mixed) => void |};
+type Request = IncomingMessage;
+type Response = ServerResponse & { json?: (data: unknown) => void };
 type MaybePromise<T> = Promise<T> | T;
 
 /**
@@ -46,38 +44,38 @@ type MaybePromise<T> = Promise<T> | T;
  */
 export type Options =
   | ((
-      request: $Request,
-      response: $Response,
+      request: Request,
+      response: Response,
       params?: GraphQLParams,
     ) => MaybePromise<OptionsData>)
   | MaybePromise<OptionsData>;
 
-export type OptionsData = {|
+export interface OptionsData {
   /**
    * A GraphQL schema from graphql-js.
    */
-  schema: GraphQLSchema,
+  schema: GraphQLSchema;
 
   /**
    * A value to pass as the context to this middleware.
    */
-  context?: mixed,
+  context?: unknown;
 
   /**
    * An object to pass as the rootValue to the graphql() function.
    */
-  rootValue?: mixed,
+  rootValue?: unknown;
 
   /**
    * A boolean to configure whether the output should be pretty-printed.
    */
-  pretty?: boolean,
+  pretty?: boolean;
 
   /**
    * An optional array of validation rules that will be applied on the document
    * in additional to those defined by the GraphQL spec.
    */
-  validationRules?: $ReadOnlyArray<(ValidationContext) => ASTVisitor>,
+  validationRules?: ReadonlyArray<(ctx: ValidationContext) => ASTVisitor>;
 
   /**
    * An optional function which will be used to validate instead of default `validate`
@@ -86,33 +84,33 @@ export type OptionsData = {|
   customValidateFn?: (
     schema: GraphQLSchema,
     documentAST: DocumentNode,
-    rules: $ReadOnlyArray<ValidationRule>,
-  ) => $ReadOnlyArray<GraphQLError>,
+    rules: ReadonlyArray<ValidationRule>,
+  ) => ReadonlyArray<GraphQLError>;
 
   /**
    * An optional function which will be used to execute instead of default `execute`
    * from `graphql-js`.
    */
-  customExecuteFn?: (args: ExecutionArgs) => MaybePromise<ExecutionResult>,
+  customExecuteFn?: (args: ExecutionArgs) => MaybePromise<ExecutionResult>;
 
   /**
    * An optional function which will be used to format any errors produced by
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
    */
-  customFormatErrorFn?: (error: GraphQLError) => GraphQLFormattedError,
+  customFormatErrorFn?: (error: GraphQLError) => GraphQLFormattedError;
 
   /**
    * An optional function which will be used to create a document instead of
    * the default `parse` from `graphql-js`.
    */
-  customParseFn?: (source: Source) => DocumentNode,
+  customParseFn?: (source: Source) => DocumentNode;
 
   /**
    * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
    *  be removed in version 1.0.0.
    */
-  formatError?: (error: GraphQLError) => GraphQLFormattedError,
+  formatError?: (error: GraphQLError) => GraphQLFormattedError;
 
   /**
    * An optional function for adding additional metadata to the GraphQL response
@@ -126,60 +124,60 @@ export type OptionsData = {|
    */
   extensions?: (
     info: RequestInfo,
-  ) => MaybePromise<void | { [key: string]: mixed, ... }>,
+  ) => MaybePromise<undefined | { [key: string]: unknown }>;
 
   /**
    * A boolean to optionally enable GraphiQL mode.
    * Alternatively, instead of `true` you can pass in an options object.
    */
-  graphiql?: boolean | GraphiQLOptions,
+  graphiql?: boolean | GraphiQLOptions;
 
   /**
    * A resolver function to use when one is not provided by the schema.
    * If not provided, the default field resolver is used (which looks for a
    * value or method on the source value with the field's name).
    */
-  fieldResolver?: GraphQLFieldResolver<mixed, mixed>,
+  fieldResolver?: GraphQLFieldResolver<unknown, unknown>;
 
   /**
    * A type resolver function to use when none is provided by the schema.
    * If not provided, the default type resolver is used (which looks for a
    * `__typename` field or alternatively calls the `isTypeOf` method).
    */
-  typeResolver?: GraphQLTypeResolver<mixed, mixed>,
-|};
+  typeResolver?: GraphQLTypeResolver<unknown, unknown>;
+}
 
 /**
  * All information about a GraphQL request.
  */
-export type RequestInfo = {|
+export interface RequestInfo {
   /**
    * The parsed GraphQL document.
    */
-  document: DocumentNode,
+  document: DocumentNode;
 
   /**
    * The variable values used at runtime.
    */
-  variables: { +[name: string]: mixed, ... } | null,
+  variables: { readonly [name: string]: unknown } | null;
 
   /**
    * The (optional) operation name requested.
    */
-  operationName: string | null,
+  operationName: string | null;
 
   /**
    * The result of executing the operation.
    */
-  result: ExecutionResult,
+  result: FormattedExecutionResult;
 
   /**
    * A value to pass as the context to the graphql() function.
    */
-  context?: mixed,
-|};
+  context?: unknown;
+}
 
-type Middleware = (request: $Request, response: $Response) => Promise<void>;
+type Middleware = (request: Request, response: Response) => Promise<void>;
 
 /**
  * Middleware for express; takes an options object or function as input to
@@ -191,11 +189,11 @@ export function graphqlHTTP(options: Options): Middleware {
   }
 
   return async function graphqlMiddleware(
-    request: $Request,
-    response: $Response,
+    request: Request,
+    response: Response,
   ): Promise<void> {
     // Higher scoped variables are referred to at various stages in the asynchronous state machine below.
-    let params: GraphQLParams;
+    let params: GraphQLParams | undefined;
     let showGraphiQL = false;
     let graphiqlOptions;
     let formatErrorFn = formatError;
@@ -205,7 +203,7 @@ export function graphqlHTTP(options: Options): Middleware {
     try {
       // Parse the Request to get GraphQL request parameters.
       try {
-        params = (await getGraphQLParams(request): GraphQLParams);
+        params = await getGraphQLParams(request);
       } catch (error) {
         // When we failed to parse the GraphQL parameters, we still need to get
         // the options object, so make an options call to resolve just that.
@@ -363,9 +361,11 @@ export function graphqlHTTP(options: Options): Middleware {
       // If an error was caught, report the httpError status, or 500.
       response.statusCode = error.status ?? 500;
 
-      if (error.headers != null) {
-        for (const [key, value] of Object.entries(error.headers)) {
-          (response: any).setHeader(key, value);
+      if (error.headers) {
+        const err = error as HttpError;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        for (const [key, value] of Object.entries(err.headers!)) {
+          response.setHeader(key, value);
         }
       }
 
@@ -436,7 +436,7 @@ export function graphqlHTTP(options: Options): Middleware {
 }
 
 function respondWithGraphiQL(
-  response: $Response,
+  response: Response,
   options?: GraphiQLOptions,
   params?: GraphQLParams,
   result?: FormattedExecutionResult,
@@ -451,31 +451,35 @@ function respondWithGraphiQL(
   return sendResponse(response, 'text/html', payload);
 }
 
-export type GraphQLParams = {|
-  query: string | null,
-  variables: { +[name: string]: mixed, ... } | null,
-  operationName: string | null,
-  raw: boolean,
-|};
+export interface GraphQLParams {
+  query: string | null;
+  variables: { readonly [name: string]: unknown } | null;
+  operationName: string | null;
+  raw: boolean;
+}
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
  * HTTPClientRequest), Promise the GraphQL request parameters.
  */
 export async function getGraphQLParams(
-  request: $Request,
+  request: Request,
 ): Promise<GraphQLParams> {
-  const urlData = new URLSearchParams(request.url.split('?')[1]);
+  // `url` is always defined for IncomingMessage coming from http.Server
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const urlData = new URLSearchParams(request.url!.split('?')[1]);
   const bodyData = await parseBody(request);
 
   // GraphQL Query string.
-  let query = urlData.get('query') ?? bodyData.query;
+  let query = urlData.get('query') ?? (bodyData.query as string | null);
   if (typeof query !== 'string') {
     query = null;
   }
 
   // Parse the variables if needed.
-  let variables = urlData.get('variables') ?? bodyData.variables;
+  let variables = (urlData.get('variables') ?? bodyData.variables) as {
+    readonly [name: string]: unknown;
+  } | null;
   if (typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
@@ -487,7 +491,8 @@ export async function getGraphQLParams(
   }
 
   // Name of GraphQL operation to execute.
-  let operationName = urlData.get('operationName') || bodyData.operationName;
+  let operationName =
+    urlData.get('operationName') ?? (bodyData.operationName as string | null);
   if (typeof operationName !== 'string') {
     operationName = null;
   }
@@ -500,7 +505,7 @@ export async function getGraphQLParams(
 /**
  * Helper function to determine if GraphiQL can be displayed.
  */
-function canDisplayGraphiQL(request: $Request, params: GraphQLParams): boolean {
+function canDisplayGraphiQL(request: Request, params: GraphQLParams): boolean {
   // If `raw` false, GraphiQL mode is not enabled.
   // Allowed to show GraphiQL if not requested as raw and this request prefers HTML over JSON.
   return !params.raw && accepts(request).types(['json', 'html']) === 'html';
@@ -509,7 +514,7 @@ function canDisplayGraphiQL(request: $Request, params: GraphQLParams): boolean {
 /**
  * Helper function for sending a response using only the core Node server APIs.
  */
-function sendResponse(response: $Response, type: string, data: string): void {
+function sendResponse(response: Response, type: string, data: string): void {
   const chunk = Buffer.from(data, 'utf8');
   response.setHeader('Content-Type', type + '; charset=utf-8');
   response.setHeader('Content-Length', String(chunk.length));
