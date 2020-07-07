@@ -4,9 +4,9 @@
 
 const fs = require('fs');
 
+const ts = require('typescript');
+
 /**
- * Eliminates function call to `invariant` if the condition is met.
- *
  * Transforms:
  *
  *  loadFileStaticallyFromNPM(<npm path>)
@@ -15,23 +15,19 @@ const fs = require('fs');
  *
  *  "<file content>"
  */
-module.exports = function inlineInvariant(context) {
-  return {
-    visitor: {
-      CallExpression(path) {
-        const { node } = path;
-
-        if (
-          node.callee.type === 'Identifier' &&
-          node.callee.name === 'loadFileStaticallyFromNPM'
-        ) {
-          const npmPath = node.arguments[0].value;
-          const filePath = require.resolve(npmPath);
-          const content = fs.readFileSync(filePath, 'utf-8');
-
-          path.replaceWith(context.types.stringLiteral(content));
-        }
-      },
-    },
+module.exports.transformLoadFileStaticallyFromNPM = function (context) {
+  return function visit(node) {
+    if (ts.isCallExpression(node)) {
+      if (
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === 'loadFileStaticallyFromNPM'
+      ) {
+        const npmPath = node.arguments[0].text;
+        const filePath = require.resolve(npmPath);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        return ts.createStringLiteral(content);
+      }
+    }
+    return ts.visitEachChild(node, visit, context);
   };
 };

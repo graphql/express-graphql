@@ -6,8 +6,14 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-const babel = require('@babel/core');
+const ts = require('typescript');
+const { main: downlevel } = require('downlevel-dts');
 
+const tsConfig = require('../tsconfig.json');
+
+const {
+  transformLoadFileStaticallyFromNPM,
+} = require('./load-statically-from-npm');
 const { rmdirRecursive, readdirRecursive, showStats } = require('./utils');
 
 if (require.main === module) {
@@ -15,20 +21,18 @@ if (require.main === module) {
   fs.mkdirSync('./dist');
 
   const srcFiles = readdirRecursive('./src', { ignoreDir: /^__.*__$/ });
-  for (const filepath of srcFiles) {
-    const srcPath = path.join('./src', filepath);
-    const destPath = path.join('./dist', filepath);
-
-    fs.mkdirSync(path.dirname(destPath), { recursive: true });
-    if (filepath.endsWith('.js')) {
-      fs.copyFileSync(srcPath, destPath + '.flow');
-
-      const cjs = babelBuild(srcPath, { envName: 'cjs' });
-      fs.writeFileSync(destPath, cjs);
-    } else if (filepath.endsWith('d.ts')) {
-      fs.copyFileSync(srcPath, destPath);
-    }
-  }
+  const { options } = ts.convertCompilerOptionsFromJson(
+    tsConfig.compilerOptions,
+    process.cwd(),
+  );
+  const program = ts.createProgram({
+    rootNames: srcFiles.map((filepath) => path.join('./src', filepath)),
+    options,
+  });
+  program.emit(undefined, undefined, undefined, undefined, {
+    after: [transformLoadFileStaticallyFromNPM],
+  });
+  downlevel('./dist', './dist/ts3.4');
 
   fs.copyFileSync('./LICENSE', './dist/LICENSE');
   fs.copyFileSync('./README.md', './dist/README.md');
@@ -38,10 +42,6 @@ if (require.main === module) {
   fs.writeFileSync('./dist/package.json', JSON.stringify(packageJSON, null, 2));
 
   showStats();
-}
-
-function babelBuild(srcPath, options) {
-  return babel.transformFileSync(srcPath, options).code + '\n';
 }
 
 function buildPackageJSON() {

@@ -1,31 +1,29 @@
-// @flow strict
-
 import type { FormattedExecutionResult } from 'graphql';
 
-export type GraphiQLData = {|
-  query?: string | null,
-  variables?: { +[name: string]: mixed, ... } | null,
-  operationName?: string | null,
-  result?: FormattedExecutionResult,
-|};
+export interface GraphiQLData {
+  query?: string | null;
+  variables?: { readonly [name: string]: unknown } | null;
+  operationName?: string | null;
+  result?: FormattedExecutionResult;
+}
 
-export type GraphiQLOptions = {|
+export interface GraphiQLOptions {
   /**
    * An optional GraphQL string to use when no query is provided and no stored
    * query exists from a previous session.  If undefined is provided, GraphiQL
    * will use its own default query.
    */
-  defaultQuery?: string,
+  defaultQuery?: string;
 
   /**
    * An optional boolean which enables the header editor when true.
    * Defaults to false.
    */
-  headerEditorEnabled?: boolean,
-|};
+  headerEditorEnabled?: boolean;
+}
 
 // Ensures string values are safe to be used within a <script> tag.
-function safeSerialize(data: string | boolean | null | void): string {
+function safeSerialize(data: string | boolean | null | undefined): string {
   return data != null
     ? JSON.stringify(data).replace(/\//g, '\\/')
     : 'undefined';
