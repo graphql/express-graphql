@@ -15,7 +15,7 @@ import type {
   GraphQLFormattedError,
 } from 'graphql';
 import accepts from 'accepts';
-import httpError, { HttpError } from 'http-errors';
+import httpError from 'http-errors';
 import {
   Source,
   parse,
@@ -31,7 +31,9 @@ import type { GraphiQLOptions, GraphiQLData } from './renderGraphiQL';
 import { parseBody } from './parseBody';
 import { renderGraphiQL } from './renderGraphiQL';
 
-type Request = IncomingMessage;
+// `url` is always defined for IncomingMessage coming from http.Server
+type Request = IncomingMessage & { url: string };
+
 type Response = ServerResponse & { json?: (data: unknown) => void };
 type MaybePromise<T> = Promise<T> | T;
 
@@ -361,11 +363,10 @@ export function graphqlHTTP(options: Options): Middleware {
       // If an error was caught, report the httpError status, or 500.
       response.statusCode = error.status ?? 500;
 
-      if (error.headers) {
-        const err = error as HttpError;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        for (const [key, value] of Object.entries(err.headers!)) {
-          response.setHeader(key, value);
+      const { headers } = error;
+      if (headers != null) {
+        for (const [key, value] of Object.entries(headers)) {
+          response.setHeader(key, String(value));
         }
       }
 
@@ -465,9 +466,7 @@ export interface GraphQLParams {
 export async function getGraphQLParams(
   request: Request,
 ): Promise<GraphQLParams> {
-  // `url` is always defined for IncomingMessage coming from http.Server
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const urlData = new URLSearchParams(request.url!.split('?')[1]);
+  const urlData = new URLSearchParams(request.url.split('?')[1]);
   const bodyData = await parseBody(request);
 
   // GraphQL Query string.
