@@ -6,12 +6,9 @@ import querystring from 'querystring';
 import getBody from 'raw-body';
 import httpError from 'http-errors';
 import contentType from 'content-type';
+import type { ParsedMediaType } from 'content-type';
 
 type Request = IncomingMessage & { body?: unknown };
-interface ParsedMediaType {
-  type: string;
-  parameters: { [key: string]: string | undefined };
-}
 
 /**
  * Provided a "Request" provided by express or connect (typically a node style
@@ -106,7 +103,7 @@ async function readBody(
   } catch (err) {
     throw err.type === 'encoding.unsupported'
       ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
-      : httpError(400, `Invalid body: ${err.message as string}.`);
+      : httpError(400, `Invalid body: ${String(err.message)}.`);
   }
 }
 
