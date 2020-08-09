@@ -1,14 +1,26 @@
 {
   "name": "express-graphql",
-  "version": "0.6.12",
+  "version": "0.11.0",
   "description": "Production ready GraphQL HTTP middleware.",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
+  "private": true,
+  "main": "index.js",
+  "types": "index.d.ts",
+  "typesVersions": {
+    "<3.8": {
+      "*": [
+        "ts3.4/*"
+      ]
+    }
+  },
+  "sideEffects": false,
+  "homepage": "https://github.com/graphql/express-graphql",
   "bugs": {
     "url": "https://github.com/graphql/express-graphql/issues"
   },
   "repository": {
     "type": "git",
-    "url": "http://github.com/graphql/express-graphql.git"
+    "url": "https://github.com/graphql/express-graphql.git"
   },
   "keywords": [
     "express",
@@ -19,80 +31,74 @@
     "middleware",
     "api"
   ],
-  "main": "dist/index.js",
-  "directories": {
-    "lib": "./dist"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE",
-    "PATENTS"
-  ],
-  "options": {
-    "mocha": "--require resources/mocha-bootload src/**/__tests__/**/*.js"
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ],
-    "plugins": [
-      "transform-class-properties",
-      "transform-flow-strip-types"
-    ]
+  "engines": {
+    "node": ">= 10.x"
   },
   "scripts": {
-    "prepublish": ". ./resources/prepublish.sh",
-    "test": "npm run lint && npm run pretty-check && npm run check && npm run testonly",
-    "testonly": "mocha $npm_package_options_mocha",
-    "lint": "eslint src",
-    "check": "flow check",
-    "build": "rm -rf dist/* && babel src --ignore __tests__ --out-dir dist && npm run build:flow",
-    "build:flow": "find ./src -name '*.js' -not -path '*/__tests__*' | while read filepath; do cp $filepath `echo $filepath | sed 's/\\/src\\//\\/dist\\//g'`.flow; done",
-    "watch": "node resources/watch.js",
-    "cover": "babel-node node_modules/.bin/isparta cover --root src --report html node_modules/.bin/_mocha -- $npm_package_options_mocha",
-    "cover:lcov": "babel-node node_modules/.bin/isparta cover --root src --report lcovonly node_modules/.bin/_mocha -- $npm_package_options_mocha",
-    "pretty": "node resources/pretty.js",
-    "pretty-check": "node resources/pretty.js --check",
-    "preversion": "npm test",
-    "start": "babel-node examples/index.js"
+    "preversion": ". ./resources/checkgit.sh && npm ci",
+    "changelog": "node resources/gen-changelog.js",
+    "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build && npm run check:integrations",
+    "lint": "eslint .",
+    "check": "tsc --noEmit",
+    "testonly": "mocha src/**/__tests__/**/*.ts",
+    "testonly:cover": "nyc npm run testonly",
+    "prettier": "prettier --write --list-different .",
+    "prettier:check": "prettier --check .",
+    "check:spelling": "cspell '**/*'",
+    "check:integrations": "mocha --full-trace integrationTests/*-test.js",
+    "build": "node resources/build.js",
+    "start": "node -r ./resources/register.js examples/index.ts"
   },
   "dependencies": {
-    "accepts": "^1.3.0",
+    "accepts": "^1.3.7",
     "content-type": "^1.0.4",
-    "http-errors": "^1.3.0",
-    "raw-body": "^2.3.2"
+    "http-errors": "1.8.0",
+    "raw-body": "^2.4.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-eslint": "^8.2.1",
-    "babel-plugin-transform-async-to-generator": "6.24.1",
-    "babel-plugin-transform-class-properties": "6.24.1",
-    "babel-plugin-transform-flow-strip-types": "6.22.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-es2015": "6.24.1",
-    "babel-register": "^6.26.0",
-    "babel-runtime": "^6.26.0",
-    "body-parser": "1.18.2",
-    "chai": "^4.1.2",
-    "connect": "3.6.6",
-    "coveralls": "3.0.0",
-    "eslint": "^4.18.0",
-    "eslint-plugin-flowtype": "^2.44.0",
-    "express": "^4.16.2",
-    "express3": "*",
-    "flow-bin": "^0.65.0",
-    "graphql": "^0.13.1",
-    "isparta": "4.0.0",
-    "mocha": "5.0.1",
-    "multer": "1.3.0",
-    "prettier": "^1.10.2",
-    "restify": "4.3.2",
-    "sane": "2.4.1",
-    "sinon": "^4.3.0",
-    "supertest": "3.0.0"
+    "@types/accepts": "1.3.5",
+    "@types/body-parser": "1.19.0",
+    "@types/chai": "4.2.11",
+    "@types/connect": "3.4.33",
+    "@types/content-type": "1.1.3",
+    "@types/express": "4.17.6",
+    "@types/http-errors": "1.6.3",
+    "@types/mocha": "7.0.2",
+    "@types/multer": "1.4.3",
+    "@types/node": "14.0.14",
+    "@types/restify": "8.4.2",
+    "@types/sinon": "9.0.4",
+    "@types/supertest": "2.0.10",
+    "@typescript-eslint/eslint-plugin": "3.5.0",
+    "@typescript-eslint/parser": "3.5.0",
+    "body-parser": "1.19.0",
+    "chai": "4.2.0",
+    "connect": "3.7.0",
+    "cspell": "4.0.63",
+    "downlevel-dts": "0.5.0",
+    "eslint": "7.3.1",
+    "eslint-plugin-import": "2.22.0",
+    "eslint-plugin-internal-rules": "file:./resources/eslint-internal-rules",
+    "eslint-plugin-istanbul": "0.1.2",
+    "eslint-plugin-node": "11.1.0",
+    "express": "4.17.1",
+    "graphiql": "1.0.3",
+    "graphql": "15.3.0",
+    "mocha": "8.0.1",
+    "multer": "1.4.2",
+    "nyc": "15.1.0",
+    "prettier": "2.0.5",
+    "promise-polyfill": "8.1.3",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "restify": "8.5.1",
+    "sinon": "9.0.2",
+    "supertest": "4.0.2",
+    "ts-node": "8.10.2",
+    "typescript": "3.9.6",
+    "unfetch": "4.1.0"
   },
   "peerDependencies": {
-    "graphql": "^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0"
+    "graphql": "^14.7.0 || ^15.3.0"
   }
 }

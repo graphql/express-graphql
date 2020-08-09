@@ -1,0 +1,4 @@
+throw-deprecation: true
+check-leaks: true
+require:
+  - './resources/register.js'

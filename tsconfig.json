@@ -1,0 +1,16 @@
+{
+  "exclude": ["integrationTests/ts/**/*"],
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": ["es2018", "esnext.asynciterable"],
+    "esModuleInterop": true,
+    "target": "es2018",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "outDir": "dist",
+    "declaration": true
+  }
+}

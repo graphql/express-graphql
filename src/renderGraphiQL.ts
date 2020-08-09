@@ -1,28 +1,36 @@
-/**
- *  Copyright (c) 2015-present, Facebook, Inc.
- *  All rights reserved.
- *
- *  This source code is licensed under the BSD-style license found in the
- *  LICENSE file in the root directory of this source tree. An additional grant
- *  of patent rights can be found in the PATENTS file in the same directory.
- *
- *  @flow strict
- */
+import type { FormattedExecutionResult } from 'graphql';
 
-type GraphiQLData = {
-  query: ?string,
-  variables: ?{ [name: string]: mixed },
-  operationName: ?string,
-  result?: mixed,
-};
+export interface GraphiQLData {
+  query?: string | null;
+  variables?: { readonly [name: string]: unknown } | null;
+  operationName?: string | null;
+  result?: FormattedExecutionResult;
+}
 
-// Current latest version of GraphiQL.
-const GRAPHIQL_VERSION = '0.11.11';
+export interface GraphiQLOptions {
+  /**
+   * An optional GraphQL string to use when no query is provided and no stored
+   * query exists from a previous session.  If undefined is provided, GraphiQL
+   * will use its own default query.
+   */
+  defaultQuery?: string;
+
+  /**
+   * An optional boolean which enables the header editor when true.
+   * Defaults to false.
+   */
+  headerEditorEnabled?: boolean;
+}
 
 // Ensures string values are safe to be used within a <script> tag.
-function safeSerialize(data) {
-  return data ? JSON.stringify(data).replace(/\//g, '\\/') : 'undefined';
+function safeSerialize(data: string | boolean | null | undefined): string {
+  return data != null
+    ? JSON.stringify(data).replace(/\//g, '\\/')
+    : 'undefined';
 }
+
+// Implemented as Babel transformation, see ../resources/load-statically-from-npm.js
+declare function loadFileStaticallyFromNPM(npmPath: string): string;
 
 /**
  * When express-graphql receives a request which does not Accept JSON, but does
@@ -31,15 +39,18 @@ function safeSerialize(data) {
  * When shown, it will be pre-populated with the result of having executed the
  * requested query.
  */
-export function renderGraphiQL(data: GraphiQLData): string {
+export function renderGraphiQL(
+  data: GraphiQLData,
+  options?: GraphiQLOptions,
+): string {
   const queryString = data.query;
-  const variablesString = data.variables
-    ? JSON.stringify(data.variables, null, 2)
-    : null;
-  const resultString = data.result
-    ? JSON.stringify(data.result, null, 2)
-    : null;
+  const variablesString =
+    data.variables != null ? JSON.stringify(data.variables, null, 2) : null;
+  const resultString =
+    data.result != null ? JSON.stringify(data.result, null, 2) : null;
   const operationName = data.operationName;
+  const defaultQuery = options?.defaultQuery;
+  const headerEditorEnabled = options?.headerEditorEnabled;
 
   return `<!--
 The request to this GraphQL server provided the header "Accept: text/html"
@@ -55,24 +66,41 @@ add "&raw" to the end of the URL within a browser.
   <meta charset="utf-8" />
   <title>GraphiQL</title>
   <meta name="robots" content="noindex" />
-  <meta name="referrer" content="origin">
+  <meta name="referrer" content="origin" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      height: 100%;
       margin: 0;
       overflow: hidden;
-      width: 100%;
     }
     #graphiql {
       height: 100vh;
     }
   </style>
-  <link href="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.css" rel="stylesheet" />
-  <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
-  <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
-  <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/graphiql@${GRAPHIQL_VERSION}/graphiql.min.js"></script>
+  <style>
+    /* graphiql/graphiql.css */
+    ${loadFileStaticallyFromNPM('graphiql/graphiql.css')}
+  </style>
+  <script>
+    // promise-polyfill/dist/polyfill.min.js
+    ${loadFileStaticallyFromNPM('promise-polyfill/dist/polyfill.min.js')}
+  </script>
+  <script>
+    // unfetch/dist/unfetch.umd.js
+    ${loadFileStaticallyFromNPM('unfetch/dist/unfetch.umd.js')}
+  </script>
+  <script>
+    // react/umd/react.production.min.js
+    ${loadFileStaticallyFromNPM('react/umd/react.production.min.js')}
+  </script>
+  <script>
+    // react-dom/umd/react-dom.production.min.js
+    ${loadFileStaticallyFromNPM('react-dom/umd/react-dom.production.min.js')}
+  </script>
+  <script>
+    // graphiql/graphiql.min.js
+    ${loadFileStaticallyFromNPM('graphiql/graphiql.min.js')}
+  </script>
 </head>
 <body>
   <div id="graphiql">Loading...</div>
@@ -113,23 +141,20 @@ add "&raw" to the end of the URL within a browser.
     var fetchURL = locationQuery(otherParams);
 
     // Defines a GraphQL fetcher using the fetch API.
-    function graphQLFetcher(graphQLParams) {
+    function graphQLFetcher(graphQLParams, opts) {
       return fetch(fetchURL, {
         method: 'post',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
+        headers: Object.assign(
+          {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          opts && opts.headers,
+        ),
         body: JSON.stringify(graphQLParams),
         credentials: 'include',
       }).then(function (response) {
-        return response.text();
-      }).then(function (responseBody) {
-        try {
-          return JSON.parse(responseBody);
-        } catch (error) {
-          return responseBody;
-        }
+        return response.json();
       });
     }
 
@@ -165,6 +190,8 @@ add "&raw" to the end of the URL within a browser.
         response: ${safeSerialize(resultString)},
         variables: ${safeSerialize(variablesString)},
         operationName: ${safeSerialize(operationName)},
+        defaultQuery: ${safeSerialize(defaultQuery)},
+        headerEditorEnabled: ${safeSerialize(headerEditorEnabled)},
       }),
       document.getElementById('graphiql')
     );
