@@ -596,6 +596,9 @@ overrides:
       import/no-extraneous-dependencies: [error, { devDependencies: true }]
       import/no-nodejs-modules: off
       no-console: off
+  - files: 'integrationTests/*/**'
+    rules:
+      node/no-missing-require: off
   - files: 'resources/**'
     rules:
       node/no-unpublished-import: off
