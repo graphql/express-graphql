@@ -90,7 +90,7 @@ rules:
   # https://github.com/benmosher/eslint-plugin-import#static-analysis
   import/no-unresolved: error
   import/named: error
-  import/default: off # FIXME
+  import/default: error
   import/namespace: error
   import/no-restricted-paths:
     - error
@@ -120,7 +120,7 @@ rules:
   # Module systems
   # https://github.com/benmosher/eslint-plugin-import#module-systems
   import/unambiguous: error
-  import/no-commonjs: off # FIXME
+  import/no-commonjs: error
   import/no-amd: error
   import/no-nodejs-modules: off
 
