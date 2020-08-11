@@ -144,7 +144,7 @@ rules:
   import/dynamic-import-chunkname: off
 
   ##############################################################################
-  # ESLint builtin rules list based on `v7.3.x`
+  # ESLint builtin rules list based on `v7.6.x`
   ##############################################################################
 
   # Possible Errors
@@ -176,7 +176,7 @@ rules:
   no-loss-of-precision: error
   no-misleading-character-class: error
   no-obj-calls: error
-  no-promise-executor-return: error
+  no-promise-executor-return: off # TODO
   no-prototype-builtins: error
   no-regex-spaces: error
   no-setter-return: error
@@ -299,7 +299,7 @@ rules:
   func-name-matching: off
   func-names: off
   func-style: off
-  id-blacklist: off
+  id-denylist: off
   id-length: off
   id-match: [error, '^(?:_?[a-zA-Z0-9]*)|[_A-Z0-9]+$']
   line-comment-position: off
@@ -447,7 +447,7 @@ overrides:
       node/no-unsupported-features/es-syntax: off
 
       ##########################################################################
-      # `@typescript-eslint/eslint-plugin` rule list based on `v3.5.x`
+      # `@typescript-eslint/eslint-plugin` rule list based on `v3.9.x`
       ##########################################################################
 
       # Supported Rules
@@ -504,9 +504,11 @@ overrides:
       '@typescript-eslint/no-unused-vars-experimental': off
       '@typescript-eslint/no-var-requires': error
       '@typescript-eslint/prefer-as-const': off # TODO consider
+      '@typescript-eslint/prefer-enum-initializers': off # TODO consider
       '@typescript-eslint/prefer-for-of': off # TODO switch to error after TS migration
       '@typescript-eslint/prefer-function-type': error
       '@typescript-eslint/prefer-includes': off # TODO switch to error after IE11 drop
+      '@typescript-eslint/prefer-literal-enum-member': error
       '@typescript-eslint/prefer-namespace-keyword': error
       '@typescript-eslint/prefer-nullish-coalescing': error
       '@typescript-eslint/prefer-optional-chain': error
