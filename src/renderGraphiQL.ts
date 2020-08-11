@@ -62,10 +62,14 @@ export function renderGraphiQL(
   if (subscriptionEndpoint) {
     subscriptionScripts = `
     <script>
-      ${loadFileStaticallyFromNPM('subscriptions-transport-ws/browser/client.js')}
+      ${loadFileStaticallyFromNPM(
+        'subscriptions-transport-ws/browser/client.js',
+      )}
     </script>
     <script>
-      ${loadFileStaticallyFromNPM('graphiql-subscriptions-fetcher/browser/client.js')}
+      ${loadFileStaticallyFromNPM(
+        'graphiql-subscriptions-fetcher/browser/client.js',
+      )}
     </script>
     `;
   }
