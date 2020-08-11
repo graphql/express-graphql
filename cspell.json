@@ -5,7 +5,7 @@
     ".eslintcache",
     "node_modules",
     "coverage",
-    "dist",
+    "npmDist",
 
     // Excluded from spelling check
     "cspell.json",

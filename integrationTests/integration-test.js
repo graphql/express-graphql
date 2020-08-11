@@ -19,7 +19,7 @@ describe('Integration Tests', () => {
   fs.rmdirSync(tmpDir, { recursive: true });
   fs.mkdirSync(tmpDir);
 
-  const distDir = path.resolve('./dist');
+  const distDir = path.resolve('./npmDist');
   exec(`npm pack ${distDir} && cp express-graphql-*.tgz express-graphql.tgz`, {
     cwd: tmpDir,
   });

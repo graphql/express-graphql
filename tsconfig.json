@@ -10,7 +10,6 @@
     "noImplicitThis": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
-    "outDir": "dist",
     "declaration": true
   }
 }
