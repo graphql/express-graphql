@@ -144,7 +144,7 @@ rules:
   import/dynamic-import-chunkname: off
 
   ##############################################################################
-  # ESLint builtin rules list based on `v7.7.x`
+  # ESLint builtin rules list based on `v7.8.x`
   ##############################################################################
 
   # Possible Errors
@@ -447,7 +447,7 @@ overrides:
       node/no-unsupported-features/es-syntax: off
 
       ##########################################################################
-      # `@typescript-eslint/eslint-plugin` rule list based on `v3.9.x`
+      # `@typescript-eslint/eslint-plugin` rule list based on `v4.0.x`
       ##########################################################################
 
       # Supported Rules
@@ -462,6 +462,7 @@ overrides:
       '@typescript-eslint/consistent-type-assertions':
         [error, { assertionStyle: as, objectLiteralTypeAssertions: never }]
       '@typescript-eslint/consistent-type-definitions': off # TODO consider
+      '@typescript-eslint/consistent-type-imports': error
       '@typescript-eslint/explicit-function-return-type': off # TODO consider
       '@typescript-eslint/explicit-member-accessibility': off # TODO consider
       '@typescript-eslint/explicit-module-boundary-types': off # TODO consider
@@ -477,6 +478,7 @@ overrides:
       '@typescript-eslint/no-extraneous-class': off # TODO consider
       '@typescript-eslint/no-floating-promises': error
       '@typescript-eslint/no-for-in-array': error
+      '@typescript-eslint/no-implicit-any-catch': off # TODO: Enable
       '@typescript-eslint/no-implied-eval': error
       '@typescript-eslint/no-inferrable-types':
         [error, { ignoreParameters: true, ignoreProperties: true }]
@@ -501,7 +503,6 @@ overrides:
       '@typescript-eslint/no-unsafe-call': off # TODO consider
       '@typescript-eslint/no-unsafe-member-access': off # TODO consider
       '@typescript-eslint/no-unsafe-return': off # TODO consider
-      '@typescript-eslint/no-unused-vars-experimental': off
       '@typescript-eslint/no-var-requires': error
       '@typescript-eslint/prefer-as-const': off # TODO consider
       '@typescript-eslint/prefer-enum-initializers': off # TODO consider
@@ -542,6 +543,8 @@ overrides:
       no-empty-function: off
       no-invalid-this: off
       no-loss-of-precision: off
+      no-redeclare: off
+      no-shadow: off
       no-unused-expressions: off
       no-unused-vars: off
       no-useless-constructor: off
@@ -556,6 +559,8 @@ overrides:
       '@typescript-eslint/no-empty-function': error
       '@typescript-eslint/no-invalid-this': error
       '@typescript-eslint/no-loss-of-precision': error
+      '@typescript-eslint/no-redeclare': error
+      '@typescript-eslint/no-shadow': error
       '@typescript-eslint/no-unused-expressions': error
       '@typescript-eslint/no-unused-vars':
         [error, { vars: all, args: all, argsIgnorePattern: '^_' }]
