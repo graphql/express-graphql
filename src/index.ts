@@ -116,6 +116,15 @@ export interface OptionsData {
   formatError?: (error: GraphQLError) => GraphQLFormattedError;
 
   /**
+   * Use this to modify the response when a runtime query error occurs. By
+   * default the statusCode will be set to 500.
+   */
+  handleRuntimeQueryErrorFn?: (
+    result: ExecutionResult,
+    response: Response,
+  ) => void;
+
+  /**
    * An optional function for adding additional metadata to the GraphQL response
    * as a key-value object. The result will be added to "extensions" field in
    * the resulting JSON. This is often a useful place to add development time
@@ -200,6 +209,7 @@ export function graphqlHTTP(options: Options): Middleware {
     let formatErrorFn = formatError;
     let pretty = false;
     let result: ExecutionResult;
+    let optionsData: OptionsData | undefined;
 
     try {
       // Parse the Request to get GraphQL request parameters.
@@ -208,7 +218,7 @@ export function graphqlHTTP(options: Options): Middleware {
       } catch (error: unknown) {
         // When we failed to parse the GraphQL parameters, we still need to get
         // the options object, so make an options call to resolve just that.
-        const optionsData = await resolveOptions();
+        optionsData = await resolveOptions();
         pretty = optionsData.pretty ?? false;
         formatErrorFn =
           optionsData.customFormatErrorFn ??
@@ -218,7 +228,7 @@ export function graphqlHTTP(options: Options): Middleware {
       }
 
       // Then, resolve the Options to get OptionsData.
-      const optionsData: OptionsData = await resolveOptions(params);
+      optionsData = await resolveOptions(params);
 
       // Collect information from the options data object.
       const schema = optionsData.schema;
@@ -388,13 +398,22 @@ export function graphqlHTTP(options: Options): Middleware {
       }
     }
 
-    // If no data was included in the result, that indicates a runtime query
-    // error, indicate as such with a generic status code.
-    // Note: Information about the error itself will still be contained in
-    // the resulting JSON payload.
-    // https://graphql.github.io/graphql-spec/#sec-Data
-    if (response.statusCode === 200 && result.data == null) {
-      response.statusCode = 500;
+    if (result.errors != null || result.data == null) {
+      const handleRuntimeQueryErrorFn =
+        optionsData?.handleRuntimeQueryErrorFn ??
+        ((_result, _response) => {
+          // If no data was included in the result, that indicates a runtime query
+          // error, indicate as such with a generic status code.
+          // Note: Information about the error itself will still be contained in
+          // the resulting JSON payload.
+          // https://graphql.github.io/graphql-spec/#sec-Data
+
+          if (_response.statusCode === 200 && _result.data == null) {
+            _response.statusCode = 500;
+          }
+        });
+
+      handleRuntimeQueryErrorFn(result, response);
     }
 
     // Format any encountered errors.

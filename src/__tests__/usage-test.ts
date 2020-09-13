@@ -2,7 +2,12 @@ import express from 'express';
 import request from 'supertest';
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { GraphQLSchema } from 'graphql';
+import {
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLSchema,
+  GraphQLString,
+} from 'graphql';
 
 import { graphqlHTTP } from '../index';
 
@@ -94,6 +99,40 @@ describe('Useful errors when incorrectly used', () => {
         { message: 'GraphQL middleware options must contain a schema.' },
       ],
     });
+  });
+
+  it('uses the custom runtime query error handling function', async () => {
+    const schema = new GraphQLSchema({
+      query: new GraphQLObjectType({
+        name: 'QueryRoot',
+        fields: {
+          test: {
+            type: new GraphQLNonNull(GraphQLString),
+            resolve() {
+              throw new Error('Throws!');
+            },
+          },
+        },
+      }),
+    });
+
+    const app = express();
+
+    app.use(
+      '/graphql',
+      graphqlHTTP({
+        handleRuntimeQueryErrorFn(_, response) {
+          response.setHeader('customRuntimeQueryError', "I'm a teapot");
+          response.statusCode = 418;
+        },
+        schema,
+      }),
+    );
+
+    const response = await request(app).get('/graphql?query={test}');
+
+    expect(response.status).to.equal(418);
+    expect(response.get('customRuntimeQueryError')).to.equal("I'm a teapot");
   });
 
   it('validates schema before executing request', async () => {
