@@ -175,6 +175,9 @@ The `graphqlHTTP` function accepts the following options:
 - **`formatError`**: is deprecated and replaced by `customFormatErrorFn`. It will be
   removed in version 1.0.0.
 
+- **`handleRuntimeQueryErrorFn`**: An optional function which can be used to change the headers or status code of the response in case of a runtime query error. By default, the status code is set to `500`.
+  To ensure compatibility, make sure to take note of [the GraphQL spec regarding status codes](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#status-codes).
+
 In addition to an object defining each option, options can also be provided as
 a function (or async function) which returns this options object. This function
 is provided the arguments `(request, response, graphQLParams)` and is called
