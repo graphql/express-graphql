@@ -19,16 +19,24 @@ describe('Integration Tests', () => {
   fs.rmdirSync(tmpDir, { recursive: true });
   fs.mkdirSync(tmpDir);
 
-  const distDir = path.resolve('./dist');
+  const distDir = path.resolve('./npmDist');
   exec(`npm pack ${distDir} && cp express-graphql-*.tgz express-graphql.tgz`, {
     cwd: tmpDir,
   });
 
-  it('Should compile with all supported TS versions', () => {
-    exec(`cp -R ${path.join(__dirname, 'ts')} ${tmpDir}`);
+  function testOnNodeProject(projectName) {
+    exec(`cp -R ${path.join(__dirname, projectName)} ${tmpDir}`);
 
-    const cwd = path.join(tmpDir, 'ts');
-    exec('npm install --silent', { cwd });
+    const cwd = path.join(tmpDir, projectName);
+    exec('npm install --quiet', { cwd });
     exec('npm test', { cwd });
+  }
+
+  it('Should compile with all supported TS versions', () => {
+    testOnNodeProject('ts');
+  }).timeout(40000);
+
+  it('Should work on all supported node versions', () => {
+    testOnNodeProject('node');
   }).timeout(40000);
 });

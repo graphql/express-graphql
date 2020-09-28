@@ -67,11 +67,11 @@ function readdirRecursive(dirPath, opts = {}) {
   return result;
 }
 
-function showStats() {
+function showDirStats(dirPath) {
   const fileTypes = {};
   let totalSize = 0;
 
-  for (const filepath of readdirRecursive('./dist')) {
+  for (const filepath of readdirRecursive(dirPath)) {
     const name = filepath.split(path.sep).pop();
     const [base, ...splitExt] = name.split('.');
     const ext = splitExt.join('.');
@@ -79,7 +79,7 @@ function showStats() {
     const filetype = ext ? '*.' + ext : base;
     fileTypes[filetype] = fileTypes[filetype] || { filepaths: [], size: 0 };
 
-    const { size } = fs.lstatSync(path.join('./dist', filepath));
+    const { size } = fs.lstatSync(path.join(dirPath, filepath));
     totalSize += size;
     fileTypes[filetype].size += size;
     fileTypes[filetype].filepaths.push(filepath);
@@ -118,5 +118,5 @@ module.exports = {
   execAsync,
   rmdirRecursive,
   readdirRecursive,
-  showStats,
+  showDirStats,
 };

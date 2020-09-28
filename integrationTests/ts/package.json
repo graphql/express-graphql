@@ -1,4 +1,5 @@
 {
+  "private": true,
   "scripts": {
     "test": "node test.js"
   },
@@ -11,6 +12,7 @@
     "typescript-3.6": "npm:typescript@3.6.x",
     "typescript-3.7": "npm:typescript@3.7.x",
     "typescript-3.8": "npm:typescript@3.8.x",
-    "typescript-3.9": "npm:typescript@3.9.x"
+    "typescript-3.9": "npm:typescript@3.9.x",
+    "typescript-4.0": "npm:typescript@4.0.x"
   }
 }
