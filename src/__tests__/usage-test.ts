@@ -118,7 +118,7 @@ describe('Useful errors when incorrectly used', () => {
     });
   });
 
-  it('requires a valid schema if static scheme is defined in options', () => {
+  it('requires a valid schema if static schema is defined in options', () => {
     expect(() => {
       // @ts-expect-error
       graphqlHTTP({ schema: new GraphQLSchema({ directives: [null] }) });
