@@ -190,6 +190,12 @@ export function graphqlHTTP(options: Options): Middleware {
     throw new Error('GraphQL middleware requires options.');
   }
 
+  const staticSchemaValidationErrors =
+    'schema' in options ? validateSchema(options.schema) : undefined;
+
+  if (staticSchemaValidationErrors?.length) {
+    throw Error('GraphQL schema validation failed');
+  }
   return async function graphqlMiddleware(
     request: Request,
     response: Response,
@@ -272,7 +278,8 @@ export function graphqlHTTP(options: Options): Middleware {
       }
 
       // Validate Schema
-      const schemaValidationErrors = validateSchema(schema);
+      const schemaValidationErrors =
+        staticSchemaValidationErrors ?? validateSchema(schema);
       if (schemaValidationErrors.length > 0) {
         // Return 500: Internal Server Error if invalid schema.
         throw httpError(500, 'GraphQL schema validation error.', {
