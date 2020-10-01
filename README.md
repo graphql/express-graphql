@@ -68,6 +68,54 @@ app.get(
 app.listen(4000);
 ```
 
+## Setup with Subscription Support
+
+```js
+const express = require('express');
+const { graphqlHTTP } = require('express-graphql');
+
+const typeDefs = require('./schema');
+const resolvers = require('./resolvers');
+const { makeExecutableSchema } = require('graphql-tools');
+const schema = makeExecutableSchema({
+  typeDefs: typeDefs,
+  resolvers: resolvers,
+});
+
+const { execute, subscribe } = require('graphql');
+const { createServer } = require('http');
+const { SubscriptionServer } = require('subscriptions-transport-ws');
+
+const PORT = 4000;
+
+var app = express();
+
+app.use(
+  '/graphql',
+  graphqlHTTP({
+    schema: schema,
+    graphiql: { subscriptionEndpoint: `ws://localhost:${PORT}/subscriptions` },
+  }),
+);
+
+const ws = createServer(app);
+
+ws.listen(PORT, () => {
+  // Set up the WebSocket for handling GraphQL subscriptions.
+  new SubscriptionServer(
+    {
+      execute,
+      subscribe,
+      schema,
+    },
+    {
+      server: ws,
+      path: '/subscriptions',
+    },
+  );
+});
+```
+
 ## Options
 
 The `graphqlHTTP` function accepts the following options:
@@ -87,6 +135,8 @@ The `graphqlHTTP` function accepts the following options:
 
   - **`headerEditorEnabled`**: An optional boolean which enables the header editor when true.
     Defaults to false.
+
+  - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
 
 - **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
   function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
