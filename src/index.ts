@@ -16,6 +16,7 @@ import type {
 } from 'graphql';
 import accepts from 'accepts';
 import httpError from 'http-errors';
+import type { HttpError } from 'http-errors';
 import {
   Source,
   parse,
@@ -100,7 +101,9 @@ export interface OptionsData {
    * fulfilling a GraphQL operation. If no function is provided, GraphQL's
    * default spec-compliant `formatError` function will be used.
    */
-  customFormatErrorFn?: (error: GraphQLError) => GraphQLFormattedError;
+  customFormatErrorFn?: (
+    error: GraphQLError | HttpError,
+  ) => GraphQLFormattedError;
 
   /**
    * An optional function which will be used to create a document instead of
