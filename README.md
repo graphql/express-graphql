@@ -349,9 +349,12 @@ getGraphQLParams(request).then((params) => {
 ```
 
 ### Integration with other express middlewares
+
 #### [Helmet](https://helmetjs.github.io/)
+
 When using Helmet the default CSP of helmet blocks graphiql's inline scripts support. To enable graphiql with helmet you need to update the contentSecurityPolicies with graphiql's needs.
 The code snippet below makes use of Helmet's default CSP and adds what graphiql needs.
+
 ```js
 app.use(
   helmet({
