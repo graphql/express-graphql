@@ -1,4 +1,5 @@
-import type { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage } from 'http';
+import { ServerResponse } from 'http';
 
 import type {
   ASTVisitor,
@@ -8,6 +9,9 @@ import type {
   ExecutionArgs,
   ExecutionResult,
   FormattedExecutionResult,
+  ExecutionPatchResult,
+  FormattedExecutionPatchResult,
+  AsyncExecutionResult,
   GraphQLSchema,
   GraphQLFieldResolver,
   GraphQLTypeResolver,
@@ -30,12 +34,16 @@ import {
 
 import type { GraphiQLOptions, GraphiQLData } from './renderGraphiQL';
 import { parseBody } from './parseBody';
+import { isAsyncIterable } from './isAsyncIterable';
 import { renderGraphiQL } from './renderGraphiQL';
 
 // `url` is always defined for IncomingMessage coming from http.Server
 type Request = IncomingMessage & { url: string };
 
-type Response = ServerResponse & { json?: (data: unknown) => void };
+type Response = ServerResponse & {
+  json?: (data: unknown) => void;
+  flush?: () => void;
+};
 type MaybePromise<T> = Promise<T> | T;
 
 /**
@@ -94,7 +102,9 @@ export interface OptionsData {
    * An optional function which will be used to execute instead of default `execute`
    * from `graphql-js`.
    */
-  customExecuteFn?: (args: ExecutionArgs) => MaybePromise<ExecutionResult>;
+  customExecuteFn?: (
+    args: ExecutionArgs,
+  ) => MaybePromise<ExecutionResult | AsyncIterable<AsyncExecutionResult>>;
 
   /**
    * An optional function which will be used to format any errors produced by
@@ -172,7 +182,7 @@ export interface RequestInfo {
   /**
    * The result of executing the operation.
    */
-  result: FormattedExecutionResult;
+  result: AsyncExecutionResult;
 
   /**
    * A value to pass as the context to the graphql() function.
@@ -198,7 +208,10 @@ export function graphqlHTTP(options: Options): Middleware {
     let showGraphiQL = false;
     let graphiqlOptions;
     let formatErrorFn = formatError;
+    let extensionsFn;
     let pretty = false;
+    let documentAST: DocumentNode;
+    let executeResult;
     let result: ExecutionResult;
 
     try {
@@ -227,7 +240,6 @@ export function graphqlHTTP(options: Options): Middleware {
       const fieldResolver = optionsData.fieldResolver;
       const typeResolver = optionsData.typeResolver;
       const graphiql = optionsData.graphiql ?? false;
-      const extensionsFn = optionsData.extensions;
       const context = optionsData.context ?? request;
       const parseFn = optionsData.customParseFn ?? parse;
       const executeFn = optionsData.customExecuteFn ?? execute;
@@ -259,6 +271,23 @@ export function graphqlHTTP(options: Options): Middleware {
         graphiqlOptions = graphiql;
       }
 
+      // Collect and apply any metadata extensions if a function was provided.
+      // https://graphql.github.io/graphql-spec/#sec-Response-Format
+      if (optionsData.extensions) {
+        extensionsFn = (payload: AsyncExecutionResult) => {
+          /* istanbul ignore next condition not reachable, required for flow */
+          if (optionsData.extensions) {
+            return optionsData.extensions({
+              document: documentAST,
+              variables,
+              operationName,
+              result: payload,
+              context,
+            });
+          }
+        };
+      }
+
       // If there is no query, but GraphiQL will be displayed, do not produce
       // a result, otherwise return a 400: Bad Request.
       if (query == null) {
@@ -278,7 +307,6 @@ export function graphqlHTTP(options: Options): Middleware {
       }
 
       // Parse source to AST, reporting any syntax error.
-      let documentAST;
       try {
         documentAST = parseFn(new Source(query, 'GraphQL request'));
       } catch (syntaxError: unknown) {
@@ -324,7 +352,7 @@ export function graphqlHTTP(options: Options): Middleware {
 
       // Perform the execution, reporting any errors creating the context.
       try {
-        result = await executeFn({
+        executeResult = await executeFn({
           schema,
           document: documentAST,
           rootValue,
@@ -341,16 +369,18 @@ export function graphqlHTTP(options: Options): Middleware {
         });
       }
 
-      // Collect and apply any metadata extensions if a function was provided.
-      // https://graphql.github.io/graphql-spec/#sec-Response-Format
+      if (isAsyncIterable(executeResult)) {
+        // Get first payload from AsyncIterator. http status will reflect status
+        // of this payload.
+        const asyncIterator = getAsyncIterator<ExecutionResult>(executeResult);
+        const { value } = await asyncIterator.next();
+        result = value;
+      } else {
+        result = executeResult;
+      }
+
       if (extensionsFn) {
-        const extensions = await extensionsFn({
-          document: documentAST,
-          variables,
-          operationName,
-          result,
-          context,
-        });
+        const extensions = await extensionsFn(result);
 
         if (extensions != null) {
           result = { ...result, extensions };
@@ -402,6 +432,31 @@ export function graphqlHTTP(options: Options): Middleware {
       ...result,
       errors: result.errors?.map(formatErrorFn),
     };
+
+    if (isAsyncIterable(executeResult)) {
+      response.setHeader('Content-Type', 'multipart/mixed; boundary="-"');
+      sendPartialResponse(pretty, response, formattedResult);
+      for await (let payload of executeResult) {
+        // Collect and apply any metadata extensions if a function was provided.
+        // https://graphql.github.io/graphql-spec/#sec-Response-Format
+        if (extensionsFn) {
+          const extensions = await extensionsFn(payload);
+
+          if (extensions != null) {
+            payload = { ...payload, extensions };
+          }
+        }
+        const formattedPayload: FormattedExecutionPatchResult = {
+          // first payload is already consumed, all subsequent payloads typed as ExecutionPatchResult
+          ...(payload as ExecutionPatchResult),
+          errors: payload.errors?.map(formatErrorFn),
+        };
+        sendPartialResponse(pretty, response, formattedPayload);
+      }
+      response.write('\r\n-----\r\n');
+      response.end();
+      return;
+    }
 
     // If allowed to show GraphiQL, present it instead of JSON.
     if (showGraphiQL) {
@@ -524,6 +579,36 @@ function canDisplayGraphiQL(request: Request, params: GraphQLParams): boolean {
 }
 
 /**
+ * Helper function for sending part of a multi-part response using only the core Node server APIs.
+ */
+function sendPartialResponse(
+  pretty: boolean,
+  response: Response,
+  result: FormattedExecutionResult | FormattedExecutionPatchResult,
+): void {
+  const json = JSON.stringify(result, null, pretty ? 2 : 0);
+  const chunk = Buffer.from(json, 'utf8');
+  const data = [
+    '',
+    '---',
+    'Content-Type: application/json; charset=utf-8',
+    'Content-Length: ' + String(chunk.length),
+    '',
+    chunk,
+    '',
+  ].join('\r\n');
+  response.write(data);
+  // flush response if compression middleware is used
+  if (
+    typeof response.flush === 'function' &&
+    // @ts-expect-error deprecated flush method is implemented on ServerResponse but not typed
+    response.flush !== ServerResponse.prototype.flush
+  ) {
+    response.flush();
+  }
+}
+
+/**
  * Helper function for sending a response using only the core Node server APIs.
  */
 function sendResponse(response: Response, type: string, data: string): void {
@@ -538,4 +623,11 @@ function devAssert(condition: unknown, message: string): asserts condition {
   if (!booleanCondition) {
     throw new Error(message);
   }
+}
+
+function getAsyncIterator<T>(
+  asyncIterable: AsyncIterable<T>,
+): AsyncIterator<T> {
+  const method = asyncIterable[Symbol.asyncIterator];
+  return method.call(asyncIterable);
 }

@@ -83,7 +83,7 @@
     "eslint-plugin-node": "11.1.0",
     "express": "4.17.1",
     "graphiql": "1.0.6",
-    "graphql": "15.4.0",
+    "graphql": "15.4.0-experimental-stream-defer.1",
     "mocha": "8.2.1",
     "multer": "1.4.2",
     "nyc": "15.1.0",
