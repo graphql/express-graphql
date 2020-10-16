@@ -479,7 +479,7 @@ export async function getGraphQLParams(
   let variables = (urlData.get('variables') ?? bodyData.variables) as {
     readonly [name: string]: unknown;
   } | null;
-  if (typeof variables === 'string') {
+  if (variables && typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
     } catch (error) {

@@ -190,6 +190,26 @@ function runTests(server: Server) {
       expect(response.text).to.equal('{"data":{"test":"Hello Dolly"}}');
     });
 
+    it('allows GET with empty variable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+        }),
+      );
+
+      const response = await app.request().get(
+        urlString({
+          query: '{test}',
+          variables: '',
+        }),
+      );
+
+      expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+    });
+
     it('allows GET with operation name', async () => {
       const app = server();
 
