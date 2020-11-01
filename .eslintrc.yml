@@ -92,12 +92,7 @@ rules:
   import/named: error
   import/default: error
   import/namespace: error
-  import/no-restricted-paths:
-    - error
-    - basePath: './'
-      zones:
-        - { target: './src', from: 'src/__testUtils__' }
-        - { target: './src', from: 'src/__fixtures__' }
+  import/no-restricted-paths: off
   import/no-absolute-path: error
   import/no-dynamic-require: error
   import/no-internal-modules: off
@@ -144,7 +139,7 @@ rules:
   import/dynamic-import-chunkname: off
 
   ##############################################################################
-  # ESLint builtin rules list based on `v7.8.x`
+  # ESLint builtin rules list based on `v7.12.x`
   ##############################################################################
 
   # Possible Errors
@@ -447,7 +442,7 @@ overrides:
       node/no-unsupported-features/es-syntax: off
 
       ##########################################################################
-      # `@typescript-eslint/eslint-plugin` rule list based on `v4.0.x`
+      # `@typescript-eslint/eslint-plugin` rule list based on `v4.6.x`
       ##########################################################################
 
       # Supported Rules
@@ -458,7 +453,8 @@ overrides:
       '@typescript-eslint/ban-ts-comment': [error, { 'ts-expect-error': false }]
       '@typescript-eslint/ban-tslint-comment': error
       '@typescript-eslint/ban-types': error
-      '@typescript-eslint/class-literal-property-style': off
+      '@typescript-eslint/class-literal-property-style': error
+      '@typescript-eslint/consistent-indexed-object-style': off # TODO enable
       '@typescript-eslint/consistent-type-assertions':
         [error, { assertionStyle: as, objectLiteralTypeAssertions: never }]
       '@typescript-eslint/consistent-type-definitions': off # TODO consider
@@ -499,6 +495,7 @@ overrides:
       '@typescript-eslint/no-unnecessary-qualifier': error
       '@typescript-eslint/no-unnecessary-type-arguments': error
       '@typescript-eslint/no-unnecessary-type-assertion': error
+      '@typescript-eslint/no-unnecessary-type-constraint': off # TODO consider
       '@typescript-eslint/no-unsafe-assignment': off # TODO consider
       '@typescript-eslint/no-unsafe-call': off # TODO consider
       '@typescript-eslint/no-unsafe-member-access': off # TODO consider
@@ -542,6 +539,7 @@ overrides:
       no-dupe-class-members: off
       no-empty-function: off
       no-invalid-this: off
+      no-loop-func: off
       no-loss-of-precision: off
       no-redeclare: off
       no-shadow: off
@@ -558,12 +556,21 @@ overrides:
       '@typescript-eslint/no-dupe-class-members': error
       '@typescript-eslint/no-empty-function': error
       '@typescript-eslint/no-invalid-this': error
+      '@typescript-eslint/no-loop-func': error
       '@typescript-eslint/no-loss-of-precision': error
       '@typescript-eslint/no-redeclare': error
       '@typescript-eslint/no-shadow': error
       '@typescript-eslint/no-unused-expressions': error
       '@typescript-eslint/no-unused-vars':
-        [error, { vars: all, args: all, argsIgnorePattern: '^_' }]
+        [
+          error,
+          {
+            vars: all,
+            args: all,
+            argsIgnorePattern: '^_',
+            varsIgnorePattern: '^_T',
+          },
+        ]
       '@typescript-eslint/no-useless-constructor': error
       '@typescript-eslint/require-await': error
       '@typescript-eslint/return-await': error
@@ -572,11 +579,13 @@ overrides:
       '@typescript-eslint/init-declarations': off
       '@typescript-eslint/no-magic-numbers': off
       '@typescript-eslint/no-use-before-define': off
+      '@typescript-eslint/no-duplicate-imports': off # Superseded by `import/no-duplicates`
 
       # Bellow rules are disabled because coflicts with Prettier, see:
       # https://github.com/prettier/eslint-config-prettier/blob/master/%40typescript-eslint.js
       '@typescript-eslint/quotes': off
       '@typescript-eslint/brace-style': off
+      '@typescript-eslint/comma-dangle': off
       '@typescript-eslint/comma-spacing': off
       '@typescript-eslint/func-call-spacing': off
       '@typescript-eslint/indent': off
@@ -586,6 +595,7 @@ overrides:
       '@typescript-eslint/no-extra-semi': off
       '@typescript-eslint/semi': off
       '@typescript-eslint/space-before-function-paren': off
+      '@typescript-eslint/space-infix-ops': off
       '@typescript-eslint/type-annotation-spacing': off
   - files: ['src/**/__*__/**', 'integrationTests/**']
     rules:

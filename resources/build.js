@@ -30,7 +30,7 @@ if (require.main === module) {
   program.emit(undefined, undefined, undefined, undefined, {
     after: [transformLoadFileStaticallyFromNPM],
   });
-  downlevel('./npmDist', './npmDist/ts3.4');
+  downlevel('./npmDist', './npmDist/ts3.4', '3.4.0');
 
   fs.copyFileSync('./LICENSE', './npmDist/LICENSE');
   fs.copyFileSync('./README.md', './npmDist/README.md');
