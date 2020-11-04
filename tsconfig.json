@@ -1,15 +1,21 @@
 {
   "exclude": ["integrationTests/ts/**/*"],
   "compilerOptions": {
+    "declaration": true,
+    "isolatedModules": true,
+    "lib": ["es2018"],
     "module": "commonjs",
-    "lib": ["es2018", "esnext.asynciterable"],
-    "esModuleInterop": true,
     "target": "es2018",
+    "strict": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "declaration": true
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "error",
+    "newLine": "LF",
+    "preserveConstEnums": true
   }
 }
