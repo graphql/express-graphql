@@ -8,28 +8,31 @@ const childProcess = require('child_process');
 const { describe, it } = require('mocha');
 
 function exec(command, options = {}) {
-  return childProcess.execSync(command, {
-    stdio: 'inherit',
+  const result = childProcess.execSync(command, {
+    encoding: 'utf-8',
     ...options,
   });
+  return result != null ? result.trimEnd() : result;
 }
 
 describe('Integration Tests', () => {
-  const tmpDir = path.join(os.tmpdir(), 'graphql-js-integrationTmp');
+  const tmpDir = path.join(os.tmpdir(), 'express-graphql-integrationTmp');
   fs.rmdirSync(tmpDir, { recursive: true });
   fs.mkdirSync(tmpDir);
 
   const distDir = path.resolve('./npmDist');
-  exec(`npm pack ${distDir} && cp express-graphql-*.tgz express-graphql.tgz`, {
-    cwd: tmpDir,
-  });
+  const archiveName = exec(`npm --quiet pack ${distDir}`, { cwd: tmpDir });
+  fs.renameSync(
+    path.join(tmpDir, archiveName),
+    path.join(tmpDir, 'express-graphql.tgz'),
+  );
 
   function testOnNodeProject(projectName) {
     exec(`cp -R ${path.join(__dirname, projectName)} ${tmpDir}`);
 
     const cwd = path.join(tmpDir, projectName);
-    exec('npm install --quiet', { cwd });
-    exec('npm test', { cwd });
+    exec('npm --quiet install', { cwd, stdio: 'inherit' });
+    exec('npm --quiet test', { cwd, stdio: 'inherit' });
   }
 
   it('Should compile with all supported TS versions', () => {
