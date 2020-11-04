@@ -171,7 +171,7 @@ rules:
   no-loss-of-precision: error
   no-misleading-character-class: error
   no-obj-calls: error
-  no-promise-executor-return: off # TODO
+  no-promise-executor-return: error
   no-prototype-builtins: error
   no-regex-spaces: error
   no-setter-return: error
@@ -256,7 +256,7 @@ rules:
   no-void: error
   no-warning-comments: off
   no-with: error
-  prefer-named-capture-group: off # ES2018
+  prefer-named-capture-group: error
   prefer-promise-reject-errors: error
   prefer-regex-literals: error
   radix: error
@@ -322,7 +322,7 @@ rules:
   no-restricted-syntax: off
   no-tabs: error
   no-ternary: off
-  no-underscore-dangle: off # TODO
+  no-underscore-dangle: error
   no-unneeded-ternary: error
   one-var: [error, never]
   operator-assignment: error
@@ -503,9 +503,9 @@ overrides:
       '@typescript-eslint/no-var-requires': error
       '@typescript-eslint/prefer-as-const': off # TODO consider
       '@typescript-eslint/prefer-enum-initializers': off # TODO consider
-      '@typescript-eslint/prefer-for-of': off # TODO switch to error after TS migration
+      '@typescript-eslint/prefer-for-of': error
       '@typescript-eslint/prefer-function-type': error
-      '@typescript-eslint/prefer-includes': off # TODO switch to error after IE11 drop
+      '@typescript-eslint/prefer-includes': error
       '@typescript-eslint/prefer-literal-enum-member': error
       '@typescript-eslint/prefer-namespace-keyword': error
       '@typescript-eslint/prefer-nullish-coalescing': error
@@ -515,13 +515,13 @@ overrides:
       '@typescript-eslint/prefer-reduce-type-parameter': error
       '@typescript-eslint/prefer-regexp-exec': error
       '@typescript-eslint/prefer-ts-expect-error': error
-      '@typescript-eslint/prefer-string-starts-ends-with': off # TODO switch to error after IE11 drop
+      '@typescript-eslint/prefer-string-starts-ends-with': error
       '@typescript-eslint/promise-function-async': off
       '@typescript-eslint/require-array-sort-compare': error
       '@typescript-eslint/restrict-plus-operands':
         [error, { checkCompoundAssignments: true }]
       '@typescript-eslint/restrict-template-expressions': error
-      '@typescript-eslint/strict-boolean-expressions': off # TODO consider
+      '@typescript-eslint/strict-boolean-expressions': error
       '@typescript-eslint/switch-exhaustiveness-check': error
       '@typescript-eslint/triple-slash-reference': error
       '@typescript-eslint/typedef': off
