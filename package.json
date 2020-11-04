@@ -37,7 +37,7 @@
   "scripts": {
     "preversion": ". ./resources/checkgit.sh && npm ci",
     "changelog": "node resources/gen-changelog.js",
-    "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build && npm run check:integrations",
+    "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build:npm && npm run check:integrations",
     "lint": "eslint .",
     "check": "tsc --noEmit",
     "testonly": "mocha src/**/__tests__/**/*.ts",
@@ -46,7 +46,7 @@
     "prettier:check": "prettier --check .",
     "check:spelling": "cspell '**/*'",
     "check:integrations": "mocha --full-trace integrationTests/*-test.js",
-    "build": "node resources/build.js",
+    "build:npm": "node resources/build-npm.js",
     "start": "node -r ./resources/register.js examples/index.ts"
   },
   "dependencies": {

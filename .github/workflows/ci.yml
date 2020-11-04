@@ -73,7 +73,7 @@ jobs:
         run: npm ci
 
       - name: Build NPM package
-        run: npm run build
+        run: npm run build:npm
 
       - name: Run Integration Tests
         run: npm run check:integrations
