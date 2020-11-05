@@ -186,7 +186,7 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * configure behavior, and returns an express middleware.
  */
 export function graphqlHTTP(options: Options): Middleware {
-  if (!options) {
+  if (options == null) {
     throw new Error('GraphQL middleware requires options.');
   }
 

@@ -83,7 +83,7 @@ async function readBody(
   const charset = typeInfo.parameters.charset?.toLowerCase() ?? 'utf-8';
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
-  if (charset.slice(0, 4) !== 'utf-') {
+  if (!charset.startsWith('utf-')) {
     throw httpError(415, `Unsupported charset "${charset.toUpperCase()}".`);
   }
 
