@@ -100,10 +100,18 @@ async function readBody(
   // Read body from stream.
   try {
     return await getBody(stream, { encoding: charset, length, limit });
-  } catch (err) {
-    throw err.type === 'encoding.unsupported'
-      ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
-      : httpError(400, `Invalid body: ${String(err.message)}.`);
+  } catch (rawError: unknown) {
+    const error = httpError(
+      400,
+      /* istanbul ignore next: Thrown by underlying library. */
+      rawError instanceof Error ? rawError : String(rawError),
+    );
+
+    error.message =
+      error.type === 'encoding.unsupported'
+        ? `Unsupported charset "${charset.toUpperCase()}".`
+        : `Invalid body: ${error.message}.`;
+    throw error;
   }
 }
 
