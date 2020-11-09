@@ -1199,7 +1199,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('allows for custom error formatting to sanitize', async () => {
+    it('allows for custom error formatting to sanitize GraphQL errors', async () => {
       const app = server();
 
       app.get(
@@ -1207,7 +1207,10 @@ function runTests(server: Server) {
         graphqlHTTP({
           schema: TestSchema,
           customFormatErrorFn(error) {
-            return { message: 'Custom error format: ' + error.message };
+            return {
+              message:
+                `Custom ${error.constructor.name} format: ` + error.message,
+            };
           },
         }),
       );
@@ -1223,7 +1226,35 @@ function runTests(server: Server) {
         data: { thrower: null },
         errors: [
           {
-            message: 'Custom error format: Throws!',
+            message: 'Custom GraphQLError format: Throws!',
+          },
+        ],
+      });
+    });
+
+    it('allows for custom error formatting to sanitize HTTP errors', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          customFormatErrorFn(error) {
+            return {
+              message:
+                `Custom ${error.constructor.name} format: ` + error.message,
+            };
+          },
+        }),
+      );
+
+      const response = await app.request().get(urlString());
+
+      expect(response.status).to.equal(400);
+      expect(JSON.parse(response.text)).to.deep.equal({
+        errors: [
+          {
+            message: 'Custom GraphQLError format: Must provide query string.',
           },
         ],
       });
