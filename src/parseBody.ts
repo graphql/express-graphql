@@ -51,7 +51,7 @@ export async function parseBody(
       if (jsonObjRegex.test(rawBody)) {
         try {
           return JSON.parse(rawBody);
-        } catch (error) {
+        } catch {
           // Do nothing
         }
       }
