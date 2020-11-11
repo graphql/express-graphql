@@ -275,7 +275,7 @@ export function graphqlHTTP(options: Options): Middleware {
       // https://graphql.github.io/graphql-spec/#sec-Response-Format
       if (optionsData.extensions) {
         extensionsFn = (payload: AsyncExecutionResult) => {
-          /* istanbul ignore next condition not reachable, required for flow */
+          /* istanbul ignore else: condition not reachable, required for typescript */
           if (optionsData.extensions) {
             return optionsData.extensions({
               document: documentAST,
@@ -285,6 +285,8 @@ export function graphqlHTTP(options: Options): Middleware {
               context,
             });
           }
+          /* istanbul ignore next: condition not reachable, required for typescript */
+          return undefined;
         };
       }
 
@@ -362,21 +364,23 @@ export function graphqlHTTP(options: Options): Middleware {
           fieldResolver,
           typeResolver,
         });
+
+        if (isAsyncIterable(executeResult)) {
+          // Get first payload from AsyncIterator. http status will reflect status
+          // of this payload.
+          const asyncIterator = getAsyncIterator<ExecutionResult>(
+            executeResult,
+          );
+          const { value } = await asyncIterator.next();
+          result = value;
+        } else {
+          result = executeResult;
+        }
       } catch (contextError: unknown) {
         // Return 400: Bad Request if any execution context errors exist.
         throw httpError(400, 'GraphQL execution context error.', {
           graphqlErrors: [contextError],
         });
-      }
-
-      if (isAsyncIterable(executeResult)) {
-        // Get first payload from AsyncIterator. http status will reflect status
-        // of this payload.
-        const asyncIterator = getAsyncIterator<ExecutionResult>(executeResult);
-        const { value } = await asyncIterator.next();
-        result = value;
-      } else {
-        result = executeResult;
       }
 
       if (extensionsFn) {
@@ -412,9 +416,12 @@ export function graphqlHTTP(options: Options): Middleware {
           undefined,
           error,
         );
-        result = { data: undefined, errors: [graphqlError] };
+        executeResult = result = { data: undefined, errors: [graphqlError] };
       } else {
-        result = { data: undefined, errors: error.graphqlErrors };
+        executeResult = result = {
+          data: undefined,
+          errors: error.graphqlErrors,
+        };
       }
     }
 
@@ -436,22 +443,41 @@ export function graphqlHTTP(options: Options): Middleware {
     if (isAsyncIterable(executeResult)) {
       response.setHeader('Content-Type', 'multipart/mixed; boundary="-"');
       sendPartialResponse(pretty, response, formattedResult);
-      for await (let payload of executeResult) {
-        // Collect and apply any metadata extensions if a function was provided.
-        // https://graphql.github.io/graphql-spec/#sec-Response-Format
-        if (extensionsFn) {
-          const extensions = await extensionsFn(payload);
+      try {
+        for await (let payload of executeResult) {
+          // Collect and apply any metadata extensions if a function was provided.
+          // https://graphql.github.io/graphql-spec/#sec-Response-Format
+          if (extensionsFn) {
+            const extensions = await extensionsFn(payload);
 
-          if (extensions != null) {
-            payload = { ...payload, extensions };
+            if (extensions != null) {
+              payload = { ...payload, extensions };
+            }
           }
+          const formattedPayload: FormattedExecutionPatchResult = {
+            // first payload is already consumed, all subsequent payloads typed as ExecutionPatchResult
+            ...(payload as ExecutionPatchResult),
+            errors: payload.errors?.map(formatErrorFn),
+          };
+          sendPartialResponse(pretty, response, formattedPayload);
         }
-        const formattedPayload: FormattedExecutionPatchResult = {
-          // first payload is already consumed, all subsequent payloads typed as ExecutionPatchResult
-          ...(payload as ExecutionPatchResult),
-          errors: payload.errors?.map(formatErrorFn),
-        };
-        sendPartialResponse(pretty, response, formattedPayload);
+      } catch (rawError: unknown) {
+        /* istanbul ignore next: Thrown by underlying library. */
+        const error =
+          rawError instanceof Error ? rawError : new Error(String(rawError));
+        const graphqlError = new GraphQLError(
+          error.message,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          error,
+        );
+        sendPartialResponse(pretty, response, {
+          data: undefined,
+          errors: [formatErrorFn(graphqlError)],
+          hasNext: false,
+        });
       }
       response.write('\r\n-----\r\n');
       response.end();

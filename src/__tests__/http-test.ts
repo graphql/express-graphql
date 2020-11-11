@@ -2356,6 +2356,86 @@ function runTests(server: Server) {
         '{"errors":[{"message":"I did something wrong"}]}',
       );
     });
+
+    it('catches first error thrown from custom execute function that returns an AsyncIterable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          customExecuteFn() {
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: () => Promise.reject(new Error('I did something wrong')),
+              }),
+            };
+          },
+        })),
+      );
+
+      const response = await app.request().get(urlString({ query: '{test}' }));
+      expect(response.status).to.equal(400);
+      expect(response.text).to.equal(
+        '{"errors":[{"message":"I did something wrong"}]}',
+      );
+    });
+
+    it('catches subsequent errors thrown from custom execute function that returns an AsyncIterable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          async *customExecuteFn() {
+            await new Promise((r) => {
+              setTimeout(r, 1);
+            });
+            yield {
+              data: {
+                test2: 'Modification',
+              },
+              hasNext: true,
+            };
+            throw new Error('I did something wrong');
+          },
+        })),
+      );
+
+      const response = await app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      expect(response.status).to.equal(200);
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 48',
+          '',
+          '{"data":{"test2":"Modification"},"hasNext":true}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 64',
+          '',
+          '{"errors":[{"message":"I did something wrong"}],"hasNext":false}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
   });
 
   describe('Custom parse function', () => {
