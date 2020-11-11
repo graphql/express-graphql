@@ -187,9 +187,7 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * configure behavior, and returns an express middleware.
  */
 export function graphqlHTTP(options: Options): Middleware {
-  if (options == null) {
-    throw new Error('GraphQL middleware requires options.');
-  }
+  devAssert(options != null, 'GraphQL middleware requires options.');
 
   return async function graphqlMiddleware(
     request: Request,
@@ -242,12 +240,10 @@ export function graphqlHTTP(options: Options): Middleware {
         formatErrorFn;
 
       // Assert that schema is required.
-      if (schema == null) {
-        throw httpError(
-          500,
-          'GraphQL middleware options must contain a schema.',
-        );
-      }
+      devAssert(
+        schema != null,
+        'GraphQL middleware options must contain a schema.',
+      );
 
       // GraphQL HTTP only supports GET and POST methods.
       if (request.method !== 'GET' && request.method !== 'POST') {
@@ -436,12 +432,10 @@ export function graphqlHTTP(options: Options): Middleware {
           : options,
       );
 
-      // Assert that optionsData is in fact an Object.
-      if (optionsResult == null || typeof optionsResult !== 'object') {
-        throw new Error(
-          'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
-        );
-      }
+      devAssert(
+        optionsResult != null && typeof optionsResult === 'object',
+        'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
+      );
 
       if (optionsResult.formatError) {
         // eslint-disable-next-line no-console
@@ -537,4 +531,11 @@ function sendResponse(response: Response, type: string, data: string): void {
   response.setHeader('Content-Type', type + '; charset=utf-8');
   response.setHeader('Content-Length', String(chunk.length));
   response.end(chunk);
+}
+
+function devAssert(condition: unknown, message: string): asserts condition {
+  const booleanCondition = Boolean(condition);
+  if (!booleanCondition) {
+    throw new Error(message);
+  }
 }
