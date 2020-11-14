@@ -462,7 +462,8 @@ export function graphqlHTTP(options: Options): Middleware {
 
     if (isAsyncIterable(executeResult)) {
       response.setHeader('Content-Type', 'multipart/mixed; boundary="-"');
-      sendPartialResponse(pretty, response, formattedResult);
+      // There will always be a next, either a data payload, or an error
+      sendPartialResponse(pretty, response, formattedResult, true, true);
       try {
         for await (let payload of executeResult) {
           // Collect and apply any metadata extensions if a function was provided.
@@ -479,15 +480,25 @@ export function graphqlHTTP(options: Options): Middleware {
             ...(payload as ExecutionPatchResult),
             errors: payload.errors?.map(formatErrorFn),
           };
-          sendPartialResponse(pretty, response, formattedPayload);
+          sendPartialResponse(
+            pretty,
+            response,
+            formattedPayload,
+            formattedPayload.hasNext,
+          );
         }
       } catch (rawError: unknown) {
         const graphqlError = getGraphQlError(rawError);
-        sendPartialResponse(pretty, response, {
-          data: undefined,
-          errors: [formatErrorFn(graphqlError)],
-          hasNext: false,
-        });
+        sendPartialResponse(
+          pretty,
+          response,
+          {
+            data: undefined,
+            errors: [formatErrorFn(graphqlError)],
+            hasNext: false,
+          },
+          false,
+        );
       }
       response.write('\r\n-----\r\n');
       response.end();
@@ -622,19 +633,20 @@ function sendPartialResponse(
   pretty: boolean,
   response: Response,
   result: FormattedExecutionResult | FormattedExecutionPatchResult,
+  hasNext: boolean,
+  initial: boolean = false,
 ): void {
   const json = JSON.stringify(result, null, pretty ? 2 : 0);
   const chunk = Buffer.from(json, 'utf8');
-  const data = [
-    '',
-    '---',
-    'Content-Type: application/json; charset=utf-8',
-    'Content-Length: ' + String(chunk.length),
-    '',
-    chunk,
-    '',
-  ].join('\r\n');
-  response.write(data);
+  const data = ['Content-Type: application/json; charset=utf-8', '', chunk];
+  if (initial) {
+    data.unshift('---');
+  }
+  data.unshift('');
+  if (hasNext) {
+    data.push('---');
+  }
+  response.write(data.join('\r\n'));
   // flush response if compression middleware is used
   if (
     typeof response.flush === 'function' &&
