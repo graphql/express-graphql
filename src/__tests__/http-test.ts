@@ -1,4 +1,5 @@
 import zlib from 'zlib';
+import type http from 'http';
 
 import type { Server as Restify } from 'restify';
 import connect from 'connect';
@@ -79,6 +80,12 @@ function urlString(urlParams?: { [param: string]: string }): string {
     string += '?' + stringifyURLParams(urlParams);
   }
   return string;
+}
+
+function sleep(ms = 1) {
+  return new Promise((r) => {
+    setTimeout(r, ms);
+  });
 }
 
 describe('GraphQL-HTTP tests for connect', () => {
@@ -2389,9 +2396,7 @@ function runTests(server: Server) {
         graphqlHTTP(() => ({
           schema: TestSchema,
           async *customExecuteFn() {
-            await new Promise((r) => {
-              setTimeout(r, 1);
-            });
+            await sleep();
             yield {
               data: {
                 test2: 'Modification',
@@ -2432,6 +2437,137 @@ function runTests(server: Server) {
           '{"errors":[{"message":"I did something wrong"}],"hasNext":false}',
           '',
           '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
+    it('calls return on underlying async iterable when connection is closed', async () => {
+      const app = server();
+      const fakeReturn = sinon.fake();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          // custom iterable keeps yielding until return is called
+          customExecuteFn() {
+            let returned = false;
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: async () => {
+                  await sleep();
+                  if (returned) {
+                    return { value: undefined, done: true };
+                  }
+                  return {
+                    value: { data: { test: 'Hello, World' }, hasNext: true },
+                    done: false,
+                  };
+                },
+                return: () => {
+                  returned = true;
+                  fakeReturn();
+                  return Promise.resolve({ value: undefined, done: true });
+                },
+              }),
+            };
+          },
+        })),
+      );
+
+      let text = '';
+      const request = app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            text = `${text}${data.toString('utf8') as string}`;
+            ((res as unknown) as http.IncomingMessage).destroy();
+            cb(new Error('Aborted connection'), null);
+          });
+        });
+
+      try {
+        await request;
+      } catch (e: unknown) {
+        // ignore aborted error
+      }
+      // sleep to allow time for return function to be called
+      await sleep(2);
+      expect(text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 47',
+          '',
+          '{"data":{"test":"Hello, World"},"hasNext":true}',
+          '',
+        ].join('\r\n'),
+      );
+      expect(fakeReturn.callCount).to.equal(1);
+    });
+
+    it('handles return function on async iterable that throws', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          // custom iterable keeps yielding until return is called
+          customExecuteFn() {
+            let returned = false;
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: async () => {
+                  await sleep();
+                  if (returned) {
+                    return { value: undefined, done: true };
+                  }
+                  return {
+                    value: { data: { test: 'Hello, World' }, hasNext: true },
+                    done: false,
+                  };
+                },
+                return: () => {
+                  returned = true;
+                  return Promise.reject(new Error('Throws!'));
+                },
+              }),
+            };
+          },
+        })),
+      );
+
+      let text = '';
+      const request = app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            text = `${text}${data.toString('utf8') as string}`;
+            ((res as unknown) as http.IncomingMessage).destroy();
+            cb(new Error('Aborted connection'), null);
+          });
+        });
+
+      try {
+        await request;
+      } catch (e: unknown) {
+        // ignore aborted error
+      }
+      // sleep to allow return function to be called
+      await sleep(2);
+      expect(text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 47',
+          '',
+          '{"data":{"test":"Hello, World"},"hasNext":true}',
           '',
         ].join('\r\n'),
       );

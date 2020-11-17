@@ -213,6 +213,7 @@ export function graphqlHTTP(options: Options): Middleware {
     let documentAST: DocumentNode;
     let executeResult;
     let result: ExecutionResult;
+    let finishedIterable = false;
 
     try {
       // Parse the Request to get GraphQL request parameters.
@@ -371,6 +372,23 @@ export function graphqlHTTP(options: Options): Middleware {
           const asyncIterator = getAsyncIterator<ExecutionResult>(
             executeResult,
           );
+
+          response.on('close', () => {
+            if (
+              !finishedIterable &&
+              typeof asyncIterator.return === 'function'
+            ) {
+              asyncIterator.return().then(null, (rawError: unknown) => {
+                const graphqlError = getGraphQlError(rawError);
+                sendPartialResponse(pretty, response, {
+                  data: undefined,
+                  errors: [formatErrorFn(graphqlError)],
+                  hasNext: false,
+                });
+              });
+            }
+          });
+
           const { value } = await asyncIterator.next();
           result = value;
         } else {
@@ -398,6 +416,7 @@ export function graphqlHTTP(options: Options): Middleware {
         rawError instanceof Error ? rawError : String(rawError),
       );
 
+      // eslint-disable-next-line require-atomic-updates
       response.statusCode = error.status;
 
       const { headers } = error;
@@ -431,6 +450,7 @@ export function graphqlHTTP(options: Options): Middleware {
     // the resulting JSON payload.
     // https://graphql.github.io/graphql-spec/#sec-Data
     if (response.statusCode === 200 && result.data == null) {
+      // eslint-disable-next-line require-atomic-updates
       response.statusCode = 500;
     }
 
@@ -462,17 +482,7 @@ export function graphqlHTTP(options: Options): Middleware {
           sendPartialResponse(pretty, response, formattedPayload);
         }
       } catch (rawError: unknown) {
-        /* istanbul ignore next: Thrown by underlying library. */
-        const error =
-          rawError instanceof Error ? rawError : new Error(String(rawError));
-        const graphqlError = new GraphQLError(
-          error.message,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          error,
-        );
+        const graphqlError = getGraphQlError(rawError);
         sendPartialResponse(pretty, response, {
           data: undefined,
           errors: [formatErrorFn(graphqlError)],
@@ -481,6 +491,7 @@ export function graphqlHTTP(options: Options): Middleware {
       }
       response.write('\r\n-----\r\n');
       response.end();
+      finishedIterable = true;
       return;
     }
 
@@ -656,4 +667,18 @@ function getAsyncIterator<T>(
 ): AsyncIterator<T> {
   const method = asyncIterable[Symbol.asyncIterator];
   return method.call(asyncIterable);
+}
+
+function getGraphQlError(rawError: unknown) {
+  /* istanbul ignore next: Thrown by underlying library. */
+  const error =
+    rawError instanceof Error ? rawError : new Error(String(rawError));
+  return new GraphQLError(
+    error.message,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    error,
+  );
 }
