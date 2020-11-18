@@ -490,7 +490,6 @@ export function graphqlHTTP(options: Options): Middleware {
           hasNext: false,
         });
       }
-      response.write('\r\n-----\r\n');
       response.end();
       finishedIterable = true;
       return;
@@ -630,6 +629,8 @@ function sendPartialResponse(
   // @ts-expect-error
   if (result.hasNext === true) {
     data.push('---\r\n');
+  } else {
+    data.push('-----\r\n');
   }
   response.write(data.join('\r\n'));
   // flush response if compression middleware is used
