@@ -463,11 +463,7 @@ export function graphqlHTTP(options: Options): Middleware {
     if (isAsyncIterable(executeResult)) {
       response.setHeader('Content-Type', 'multipart/mixed; boundary="-"');
       response.write('\r\n---\r\n');
-      sendPartialResponse(
-        pretty,
-        response,
-        formattedResult as FormattedExecutionPatchResult,
-      );
+      sendPartialResponse(pretty, response, formattedResult);
       try {
         for await (let payload of executeResult) {
           // Collect and apply any metadata extensions if a function was provided.
@@ -626,12 +622,13 @@ function canDisplayGraphiQL(request: Request, params: GraphQLParams): boolean {
 function sendPartialResponse(
   pretty: boolean,
   response: Response,
-  result: FormattedExecutionPatchResult,
+  result: FormattedExecutionResult | FormattedExecutionPatchResult,
 ): void {
   const json = JSON.stringify(result, null, pretty ? 2 : 0);
   const chunk = Buffer.from(json, 'utf8');
   const data = ['Content-Type: application/json; charset=utf-8', '', chunk];
-  if (result.hasNext) {
+  // @ts-expect-error
+  if (result.hasNext === true) {
     data.push('---\r\n');
   }
   response.write(data.join('\r\n'));
