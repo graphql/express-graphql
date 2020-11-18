@@ -442,7 +442,7 @@ overrides:
       node/no-unsupported-features/es-syntax: off
 
       ##########################################################################
-      # `@typescript-eslint/eslint-plugin` rule list based on `v4.7.x`
+      # `@typescript-eslint/eslint-plugin` rule list based on `v4.8.x`
       ##########################################################################
 
       # Supported Rules
