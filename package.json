@@ -35,7 +35,8 @@
     "node": ">= 10.x"
   },
   "scripts": {
-    "preversion": ". ./resources/checkgit.sh && npm ci && npm test",
+    "preversion": ". ./resources/checkgit.sh && npm ci",
+    "version": "npm test",
     "changelog": "node resources/gen-changelog.js",
     "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build:npm && npm run check:integrations",
     "lint": "eslint .",
