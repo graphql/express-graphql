@@ -362,6 +362,17 @@ customFormatErrorFn: (error) => ({
 });
 ```
 
+## Experimental features
+
+Each release of `express-graphql` will be accompanied by an experimental release containing support for the `@defer` and `@stream` directive proposal. We are hoping to get community feedback on these releases before the proposal is accepted into the GraphQL specification. You can use this experimental release of `express-graphql` by adding the following to your project's `package.json` file.
+
+```
+"express-graphql": "experimental-stream-defer",
+"graphql": "experimental-stream-defer"
+```
+
+Community feedback on this experimental release is much appreciated and can be provided on the [PR for the defer-stream branch](https://github.com/graphql/express-graphql/pull/726) or the [GraphQL.js issue for feedback](https://github.com/graphql/graphql-js/issues/2848).
+
 [`graphql.js`]: https://github.com/graphql/graphql-js
 [`formaterror`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
 [graphiql]: https://github.com/graphql/graphiql
