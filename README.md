@@ -364,25 +364,19 @@ app.use(
      */
     contentSecurityPolicy: {
       directives: {
-        defaultSrc: [
-          "'self'",
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        ['default-src']: [
+          ...helmet.contentSecurityPolicy.getDefaultDirectives()['default-src'],
           /** @by-us - adds graphiql support over helmet's default CSP */
           "'unsafe-inline'",
         ],
-        baseUri: ["'self'"],
-        blockAllMixedContent: [],
-        fontSrc: ["'self'", 'https:', 'data:'],
-        frameAncestors: ["'self'"],
-        imgSrc: ["'self'", 'data:'],
-        objectSrc: ["'none'"],
-        scriptSrc: [
-          "'self'",
+        ['script-src']: [
+          ...helmet.contentSecurityPolicy.getDefaultDirectives()['script-src'],
           /** @by-us - adds graphiql support over helmet's default CSP */
           "'unsafe-inline'",
           /** @by-us - adds graphiql support over helmet's default CSP */
           "'unsafe-eval'",
         ],
-        upgradeInsecureRequests: [],
       },
     },
   }),
