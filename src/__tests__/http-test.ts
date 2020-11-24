@@ -2482,7 +2482,7 @@ function runTests(server: Server) {
           'Content-Type: application/json; charset=utf-8',
           '',
           '{"data":{"test":"Hello, World"},"hasNext":true}',
-          '',
+          '---\r\n'
         ].join('\r\n'),
       );
       expect(fakeReturn.callCount).to.equal(1);
@@ -2546,7 +2546,7 @@ function runTests(server: Server) {
           'Content-Type: application/json; charset=utf-8',
           '',
           '{"data":{"test":"Hello, World"},"hasNext":true}',
-          '',
+          '---\r\n'
         ].join('\r\n'),
       );
     });
