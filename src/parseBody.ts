@@ -51,7 +51,7 @@ export async function parseBody(
       if (jsonObjRegex.test(rawBody)) {
         try {
           return JSON.parse(rawBody);
-        } catch (error) {
+        } catch {
           // Do nothing
         }
       }
@@ -83,7 +83,7 @@ async function readBody(
   const charset = typeInfo.parameters.charset?.toLowerCase() ?? 'utf-8';
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
-  if (charset.slice(0, 4) !== 'utf-') {
+  if (!charset.startsWith('utf-')) {
     throw httpError(415, `Unsupported charset "${charset.toUpperCase()}".`);
   }
 
@@ -100,10 +100,18 @@ async function readBody(
   // Read body from stream.
   try {
     return await getBody(stream, { encoding: charset, length, limit });
-  } catch (err) {
-    throw err.type === 'encoding.unsupported'
-      ? httpError(415, `Unsupported charset "${charset.toUpperCase()}".`)
-      : httpError(400, `Invalid body: ${String(err.message)}.`);
+  } catch (rawError: unknown) {
+    const error = httpError(
+      400,
+      /* istanbul ignore next: Thrown by underlying library. */
+      rawError instanceof Error ? rawError : String(rawError),
+    );
+
+    error.message =
+      error.type === 'encoding.unsupported'
+        ? `Unsupported charset "${charset.toUpperCase()}".`
+        : `Invalid body: ${error.message}.`;
+    throw error;
   }
 }
 

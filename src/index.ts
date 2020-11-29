@@ -8,7 +8,6 @@ import type {
   ExecutionArgs,
   ExecutionResult,
   FormattedExecutionResult,
-  GraphQLError,
   GraphQLSchema,
   GraphQLFieldResolver,
   GraphQLTypeResolver,
@@ -16,8 +15,10 @@ import type {
 } from 'graphql';
 import accepts from 'accepts';
 import httpError from 'http-errors';
+import type { HttpError } from 'http-errors';
 import {
   Source,
+  GraphQLError,
   parse,
   validate,
   execute,
@@ -186,9 +187,7 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * configure behavior, and returns an express middleware.
  */
 export function graphqlHTTP(options: Options): Middleware {
-  if (!options) {
-    throw new Error('GraphQL middleware requires options.');
-  }
+  devAssert(options != null, 'GraphQL middleware requires options.');
 
   return async function graphqlMiddleware(
     request: Request,
@@ -206,7 +205,7 @@ export function graphqlHTTP(options: Options): Middleware {
       // Parse the Request to get GraphQL request parameters.
       try {
         params = await getGraphQLParams(request);
-      } catch (error) {
+      } catch (error: unknown) {
         // When we failed to parse the GraphQL parameters, we still need to get
         // the options object, so make an options call to resolve just that.
         const optionsData = await resolveOptions();
@@ -241,12 +240,10 @@ export function graphqlHTTP(options: Options): Middleware {
         formatErrorFn;
 
       // Assert that schema is required.
-      if (schema == null) {
-        throw httpError(
-          500,
-          'GraphQL middleware options must contain a schema.',
-        );
-      }
+      devAssert(
+        schema != null,
+        'GraphQL middleware options must contain a schema.',
+      );
 
       // GraphQL HTTP only supports GET and POST methods.
       if (request.method !== 'GET' && request.method !== 'POST') {
@@ -284,7 +281,7 @@ export function graphqlHTTP(options: Options): Middleware {
       let documentAST;
       try {
         documentAST = parseFn(new Source(query, 'GraphQL request'));
-      } catch (syntaxError) {
+      } catch (syntaxError: unknown) {
         // Return 400: Bad Request if any syntax errors errors exist.
         throw httpError(400, 'GraphQL syntax error.', {
           graphqlErrors: [syntaxError],
@@ -337,7 +334,7 @@ export function graphqlHTTP(options: Options): Middleware {
           fieldResolver,
           typeResolver,
         });
-      } catch (contextError) {
+      } catch (contextError: unknown) {
         // Return 400: Bad Request if any execution context errors exist.
         throw httpError(400, 'GraphQL execution context error.', {
           graphqlErrors: [contextError],
@@ -359,9 +356,15 @@ export function graphqlHTTP(options: Options): Middleware {
           result = { ...result, extensions };
         }
       }
-    } catch (error) {
+    } catch (rawError: unknown) {
       // If an error was caught, report the httpError status, or 500.
-      response.statusCode = error.status ?? 500;
+      const error: HttpError = httpError(
+        500,
+        /* istanbul ignore next: Thrown by underlying library. */
+        rawError instanceof Error ? rawError : String(rawError),
+      );
+
+      response.statusCode = error.status;
 
       const { headers } = error;
       if (headers != null) {
@@ -370,7 +373,19 @@ export function graphqlHTTP(options: Options): Middleware {
         }
       }
 
-      result = { data: undefined, errors: error.graphqlErrors ?? [error] };
+      if (error.graphqlErrors == null) {
+        const graphqlError = new GraphQLError(
+          error.message,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          error,
+        );
+        result = { data: undefined, errors: [graphqlError] };
+      } else {
+        result = { data: undefined, errors: error.graphqlErrors };
+      }
     }
 
     // If no data was included in the result, that indicates a runtime query
@@ -417,12 +432,10 @@ export function graphqlHTTP(options: Options): Middleware {
           : options,
       );
 
-      // Assert that optionsData is in fact an Object.
-      if (optionsResult == null || typeof optionsResult !== 'object') {
-        throw new Error(
-          'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
-        );
-      }
+      devAssert(
+        optionsResult != null && typeof optionsResult === 'object',
+        'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
+      );
 
       if (optionsResult.formatError) {
         // eslint-disable-next-line no-console
@@ -482,7 +495,7 @@ export async function getGraphQLParams(
   if (typeof variables === 'string') {
     try {
       variables = JSON.parse(variables);
-    } catch (error) {
+    } catch {
       throw httpError(400, 'Variables are invalid JSON.');
     }
   } else if (typeof variables !== 'object') {
@@ -518,4 +531,11 @@ function sendResponse(response: Response, type: string, data: string): void {
   response.setHeader('Content-Type', type + '; charset=utf-8');
   response.setHeader('Content-Length', String(chunk.length));
   response.end(chunk);
+}
+
+function devAssert(condition: unknown, message: string): asserts condition {
+  const booleanCondition = Boolean(condition);
+  if (!booleanCondition) {
+    throw new Error(message);
+  }
 }

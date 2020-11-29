@@ -73,7 +73,7 @@ jobs:
         run: npm ci
 
       - name: Build NPM package
-        run: npm run build
+        run: npm run build:npm
 
       - name: Run Integration Tests
         run: npm run check:integrations
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version_to_setup: [10, 12, 14]
+        node_version_to_setup: [10, 12, 14, 15]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

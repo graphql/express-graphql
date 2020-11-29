@@ -5,6 +5,7 @@ const {
 } = require('./load-statically-from-npm');
 
 require('ts-node').register({
+  logError: true,
   transformers: () => ({
     after: [transformLoadFileStaticallyFromNPM],
   }),

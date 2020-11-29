@@ -30,7 +30,7 @@ if (require.main === module) {
   program.emit(undefined, undefined, undefined, undefined, {
     after: [transformLoadFileStaticallyFromNPM],
   });
-  downlevel('./npmDist', './npmDist/ts3.4');
+  downlevel('./npmDist', './npmDist/ts3.4', '3.4.0');
 
   fs.copyFileSync('./LICENSE', './npmDist/LICENSE');
   fs.copyFileSync('./README.md', './npmDist/README.md');
@@ -52,16 +52,19 @@ function buildPackageJSON() {
   delete packageJSON.devDependencies;
 
   const { version } = packageJSON;
-  const versionMatch = /^\d+\.\d+\.\d+-?(.*)?$/.exec(version);
+  const versionMatch = /^\d+\.\d+\.\d+-?(?<preReleaseTag>.*)?$/.exec(version);
   if (!versionMatch) {
     throw new Error('Version does not match semver spec: ' + version);
   }
 
-  const [, preReleaseTag] = versionMatch;
+  const { preReleaseTag } = versionMatch.groups;
 
   if (preReleaseTag != null) {
     const [tag] = preReleaseTag.split('.');
-    assert(['alpha', 'beta', 'rc'].includes(tag), `"${tag}" tag is supported.`);
+    assert(
+      tag.startsWith('experimental-') || ['alpha', 'beta', 'rc'].includes(tag),
+      `"${tag}" tag is supported.`,
+    );
 
     assert(!packageJSON.publishConfig, 'Can not override "publishConfig".');
     packageJSON.publishConfig = { tag: tag || 'latest' };
