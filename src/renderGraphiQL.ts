@@ -59,7 +59,7 @@ export function renderGraphiQL(
   const subscriptionEndpoint = options?.subscriptionEndpoint;
 
   let subscriptionScripts = '';
-  if (subscriptionEndpoint) {
+  if (subscriptionEndpoint != null) {
     subscriptionScripts = `
     <script>
       ${loadFileStaticallyFromNPM(
