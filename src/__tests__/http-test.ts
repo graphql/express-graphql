@@ -1,5 +1,6 @@
 import zlib from 'zlib';
-import type http from 'http';
+import http from 'http';
+import type { AddressInfo } from 'net';
 
 import type { Server as Restify } from 'restify';
 import connect from 'connect';
@@ -7,7 +8,11 @@ import express from 'express';
 import supertest from 'supertest';
 import bodyParser from 'body-parser';
 
-import type { ASTVisitor, ValidationContext } from 'graphql';
+import type {
+  ASTVisitor,
+  ValidationContext,
+  AsyncExecutionResult,
+} from 'graphql';
 import sinon from 'sinon';
 import multer from 'multer'; // cSpell:words mimetype originalname
 import { expect } from 'chai';
@@ -28,8 +33,11 @@ import {
 import { graphqlHTTP } from '../index';
 import { isAsyncIterable } from '../isAsyncIterable';
 
+import SimplePubSub from './simplePubSub';
+
 type Middleware = (req: any, res: any, next: () => void) => unknown;
 type Server = () => {
+  listener: http.Server | http.RequestListener;
   request: () => supertest.SuperTest<supertest.Test>;
   use: (middleware: Middleware) => unknown;
   get: (path: string, middleware: Middleware) => unknown;
@@ -82,10 +90,51 @@ function urlString(urlParams?: { [param: string]: string }): string {
   return string;
 }
 
-function sleep(ms = 1) {
-  return new Promise((r) => {
-    setTimeout(r, ms);
+async function streamRequest(
+  server: Server,
+  customExecuteFn?: () => AsyncIterable<AsyncExecutionResult>,
+): Promise<{
+  req: http.ClientRequest;
+  responseStream: http.IncomingMessage;
+}> {
+  const app = server();
+  app.get(
+    urlString(),
+    graphqlHTTP(() => ({
+      schema: TestSchema,
+      customExecuteFn,
+    })),
+  );
+
+  let httpServer: http.Server;
+  if (typeof app.listener === 'function') {
+    httpServer = http.createServer(app.listener);
+  } else {
+    httpServer = app.listener;
+  }
+  await new Promise((resolve) => {
+    httpServer.listen(resolve);
   });
+
+  const addr = httpServer.address() as AddressInfo;
+  const req = http.get({
+    method: 'GET',
+    path: urlString({ query: '{test}' }),
+    port: addr.port,
+  });
+
+  const res: http.IncomingMessage = await new Promise((resolve) => {
+    req.on('response', resolve);
+  });
+
+  req.on('close', () => {
+    httpServer.close();
+  });
+
+  return {
+    req,
+    responseStream: res,
+  };
 }
 
 describe('GraphQL-HTTP tests for connect', () => {
@@ -99,6 +148,7 @@ describe('GraphQL-HTTP tests for connect', () => {
     });
 
     return {
+      listener: app,
       request: () => supertest(app),
       use: app.use.bind(app),
       // Connect only likes using app.use.
@@ -123,6 +173,7 @@ describe('GraphQL-HTTP tests for express', () => {
     });
 
     return {
+      listener: app,
       request: () => supertest(app),
       use: app.use.bind(app),
       get: app.get.bind(app),
@@ -148,6 +199,7 @@ describe('GraphQL-HTTP tests for restify', () => {
     });
 
     return {
+      listener: app.server,
       request: () => supertest(app),
       use: app.use.bind(app),
       get: app.get.bind(app),
@@ -2406,8 +2458,8 @@ function runTests(server: Server) {
         urlString(),
         graphqlHTTP(() => ({
           schema: TestSchema,
+          // eslint-disable-next-line @typescript-eslint/require-await
           async *customExecuteFn() {
-            await sleep();
             yield {
               data: {
                 test2: 'Modification',
@@ -2450,132 +2502,117 @@ function runTests(server: Server) {
     });
 
     it('calls return on underlying async iterable when connection is closed', async () => {
-      const app = server();
-      const fakeReturn = sinon.fake();
+      const executePubSub = new SimplePubSub<AsyncExecutionResult>();
+      const executeIterable = executePubSub.getSubscriber();
+      const spy = sinon.spy(executeIterable[Symbol.asyncIterator](), 'return');
+      expect(
+        executePubSub.emit({ data: { test: 'Hello, World 1' }, hasNext: true }),
+      ).to.equal(true);
 
-      app.get(
-        urlString(),
-        graphqlHTTP(() => ({
-          schema: TestSchema,
-          // custom iterable keeps yielding until return is called
-          customExecuteFn() {
-            let returned = false;
-            return {
-              [Symbol.asyncIterator]: () => ({
-                next: async () => {
-                  await sleep();
-                  if (returned) {
-                    return { value: undefined, done: true };
-                  }
-                  return {
-                    value: { data: { test: 'Hello, World' }, hasNext: true },
-                    done: false,
-                  };
-                },
-                return: () => {
-                  returned = true;
-                  fakeReturn();
-                  return Promise.resolve({ value: undefined, done: true });
-                },
-              }),
-            };
-          },
-        })),
+      const { req, responseStream } = await streamRequest(
+        server,
+        () => executeIterable,
       );
+      const iterator = responseStream[Symbol.asyncIterator]();
 
-      let text = '';
-      const request = app
-        .request()
-        .get(urlString({ query: '{test}' }))
-        .parse((res, cb) => {
-          res.on('data', (data) => {
-            text = `${text}${data.toString('utf8') as string}`;
-            ((res as unknown) as http.IncomingMessage).destroy();
-            cb(new Error('Aborted connection'), null);
-          });
-        });
-
-      try {
-        await request;
-      } catch (e: unknown) {
-        // ignore aborted error
-      }
-      // sleep to allow time for return function to be called
-      await sleep(2);
-      expect(text).to.equal(
+      const { value: firstResponse } = await iterator.next();
+      expect(firstResponse.toString('utf8')).to.equal(
         [
-          '',
-          '---',
+          '\r\n---',
           'Content-Type: application/json; charset=utf-8',
           '',
-          '{"data":{"test":"Hello, World"},"hasNext":true}',
+          '{"data":{"test":"Hello, World 1"},"hasNext":true}',
           '---\r\n',
         ].join('\r\n'),
       );
-      expect(fakeReturn.callCount).to.equal(1);
+
+      expect(
+        executePubSub.emit({ data: { test: 'Hello, World 2' }, hasNext: true }),
+      ).to.equal(true);
+      const { value: secondResponse } = await iterator.next();
+      expect(secondResponse.toString('utf8')).to.equal(
+        [
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello, World 2"},"hasNext":true}',
+          '---\r\n',
+        ].join('\r\n'),
+      );
+
+      req.destroy();
+
+      // wait for server to call return on underlying iterable
+      await executeIterable.next();
+
+      expect(spy.calledOnce).to.equal(true);
+      // emit returns false because `return` cleaned up subscribers
+      expect(
+        executePubSub.emit({ data: { test: 'Hello, World 3' }, hasNext: true }),
+      ).to.equal(false);
     });
 
     it('handles return function on async iterable that throws', async () => {
-      const app = server();
+      const executePubSub = new SimplePubSub<AsyncExecutionResult>();
+      const executeIterable = executePubSub.getSubscriber();
+      const executeIterator = executeIterable[Symbol.asyncIterator]();
+      const originalReturn = executeIterator.return.bind(executeIterator);
+      const fake = sinon.fake(async () => {
+        await originalReturn();
+        throw new Error('Throws!');
+      });
+      sinon.replace(executeIterator, 'return', fake);
+      expect(
+        executePubSub.emit({
+          data: { test: 'Hello, World 1' },
+          hasNext: true,
+        }),
+      ).to.equal(true);
 
-      app.get(
-        urlString(),
-        graphqlHTTP(() => ({
-          schema: TestSchema,
-          // custom iterable keeps yielding until return is called
-          customExecuteFn() {
-            let returned = false;
-            return {
-              [Symbol.asyncIterator]: () => ({
-                next: async () => {
-                  await sleep();
-                  if (returned) {
-                    return { value: undefined, done: true };
-                  }
-                  return {
-                    value: { data: { test: 'Hello, World' }, hasNext: true },
-                    done: false,
-                  };
-                },
-                return: () => {
-                  returned = true;
-                  return Promise.reject(new Error('Throws!'));
-                },
-              }),
-            };
-          },
-        })),
+      const { req, responseStream } = await streamRequest(
+        server,
+        () => executeIterable,
       );
+      const iterator = responseStream[Symbol.asyncIterator]();
 
-      let text = '';
-      const request = app
-        .request()
-        .get(urlString({ query: '{test}' }))
-        .parse((res, cb) => {
-          res.on('data', (data) => {
-            text = `${text}${data.toString('utf8') as string}`;
-            ((res as unknown) as http.IncomingMessage).destroy();
-            cb(new Error('Aborted connection'), null);
-          });
-        });
-
-      try {
-        await request;
-      } catch (e: unknown) {
-        // ignore aborted error
-      }
-      // sleep to allow return function to be called
-      await sleep(2);
-      expect(text).to.equal(
+      const { value: firstResponse } = await iterator.next();
+      expect(firstResponse.toString('utf8')).to.equal(
         [
-          '',
-          '---',
+          '\r\n---',
           'Content-Type: application/json; charset=utf-8',
           '',
-          '{"data":{"test":"Hello, World"},"hasNext":true}',
+          '{"data":{"test":"Hello, World 1"},"hasNext":true}',
           '---\r\n',
         ].join('\r\n'),
       );
+
+      expect(
+        executePubSub.emit({
+          data: { test: 'Hello, World 2' },
+          hasNext: true,
+        }),
+      ).to.equal(true);
+      const { value: secondResponse } = await iterator.next();
+      expect(secondResponse.toString('utf8')).to.equal(
+        [
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello, World 2"},"hasNext":true}',
+          '---\r\n',
+        ].join('\r\n'),
+      );
+      req.destroy();
+
+      // wait for server to call return on underlying iterable
+      await executeIterable.next();
+
+      expect(fake.calledOnce).to.equal(true);
+      // emit returns false because `return` cleaned up subscribers
+      expect(
+        executePubSub.emit({
+          data: { test: 'Hello, World 3' },
+          hasNext: true,
+        }),
+      ).to.equal(false);
     });
   });
 

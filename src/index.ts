@@ -377,13 +377,8 @@ export function graphqlHTTP(options: Options): Middleware {
               !finishedIterable &&
               typeof asyncIterator.return === 'function'
             ) {
-              asyncIterator.return().then(null, (rawError: unknown) => {
-                const graphqlError = getGraphQlError(rawError);
-                sendPartialResponse(pretty, response, {
-                  data: undefined,
-                  errors: [formatErrorFn(graphqlError)],
-                  hasNext: false,
-                });
+              asyncIterator.return().catch(() => {
+                // can't do anything with the error, connection is already closed
               });
             }
           });
