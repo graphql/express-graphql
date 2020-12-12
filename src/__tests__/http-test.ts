@@ -1029,6 +1029,36 @@ function runTests(server: Server) {
     });
   });
 
+  it('allow custom graphql params extraction from request', async () => {
+    const app = server();
+
+    app.get(
+      urlString(),
+      graphqlHTTP(
+        {
+          schema: TestSchema,
+        },
+        (request) => {
+          const searchParams = new URLSearchParams(request.url.split('?')[1]);
+          return {
+            query: searchParams.get('graphqlQuery'),
+            variables: null,
+            operationName: null,
+            raw: false,
+          };
+        },
+      ),
+    );
+
+    const response = await app.request().get(
+      urlString({
+        graphqlQuery: '{test}',
+      }),
+    );
+
+    expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+  });
+
   describe('Pretty printing', () => {
     it('supports pretty printing', async () => {
       const app = server();

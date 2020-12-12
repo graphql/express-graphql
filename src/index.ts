@@ -195,7 +195,16 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * Middleware for express; takes an options object or function as input to
  * configure behavior, and returns an express middleware.
  */
-export function graphqlHTTP(options: Options): Middleware {
+export function graphqlHTTP(
+  options: Options,
+  /**
+   * An optional function which will get params from request instead of
+   * default getGraphQLParams
+   */
+  customGraphQLParamsFn?: (
+    request: Request,
+  ) => GraphQLParams | Promise<GraphQLParams>,
+): Middleware {
   devAssert(options != null, 'GraphQL middleware requires options.');
 
   return async function graphqlMiddleware(
@@ -210,11 +219,12 @@ export function graphqlHTTP(options: Options): Middleware {
     let pretty = false;
     let result: ExecutionResult;
     let optionsData: OptionsData | undefined;
+    const graphQLParamsFn = customGraphQLParamsFn ?? getGraphQLParams;
 
     try {
       // Parse the Request to get GraphQL request parameters.
       try {
-        params = await getGraphQLParams(request);
+        params = await graphQLParamsFn(request);
       } catch (error: unknown) {
         // When we failed to parse the GraphQL parameters, we still need to get
         // the options object, so make an options call to resolve just that.
