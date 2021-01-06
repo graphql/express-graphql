@@ -1034,11 +1034,9 @@ function runTests(server: Server) {
 
     app.get(
       urlString(),
-      graphqlHTTP(
-        {
-          schema: TestSchema,
-        },
-        (request) => {
+      graphqlHTTP({
+        schema: TestSchema,
+        customGraphQLParamsFn: (request) => {
           const searchParams = new URLSearchParams(request.url.split('?')[1]);
           return {
             query: searchParams.get('graphqlQuery'),
@@ -1047,7 +1045,7 @@ function runTests(server: Server) {
             raw: false,
           };
         },
-      ),
+      }),
     );
 
     const response = await app.request().get(

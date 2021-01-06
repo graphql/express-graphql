@@ -110,6 +110,14 @@ export interface OptionsData {
   customParseFn?: (source: Source) => DocumentNode;
 
   /**
+   * An optional function which will get params from request instead of
+   * default getGraphQLParams
+   */
+  customGraphQLParamsFn?: (
+    request: Request,
+  ) => GraphQLParams | Promise<GraphQLParams>;
+
+  /**
    * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
    *  be removed in version 1.0.0.
    */
@@ -195,16 +203,7 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * Middleware for express; takes an options object or function as input to
  * configure behavior, and returns an express middleware.
  */
-export function graphqlHTTP(
-  options: Options,
-  /**
-   * An optional function which will get params from request instead of
-   * default getGraphQLParams
-   */
-  customGraphQLParamsFn?: (
-    request: Request,
-  ) => GraphQLParams | Promise<GraphQLParams>,
-): Middleware {
+export function graphqlHTTP(options: Options): Middleware {
   devAssert(options != null, 'GraphQL middleware requires options.');
 
   return async function graphqlMiddleware(
@@ -215,30 +214,34 @@ export function graphqlHTTP(
     let params: GraphQLParams | undefined;
     let showGraphiQL = false;
     let graphiqlOptions;
-    let formatErrorFn = formatError;
-    let pretty = false;
     let result: ExecutionResult;
     let optionsData: OptionsData | undefined;
-    const graphQLParamsFn = customGraphQLParamsFn ?? getGraphQLParams;
 
     try {
-      // Parse the Request to get GraphQL request parameters.
-      try {
-        params = await graphQLParamsFn(request);
-      } catch (error: unknown) {
-        // When we failed to parse the GraphQL parameters, we still need to get
-        // the options object, so make an options call to resolve just that.
-        optionsData = await resolveOptions();
-        pretty = optionsData.pretty ?? false;
-        formatErrorFn =
-          optionsData.customFormatErrorFn ??
-          optionsData.formatError ??
-          formatErrorFn;
-        throw error;
+      if (typeof options === 'function') {
+        try {
+          // Parse the Request to get GraphQL request parameters.
+          params = await getGraphQLParams(request);
+        } catch (error: unknown) {
+          // When we failed to parse the GraphQL parameters, we still need to get
+          // the options object, so make an options call to resolve just that.
+          optionsData = await options(request, response);
+          validateOptions();
+          throw error;
+        }
+        optionsData = await options(request, response, params);
+        validateOptions();
+      } else {
+        optionsData = await options;
+        validateOptions();
       }
 
-      // Then, resolve the Options to get OptionsData.
-      optionsData = await resolveOptions(params);
+      if (optionsData.customGraphQLParamsFn) {
+        params = await optionsData.customGraphQLParamsFn(request);
+      } else if (!params) {
+        // Parse the Request to get GraphQL request parameters.
+        params = await getGraphQLParams(request);
+      }
 
       // Collect information from the options data object.
       const schema = optionsData.schema;
@@ -252,12 +255,6 @@ export function graphqlHTTP(
       const parseFn = optionsData.customParseFn ?? parse;
       const executeFn = optionsData.customExecuteFn ?? execute;
       const validateFn = optionsData.customValidateFn ?? validate;
-
-      pretty = optionsData.pretty ?? false;
-      formatErrorFn =
-        optionsData.customFormatErrorFn ??
-        optionsData.formatError ??
-        formatErrorFn;
 
       // Assert that schema is required.
       devAssert(
@@ -384,6 +381,7 @@ export function graphqlHTTP(
         rawError instanceof Error ? rawError : String(rawError),
       );
 
+      // eslint-disable-next-line require-atomic-updates
       response.statusCode = error.status;
 
       const { headers } = error;
@@ -407,6 +405,12 @@ export function graphqlHTTP(
         result = { data: undefined, errors: error.graphqlErrors };
       }
     }
+
+    const pretty = optionsData?.pretty ?? false;
+    const formatErrorFn =
+      optionsData?.customFormatErrorFn ??
+      optionsData?.formatError ??
+      formatError;
 
     if (result.errors != null || result.data == null) {
       const handleRuntimeQueryErrorFn =
@@ -452,28 +456,18 @@ export function graphqlHTTP(
       sendResponse(response, 'application/json', payload);
     }
 
-    async function resolveOptions(
-      requestParams?: GraphQLParams,
-    ): Promise<OptionsData> {
-      const optionsResult = await Promise.resolve(
-        typeof options === 'function'
-          ? options(request, response, requestParams)
-          : options,
-      );
-
+    function validateOptions() {
       devAssert(
-        optionsResult != null && typeof optionsResult === 'object',
+        optionsData != null && typeof optionsData === 'object',
         'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
       );
 
-      if (optionsResult.formatError) {
+      if (optionsData.formatError) {
         // eslint-disable-next-line no-console
         console.warn(
           '`formatError` is deprecated and replaced by `customFormatErrorFn`. It will be removed in version 1.0.0.',
         );
       }
-
-      return optionsResult;
     }
   };
 }
