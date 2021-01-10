@@ -1,0 +1,22 @@
+{
+  "exclude": ["integrationTests/ts/**/*"],
+  "compilerOptions": {
+    "declaration": true,
+    "isolatedModules": true,
+    "lib": ["es2018"],
+    "module": "commonjs",
+    "target": "es2018",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "error",
+    "newLine": "LF",
+    "preserveConstEnums": true
+  }
+}

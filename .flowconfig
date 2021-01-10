@@ -1,6 +1,0 @@
-[ignore]
-.*/dist/.*
-.*/node_modules/flow-bin/.*
-
-[libs]
-./resources/interfaces
