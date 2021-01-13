@@ -373,14 +373,14 @@ application any more secure. Nevertheless, disabling introspection is possible b
 package.
 
 ```js
-import { specifiedRules, NoSchemaIntrospectionCustomRule } from 'graphql';
+import { NoSchemaIntrospectionCustomRule } from 'graphql';
 
 app.use(
   '/graphql',
   graphqlHTTP((request) => {
     return {
       schema: MyGraphQLSchema,
-      validationRules: [...specifiedRules, NoSchemaIntrospectionCustomRule],
+      validationRules: [NoSchemaIntrospectionCustomRule],
     };
   }),
 );
