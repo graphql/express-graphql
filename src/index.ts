@@ -187,7 +187,7 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * configure behavior, and returns an express middleware.
  */
 export function graphqlHTTP(options: Options): Middleware {
-  devAssert(options != null, 'GraphQL middleware requires options.');
+  devAssertIsNonNullable(options, 'GraphQL middleware requires options.');
 
   return async function graphqlMiddleware(
     request: Request,
@@ -239,9 +239,8 @@ export function graphqlHTTP(options: Options): Middleware {
         optionsData.formatError ??
         formatErrorFn;
 
-      // Assert that schema is required.
-      devAssert(
-        schema != null,
+      devAssertIsObject(
+        schema,
         'GraphQL middleware options must contain a schema.',
       );
 
@@ -432,8 +431,8 @@ export function graphqlHTTP(options: Options): Middleware {
           : options,
       );
 
-      devAssert(
-        optionsResult != null && typeof optionsResult === 'object',
+      devAssertIsObject(
+        optionsResult,
         'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
       );
 
@@ -533,9 +532,17 @@ function sendResponse(response: Response, type: string, data: string): void {
   response.end(chunk);
 }
 
-function devAssert(condition: unknown, message: string): asserts condition {
+function devAssertIsObject(value: unknown, message: string): void {
+  devAssert(value != null && typeof value === 'object', message);
+}
+
+function devAssertIsNonNullable(value: unknown, message: string): void {
+  devAssert(value != null, message);
+}
+
+function devAssert(condition: unknown, message: string): void {
   const booleanCondition = Boolean(condition);
   if (!booleanCondition) {
-    throw new Error(message);
+    throw new TypeError(message);
   }
 }
