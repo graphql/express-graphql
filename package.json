@@ -86,6 +86,7 @@
     "graphiql": "1.0.6",
     "graphiql-subscriptions-fetcher": "0.0.2",
     "graphql": "15.4.0",
+    "graphql-ws": "4.1.2",
     "mocha": "8.2.1",
     "multer": "1.4.2",
     "nyc": "15.1.0",
