@@ -209,12 +209,12 @@ add "&raw" to the end of the URL within a browser.
           return {
             subscribe : (observer) => {
               observer.next('Your subscription data will appear here after server publication!');
-              const activeId = subscriptionsClient.subscribe(graphQLParams, {
+              const unsubscribe = subscriptionsClient.subscribe(graphQLParams, {
                 next: observer.next,
                 complete: observer.complete,
                 error: observer.error
               });
-              return { activeId };
+              return { unsubscribe };
             },
           };
         } else {
