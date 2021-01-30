@@ -203,17 +203,34 @@ add "&raw" to the end of the URL within a browser.
       return !!graphQLParams.query.match(subscriptionRegex);
     };
 
-    function makeSubscriptionFetcher(subscriptionsClient, fallbackFetcher) {
+    function makeSubscriptionFetcher(graphqlWsClient, fallbackFetcher) {
       return (graphQLParams) => {
-        if(subscriptionsClient && hasSubscriptionOperation(graphQLParams)) {
+        if(graphqlWsClient && hasSubscriptionOperation(graphQLParams)) {
           return {
             subscribe : (observer) => {
               observer.next('Your subscription data will appear here after server publication!');
-              const unsubscribe = subscriptionsClient.subscribe(graphQLParams, {
+              const unsubscribe = graphqlWsClient.subscribe(graphQLParams, {
                 next: observer.next,
                 complete: observer.complete,
                 error: observer.error
               });
+              return { unsubscribe };
+            },
+          };
+        } else {
+          return fallbackFetcher(graphQLParams);
+        }
+      }
+    }
+
+    function makeSubscriptionFetcherLegacy(subscriptionsClient, fallbackFetcher) {
+      return (graphQLParams) => {
+        if(subscriptionsClient && hasSubscriptionOperation(graphQLParams)) {
+          const observable = subscriptionsClient.request(graphQLParams);
+          return {
+            subscribe : (observer) => {
+              observer.next('Your subscription data will appear here after server publication!');
+              const unsubscribe = observable.subscribe(observer).unsubscribe;
               return { unsubscribe };
             },
           };
@@ -236,7 +253,7 @@ add "&raw" to the end of the URL within a browser.
           client = new clientClass(${safeSerialize(subscriptionEndpoint)}, {
             reconnect: true
           });
-          return window.GraphiQLSubscriptionsFetcher.graphQLFetcher(client, graphQLFetcher);
+          return makeSubscriptionFetcherLegacy(client, graphQLFetcher);
         }
       }else{
         return graphQLFetcher;
