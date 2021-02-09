@@ -85,7 +85,7 @@
     "express": "4.17.1",
     "graphiql": "1.0.6",
     "graphiql-subscriptions-fetcher": "0.0.2",
-    "graphql": "15.4.0",
+    "graphql": "15.4.0-experimental-stream-defer.1",
     "mocha": "8.2.1",
     "multer": "1.4.2",
     "nyc": "15.1.0",
@@ -102,6 +102,6 @@
     "unfetch": "4.2.0"
   },
   "peerDependencies": {
-    "graphql": "^14.7.0 || ^15.3.0"
+    "graphql": "^14.7.0 || ^15.3.0 || 15.4.0-experimental-stream-defer.1"
   }
 }

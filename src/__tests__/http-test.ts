@@ -1,4 +1,5 @@
 import zlib from 'zlib';
+import type http from 'http';
 
 import type { Server as Restify } from 'restify';
 import connect from 'connect';
@@ -25,6 +26,7 @@ import {
 } from 'graphql';
 
 import { graphqlHTTP } from '../index';
+import { isAsyncIterable } from '../isAsyncIterable';
 
 type Middleware = (req: any, res: any, next: () => void) => unknown;
 type Server = () => {
@@ -78,6 +80,12 @@ function urlString(urlParams?: { [param: string]: string }): string {
     string += '?' + stringifyURLParams(urlParams);
   }
   return string;
+}
+
+function sleep(ms = 1) {
+  return new Promise((r) => {
+    setTimeout(r, ms);
+  });
 }
 
 describe('GraphQL-HTTP tests for connect', () => {
@@ -1027,6 +1035,60 @@ function runTests(server: Server) {
         errors: [{ message: 'Must provide query string.' }],
       });
     });
+
+    it('allows for streaming results with @defer', async () => {
+      const app = server();
+      const fakeFlush = sinon.fake();
+
+      app.use((_, res, next) => {
+        res.flush = fakeFlush;
+        next();
+      });
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ ...frag @defer(label: "deferLabel") } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(fakeFlush.callCount).to.equal(2);
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 26',
+          '',
+          '{"data":{},"hasNext":true}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 78',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"label":"deferLabel","hasNext":false}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
   });
 
   describe('Pretty printing', () => {
@@ -1108,6 +1170,62 @@ function runTests(server: Server) {
       );
 
       expect(unprettyResponse.text).to.equal('{"data":{"test":"Hello World"}}');
+    });
+    it('supports pretty printing async iterable requests', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          pretty: true,
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 35',
+          '',
+          ['{', '  "data": {},', '  "hasNext": true', '}'].join('\n'),
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 79',
+          '',
+          [
+            '{',
+            '  "data": {',
+            '    "test": "Hello World"',
+            '  },',
+            '  "path": [],',
+            '  "hasNext": false',
+            '}',
+          ].join('\n'),
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
     });
   });
 
@@ -1258,6 +1376,108 @@ function runTests(server: Server) {
           },
         ],
       });
+    });
+
+    it('allows for custom error formatting in initial payload of async iterator', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          customFormatErrorFn(error) {
+            return { message: 'Custom error format: ' + error.message };
+          },
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ thrower, ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 94',
+          '',
+          '{"errors":[{"message":"Custom error format: Throws!"}],"data":{"thrower":null},"hasNext":true}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 57',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"hasNext":false}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
+    it('allows for custom error formatting in subsequent payloads of async iterator', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          customFormatErrorFn(error) {
+            return { message: 'Custom error format: ' + error.message };
+          },
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ test(who: "World"), ...frag @defer } fragment frag on QueryRoot { thrower }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 46',
+          '',
+          '{"data":{"test":"Hello World"},"hasNext":true}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 105',
+          '',
+          '{"data":{"thrower":null},"path":[],"errors":[{"message":"Custom error format: Throws!"}],"hasNext":false}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
     });
 
     it('allows for custom error formatting to elaborate', async () => {
@@ -2127,6 +2347,10 @@ function runTests(server: Server) {
           async customExecuteFn(args) {
             seenExecuteArgs = args;
             const result = await Promise.resolve(execute(args));
+            // istanbul ignore if this test query will never return an async iterable
+            if (isAsyncIterable(result)) {
+              return result;
+            }
             return {
               ...result,
               data: {
@@ -2164,6 +2388,215 @@ function runTests(server: Server) {
       expect(response.status).to.equal(400);
       expect(response.text).to.equal(
         '{"errors":[{"message":"I did something wrong"}]}',
+      );
+    });
+
+    it('catches first error thrown from custom execute function that returns an AsyncIterable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          customExecuteFn() {
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: () => Promise.reject(new Error('I did something wrong')),
+              }),
+            };
+          },
+        })),
+      );
+
+      const response = await app.request().get(urlString({ query: '{test}' }));
+      expect(response.status).to.equal(400);
+      expect(response.text).to.equal(
+        '{"errors":[{"message":"I did something wrong"}]}',
+      );
+    });
+
+    it('catches subsequent errors thrown from custom execute function that returns an AsyncIterable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          async *customExecuteFn() {
+            await sleep();
+            yield {
+              data: {
+                test2: 'Modification',
+              },
+              hasNext: true,
+            };
+            throw new Error('I did something wrong');
+          },
+        })),
+      );
+
+      const response = await app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      expect(response.status).to.equal(200);
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 48',
+          '',
+          '{"data":{"test2":"Modification"},"hasNext":true}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 64',
+          '',
+          '{"errors":[{"message":"I did something wrong"}],"hasNext":false}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
+    it('calls return on underlying async iterable when connection is closed', async () => {
+      const app = server();
+      const fakeReturn = sinon.fake();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          // custom iterable keeps yielding until return is called
+          customExecuteFn() {
+            let returned = false;
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: async () => {
+                  await sleep();
+                  if (returned) {
+                    return { value: undefined, done: true };
+                  }
+                  return {
+                    value: { data: { test: 'Hello, World' }, hasNext: true },
+                    done: false,
+                  };
+                },
+                return: () => {
+                  returned = true;
+                  fakeReturn();
+                  return Promise.resolve({ value: undefined, done: true });
+                },
+              }),
+            };
+          },
+        })),
+      );
+
+      let text = '';
+      const request = app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            text = `${text}${data.toString('utf8') as string}`;
+            ((res as unknown) as http.IncomingMessage).destroy();
+            cb(new Error('Aborted connection'), null);
+          });
+        });
+
+      try {
+        await request;
+      } catch (e: unknown) {
+        // ignore aborted error
+      }
+      // sleep to allow time for return function to be called
+      await sleep(2);
+      expect(text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 47',
+          '',
+          '{"data":{"test":"Hello, World"},"hasNext":true}',
+          '',
+        ].join('\r\n'),
+      );
+      expect(fakeReturn.callCount).to.equal(1);
+    });
+
+    it('handles return function on async iterable that throws', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          // custom iterable keeps yielding until return is called
+          customExecuteFn() {
+            let returned = false;
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: async () => {
+                  await sleep();
+                  if (returned) {
+                    return { value: undefined, done: true };
+                  }
+                  return {
+                    value: { data: { test: 'Hello, World' }, hasNext: true },
+                    done: false,
+                  };
+                },
+                return: () => {
+                  returned = true;
+                  return Promise.reject(new Error('Throws!'));
+                },
+              }),
+            };
+          },
+        })),
+      );
+
+      let text = '';
+      const request = app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            text = `${text}${data.toString('utf8') as string}`;
+            ((res as unknown) as http.IncomingMessage).destroy();
+            cb(new Error('Aborted connection'), null);
+          });
+        });
+
+      try {
+        await request;
+      } catch (e: unknown) {
+        // ignore aborted error
+      }
+      // sleep to allow return function to be called
+      await sleep(2);
+      expect(text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 47',
+          '',
+          '{"data":{"test":"Hello, World"},"hasNext":true}',
+          '',
+        ].join('\r\n'),
       );
     });
   });
@@ -2280,6 +2713,57 @@ function runTests(server: Server) {
       });
     });
 
+    it('allows for custom extensions in initial and subsequent payloads of async iterator', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          extensions({ result }) {
+            return { preservedResult: { ...result } };
+          },
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ hello: test(who: "Rob"), ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 124',
+          '',
+          '{"data":{"hello":"Hello Rob"},"hasNext":true,"extensions":{"preservedResult":{"data":{"hello":"Hello Rob"},"hasNext":true}}}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 148',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"hasNext":false,"extensions":{"preservedResult":{"data":{"test":"Hello World"},"path":[],"hasNext":false}}}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
     it('extension function may be async', async () => {
       const app = server();
 
@@ -2320,12 +2804,44 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
-        .set('Accept', 'text/html');
+        .get(
+          urlString({
+            query:
+              '{ hello: test(who: "Rob"), ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+            raw: '',
+          }),
+        )
+        .set('Accept', 'text/html')
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
 
       expect(response.status).to.equal(200);
-      expect(response.type).to.equal('application/json');
-      expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+      expect(response.type).to.equal('multipart/mixed');
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 45',
+          '',
+          '{"data":{"hello":"Hello Rob"},"hasNext":true}',
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          'Content-Length: 57',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"hasNext":false}',
+          '',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
     });
   });
 }
