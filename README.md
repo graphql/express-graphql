@@ -229,10 +229,10 @@ depending on the provided _Content-Type_ header.
 - **`application/json`**: the POST body will be parsed as a JSON
   object of parameters.
 
-- **`application/x-www-form-urlencoded`**: this POST body will be
+- **`application/x-www-form-urlencoded`**: the POST body will be
   parsed as a url-encoded string of key-value pairs.
 
-- **`application/graphql`**: The POST body will be parsed as GraphQL
+- **`application/graphql`**: the POST body will be parsed as GraphQL
   query string, which provides the `query` parameter.
 
 ## Combining with Other Express Middleware
