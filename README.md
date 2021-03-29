@@ -296,8 +296,6 @@ const { graphqlHTTP } = require('express-graphql');
 
 const app = express();
 
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 } }));
-
 const extensions = ({
   document,
   variables,
