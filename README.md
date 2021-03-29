@@ -138,8 +138,8 @@ The `graphqlHTTP` function accepts the following options:
 
   - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
 
-- **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
-  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
+- **`rootValue`**: A value to pass as the `rootValue` to the `execute()`
+  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.js#L129).
 
 - **`context`**: A value to pass as the `context` to the `graphql()`
   function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L120). If `context` is not provided, the
