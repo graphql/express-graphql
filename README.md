@@ -337,7 +337,7 @@ for example:
 
 GraphQL's [validation phase](https://graphql.github.io/graphql-spec/#sec-Validation) checks the query to ensure that it can be successfully executed against the schema. The `validationRules` option allows for additional rules to be run during this phase. Rules are applied to each node in an AST representing the query using the Visitor pattern.
 
-A validation rule is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific field name `metadata` from being queried. For more examples, see the [`specifiedRules`](https://github.com/graphql/graphql-js/tree/master/src/validation/rules) in the [graphql-js](https://github.com/graphql/graphql-js) package.
+A validation rule is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific field name `metadata` from being queried. For more examples, see the [`specifiedRules`](https://github.com/graphql/graphql-js/tree/main/src/validation/rules) in the [graphql-js](https://github.com/graphql/graphql-js) package.
 
 ```js
 import { GraphQLError } from 'graphql';
@@ -422,7 +422,7 @@ Each release of `express-graphql` will be accompanied by an experimental release
 Community feedback on this experimental release is much appreciated and can be provided on the [PR for the defer-stream branch](https://github.com/graphql/express-graphql/pull/726) or the [GraphQL.js issue for feedback](https://github.com/graphql/graphql-js/issues/2848).
 
 [`graphql.js`]: https://github.com/graphql/graphql-js
-[`formaterror`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
+[`formaterror`]: https://github.com/graphql/graphql-js/blob/main/src/error/formatError.js
 [graphiql]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session
