@@ -326,7 +326,7 @@ for example:
 
 ```js
 {
-  "data": { ... }
+  "data": { ... },
   "extensions": {
     "runTime": 135
   }
