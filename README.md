@@ -154,7 +154,7 @@ The `graphqlHTTP` function accepts the following options:
   of resources consumed. This may be an async function. The function is
   given one object as an argument: `{ document, variables, operationName, result, context }`.
 
-- **`validationRules`**: Optional additional validation rules queries must
+- **`validationRules`**: Optional additional validation rules that queries must
   satisfy in addition to those defined by the GraphQL spec.
 
 - **`customValidateFn`**: An optional function which will be used to validate
@@ -207,7 +207,7 @@ the parameters:
   named operations.
 
 - **`raw`**: If the `graphiql` option is enabled and the `raw` parameter is
-  provided raw JSON will always be returned instead of GraphiQL even when
+  provided, raw JSON will always be returned instead of GraphiQL even when
   loaded from a browser.
 
 GraphQL will first look for each parameter in the query string of a URL:
@@ -337,7 +337,7 @@ for example:
 
 GraphQL's [validation phase](https://graphql.github.io/graphql-spec/#sec-Validation) checks the query to ensure that it can be successfully executed against the schema. The `validationRules` option allows for additional rules to be run during this phase. Rules are applied to each node in an AST representing the query using the Visitor pattern.
 
-A validation rule is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific field name `metadata` from being queried. For more examples see the [`specifiedRules`](https://github.com/graphql/graphql-js/tree/master/src/validation/rules) in the [graphql-js](https://github.com/graphql/graphql-js) package.
+A validation rule is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific field name `metadata` from being queried. For more examples, see the [`specifiedRules`](https://github.com/graphql/graphql-js/tree/master/src/validation/rules) in the [graphql-js](https://github.com/graphql/graphql-js) package.
 
 ```js
 import { GraphQLError } from 'graphql';
