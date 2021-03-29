@@ -131,10 +131,10 @@ The `graphqlHTTP` function accepts the following options:
 
   - **`defaultQuery`**: An optional GraphQL string to use when no query
     is provided and no stored query exists from a previous session.
-    If undefined is provided, GraphiQL will use its own default query.
+    If `undefined` is provided, GraphiQL will use its own default query.
 
-  - **`headerEditorEnabled`**: An optional boolean which enables the header editor when true.
-    Defaults to false.
+  - **`headerEditorEnabled`**: An optional boolean which enables the header editor when `true`.
+    Defaults to `false`.
 
   - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
 
@@ -223,7 +223,7 @@ value will be used. Use [`multer`][] or a similar middleware to add support
 for `multipart/form-data` content, which may be useful for GraphQL mutations
 involving uploading files. See an [example using multer](https://github.com/graphql/express-graphql/blob/304b24b993c8f16fffff8d23b0fa4088e690874b/src/__tests__/http-test.js#L674-L741).
 
-If the POST body has not yet been parsed, express-graphql will interpret it
+If the POST body has not yet been parsed, `express-graphql` will interpret it
 depending on the provided _Content-Type_ header.
 
 - **`application/json`**: the POST body will be parsed as a JSON
