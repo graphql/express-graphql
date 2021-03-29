@@ -216,7 +216,7 @@ GraphQL will first look for each parameter in the query string of a URL:
 /graphql?query=query+getUser($id:ID){user(id:$id){name}}&variables={"id":"4"}
 ```
 
-If not found in the query-string, it will look in the POST request body.
+If not found in the query string, it will look in the POST request body.
 
 If a previous middleware has already parsed the POST body, the `request.body`
 value will be used. Use [`multer`][] or a similar middleware to add support
@@ -429,7 +429,7 @@ Community feedback on this experimental release is much appreciated and can be p
 
 # Contributing to this repo
 
-This repository is managed by EasyCLA. Project participants must sign the free ([GraphQL Specification Membership agreement](https://preview-spec-membership.graphql.org) before making a contribution. You only need to do this one time, and it can be signed by [individual contributors](http://individual-spec-membership.graphql.org/) or their [employers](http://corporate-spec-membership.graphql.org/).
+This repository is managed by EasyCLA. Project participants must sign the free [GraphQL Specification Membership agreement](https://preview-spec-membership.graphql.org) before making a contribution. You only need to do this one time, and it can be signed by [individual contributors](http://individual-spec-membership.graphql.org/) or their [employers](http://corporate-spec-membership.graphql.org/).
 
 To initiate the signature process please open a PR against this repo. The EasyCLA bot will block the merge if we still need a membership agreement from you.
 
