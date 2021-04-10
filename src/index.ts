@@ -1,10 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 
 import type {
-  ASTVisitor,
   DocumentNode,
   ValidationRule,
-  ValidationContext,
   ExecutionArgs,
   ExecutionResult,
   FormattedExecutionResult,
@@ -78,7 +76,7 @@ export interface OptionsData {
    * An optional array of validation rules that will be applied on the document
    * in additional to those defined by the GraphQL spec.
    */
-  validationRules?: ReadonlyArray<(ctx: ValidationContext) => ASTVisitor>;
+  validationRules?: ReadonlyArray<ValidationRule>;
 
   /**
    * An optional function which will be used to validate instead of default `validate`
