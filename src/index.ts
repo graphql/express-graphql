@@ -73,7 +73,7 @@ export interface OptionsData {
 
   /**
    * An optional array of validation rules that will be applied on the document
-   * in additional to those defined by the GraphQL spec.
+   * in addition to those defined by the GraphQL spec.
    */
   validationRules?: ReadonlyArray<ValidationRule>;
 
@@ -278,7 +278,7 @@ export function graphqlHTTP(options: Options): Middleware {
       try {
         documentAST = parseFn(new Source(query, 'GraphQL request'));
       } catch (syntaxError: unknown) {
-        // Return 400: Bad Request if any syntax errors errors exist.
+        // Return 400: Bad Request if any syntax errors exist.
         throw httpError(400, 'GraphQL syntax error.', {
           graphqlErrors: [syntaxError],
         });
