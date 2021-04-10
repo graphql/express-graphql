@@ -107,8 +107,8 @@ export interface OptionsData {
   customParseFn?: (source: Source) => DocumentNode;
 
   /**
-   * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
-   *  be removed in version 1.0.0.
+   * @deprecated `formatError` is deprecated and replaced by `customFormatErrorFn`.
+   * It will be removed in version 1.0.0.
    */
   formatError?: (error: GraphQLError) => GraphQLFormattedError;
 
