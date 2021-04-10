@@ -52,17 +52,17 @@ export type Options =
 
 export interface OptionsData {
   /**
-   * A GraphQL schema from graphql-js.
+   * A GraphQL schema from `graphql-js`.
    */
   schema: GraphQLSchema;
 
   /**
-   * A value to pass as the context to this middleware.
+   * A value to pass as the `contextValue` to the `execute` function.
    */
   context?: unknown;
 
   /**
-   * An object to pass as the rootValue to the graphql() function.
+   * An object to pass as the `rootValue` to the `execute` function.
    */
   rootValue?: unknown;
 
@@ -172,7 +172,7 @@ export interface RequestInfo {
   result: FormattedExecutionResult;
 
   /**
-   * A value to pass as the context to the graphql() function.
+   * The value passed as the `contextValue` to the `execute` function.
    */
   context?: unknown;
 }
