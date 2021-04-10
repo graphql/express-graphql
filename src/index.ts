@@ -13,7 +13,6 @@ import type {
 } from 'graphql';
 import accepts from 'accepts';
 import httpError from 'http-errors';
-import type { HttpError } from 'http-errors';
 import {
   Source,
   GraphQLError,
@@ -216,7 +215,7 @@ export function graphqlHTTP(options: Options): Middleware {
       }
 
       // Then, resolve the Options to get OptionsData.
-      const optionsData: OptionsData = await resolveOptions(params);
+      const optionsData = await resolveOptions(params);
 
       // Collect information from the options data object.
       const schema = optionsData.schema;
@@ -355,7 +354,7 @@ export function graphqlHTTP(options: Options): Middleware {
       }
     } catch (rawError: unknown) {
       // If an error was caught, report the httpError status, or 500.
-      const error: HttpError = httpError(
+      const error = httpError(
         500,
         /* istanbul ignore next: Thrown by underlying library. */
         rawError instanceof Error ? rawError : String(rawError),
