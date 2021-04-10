@@ -194,7 +194,7 @@ export function graphqlHTTP(options: Options): Middleware {
     // Higher scoped variables are referred to at various stages in the asynchronous state machine below.
     let params: GraphQLParams | undefined;
     let showGraphiQL = false;
-    let graphiqlOptions;
+    let graphiqlOptions: GraphiQLOptions | undefined;
     let formatErrorFn = formatError;
     let pretty = false;
     let result: ExecutionResult;
@@ -275,7 +275,7 @@ export function graphqlHTTP(options: Options): Middleware {
       }
 
       // Parse source to AST, reporting any syntax error.
-      let documentAST;
+      let documentAST: DocumentNode;
       try {
         documentAST = parseFn(new Source(query, 'GraphQL request'));
       } catch (syntaxError: unknown) {
