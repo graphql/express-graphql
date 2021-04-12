@@ -131,18 +131,18 @@ The `graphqlHTTP` function accepts the following options:
 
   - **`defaultQuery`**: An optional GraphQL string to use when no query
     is provided and no stored query exists from a previous session.
-    If undefined is provided, GraphiQL will use its own default query.
+    If `undefined` is provided, GraphiQL will use its own default query.
 
-  - **`headerEditorEnabled`**: An optional boolean which enables the header editor when true.
-    Defaults to false.
+  - **`headerEditorEnabled`**: An optional boolean which enables the header editor when `true`.
+    Defaults to `false`.
 
   - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
 
-- **`rootValue`**: A value to pass as the `rootValue` to the `graphql()`
-  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L119).
+- **`rootValue`**: A value to pass as the `rootValue` to the `execute()`
+  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.js#L129).
 
-- **`context`**: A value to pass as the `context` to the `graphql()`
-  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/master/src/execution/execute.js#L120). If `context` is not provided, the
+- **`context`**: A value to pass as the `contextValue` to the `execute()`
+  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.js#L130). If `context` is not provided, the
   `request` object is passed as the context.
 
 - **`pretty`**: If `true`, any JSON response will be pretty-printed.
@@ -154,7 +154,7 @@ The `graphqlHTTP` function accepts the following options:
   of resources consumed. This may be an async function. The function is
   given one object as an argument: `{ document, variables, operationName, result, context }`.
 
-- **`validationRules`**: Optional additional validation rules queries must
+- **`validationRules`**: Optional additional validation rules that queries must
   satisfy in addition to those defined by the GraphQL spec.
 
 - **`customValidateFn`**: An optional function which will be used to validate
@@ -207,7 +207,7 @@ the parameters:
   named operations.
 
 - **`raw`**: If the `graphiql` option is enabled and the `raw` parameter is
-  provided raw JSON will always be returned instead of GraphiQL even when
+  provided, raw JSON will always be returned instead of GraphiQL even when
   loaded from a browser.
 
 GraphQL will first look for each parameter in the query string of a URL:
@@ -216,23 +216,23 @@ GraphQL will first look for each parameter in the query string of a URL:
 /graphql?query=query+getUser($id:ID){user(id:$id){name}}&variables={"id":"4"}
 ```
 
-If not found in the query-string, it will look in the POST request body.
+If not found in the query string, it will look in the POST request body.
 
 If a previous middleware has already parsed the POST body, the `request.body`
 value will be used. Use [`multer`][] or a similar middleware to add support
 for `multipart/form-data` content, which may be useful for GraphQL mutations
 involving uploading files. See an [example using multer](https://github.com/graphql/express-graphql/blob/304b24b993c8f16fffff8d23b0fa4088e690874b/src/__tests__/http-test.js#L674-L741).
 
-If the POST body has not yet been parsed, express-graphql will interpret it
+If the POST body has not yet been parsed, `express-graphql` will interpret it
 depending on the provided _Content-Type_ header.
 
 - **`application/json`**: the POST body will be parsed as a JSON
   object of parameters.
 
-- **`application/x-www-form-urlencoded`**: this POST body will be
+- **`application/x-www-form-urlencoded`**: the POST body will be
   parsed as a url-encoded string of key-value pairs.
 
-- **`application/graphql`**: The POST body will be parsed as GraphQL
+- **`application/graphql`**: the POST body will be parsed as GraphQL
   query string, which provides the `query` parameter.
 
 ## Combining with Other Express Middleware
@@ -296,8 +296,6 @@ const { graphqlHTTP } = require('express-graphql');
 
 const app = express();
 
-app.use(session({ secret: 'keyboard cat', cookie: { maxAge: 60000 } }));
-
 const extensions = ({
   document,
   variables,
@@ -328,7 +326,7 @@ for example:
 
 ```js
 {
-  "data": { ... }
+  "data": { ... },
   "extensions": {
     "runTime": 135
   }
@@ -339,7 +337,7 @@ for example:
 
 GraphQL's [validation phase](https://graphql.github.io/graphql-spec/#sec-Validation) checks the query to ensure that it can be successfully executed against the schema. The `validationRules` option allows for additional rules to be run during this phase. Rules are applied to each node in an AST representing the query using the Visitor pattern.
 
-A validation rule is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific field name `metadata` from being queried. For more examples see the [`specifiedRules`](https://github.com/graphql/graphql-js/tree/master/src/validation/rules) in the [graphql-js](https://github.com/graphql/graphql-js) package.
+A validation rule is a function which returns a visitor for one or more node Types. Below is an example of a validation preventing the specific field name `metadata` from being queried. For more examples, see the [`specifiedRules`](https://github.com/graphql/graphql-js/tree/main/src/validation/rules) in the [graphql-js](https://github.com/graphql/graphql-js) package.
 
 ```js
 import { GraphQLError } from 'graphql';
@@ -424,14 +422,14 @@ Each release of `express-graphql` will be accompanied by an experimental release
 Community feedback on this experimental release is much appreciated and can be provided on the [PR for the defer-stream branch](https://github.com/graphql/express-graphql/pull/726) or the [GraphQL.js issue for feedback](https://github.com/graphql/graphql-js/issues/2848).
 
 [`graphql.js`]: https://github.com/graphql/graphql-js
-[`formaterror`]: https://github.com/graphql/graphql-js/blob/master/src/error/formatError.js
+[`formaterror`]: https://github.com/graphql/graphql-js/blob/main/src/error/formatError.js
 [graphiql]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session
 
 # Contributing to this repo
 
-This repository is managed by EasyCLA. Project participants must sign the free ([GraphQL Specification Membership agreement](https://preview-spec-membership.graphql.org) before making a contribution. You only need to do this one time, and it can be signed by [individual contributors](http://individual-spec-membership.graphql.org/) or their [employers](http://corporate-spec-membership.graphql.org/).
+This repository is managed by EasyCLA. Project participants must sign the free [GraphQL Specification Membership agreement](https://preview-spec-membership.graphql.org) before making a contribution. You only need to do this one time, and it can be signed by [individual contributors](http://individual-spec-membership.graphql.org/) or their [employers](http://corporate-spec-membership.graphql.org/).
 
 To initiate the signature process please open a PR against this repo. The EasyCLA bot will block the merge if we still need a membership agreement from you.
 
