@@ -2037,8 +2037,6 @@ function runTests(server: Server) {
 
       expect(response.status).to.equal(200);
       expect(response.type).to.equal('text/html');
-      // should contain the function to make fetcher using graphql-ws for subscription or non-subscription
-      expect(response.text).to.include('makeSubscriptionFetcher');
       // should contain graphql-ws browser client
       expect(response.text).to.include('graphql-transport-ws');
 

@@ -73,9 +73,19 @@ export function renderGraphiQL(
       <script>
         ${loadFileStaticallyFromNPM('graphql-ws/umd/graphql-ws.js')}
       </script>
+      <script>
+      ${loadFileStaticallyFromNPM(
+        'subscriptions-transport-ws/browser/client.js',
+      )}
+      </script>
       `;
     } else {
       subscriptionScripts = `
+      <script>
+        ${loadFileStaticallyFromNPM(
+          'subscriptions-transport-ws/browser/client.js',
+        )}
+      </script>
       <script>
         ${loadFileStaticallyFromNPM(
           'subscriptions-transport-ws/browser/client.js',
@@ -197,63 +207,21 @@ add "&raw" to the end of the URL within a browser.
       });
     }
 
-    // there is no graphql parser for browser, so I use simple string match!
-    function hasSubscriptionOperation(graphQLParams) {
-      const subscriptionRegex = /(#.*\\r)*subscription\\b/;
-      return !!graphQLParams.query.match(subscriptionRegex);
-    };
-
-    function makeSubscriptionFetcher(graphqlWsClient, fallbackFetcher) {
-      return (graphQLParams) => {
-        if(graphqlWsClient && hasSubscriptionOperation(graphQLParams)) {
-          return {
-            subscribe : (observer) => {
-              observer.next('Your subscription data will appear here after server publication!');
-              const unsubscribe = graphqlWsClient.subscribe(graphQLParams, {
-                next: observer.next,
-                complete: observer.complete,
-                error: observer.error
-              });
-              return { unsubscribe };
-            },
-          };
-        } else {
-          return fallbackFetcher(graphQLParams);
-        }
-      }
-    }
-
-    function makeSubscriptionFetcherLegacy(subscriptionsClient, fallbackFetcher) {
-      return (graphQLParams) => {
-        if(subscriptionsClient && hasSubscriptionOperation(graphQLParams)) {
-          const observable = subscriptionsClient.request(graphQLParams);
-          return {
-            subscribe : (observer) => {
-              observer.next('Your subscription data will appear here after server publication!');
-              const unsubscribe = observable.subscribe(observer).unsubscribe;
-              return { unsubscribe };
-            },
-          };
-        } else {
-          return fallbackFetcher(graphQLParams);
-        }
-      }
-    }
-
     function makeFetcher() {
       if('${typeof subscriptionEndpoint}' == 'string') {
         let client = null;
+        let url = window.location.href;
         if('${typeof websocketClient}' == 'string' && '${websocketClient}' === 'v1') {
           client = window.graphqlWs.createClient({url: ${safeSerialize(
             subscriptionEndpoint,
           )} });
-          return makeSubscriptionFetcher(client, graphQLFetcher);
+          return window.GraphiQL.createFetcher({url, wsClient: client});
         } else {
           let clientClass = window.SubscriptionsTransportWs.SubscriptionClient;
           client = new clientClass(${safeSerialize(subscriptionEndpoint)}, {
             reconnect: true
           });
-          return makeSubscriptionFetcherLegacy(client, graphQLFetcher);
+          return window.GraphiQL.createFetcher({url, legacyClient: client});
         }
       }else{
         return graphQLFetcher;
