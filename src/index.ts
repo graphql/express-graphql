@@ -116,15 +116,6 @@ export interface OptionsData {
   formatError?: (error: GraphQLError) => GraphQLFormattedError;
 
   /**
-   * Use this to modify the response when a runtime query error occurs. By
-   * default the statusCode will be set to 500.
-   */
-  handleRuntimeQueryErrorFn?: (
-    result: ExecutionResult,
-    response: Response,
-  ) => void;
-
-  /**
    * An optional function for adding additional metadata to the GraphQL response
    * as a key-value object. The result will be added to "extensions" field in
    * the resulting JSON. This is often a useful place to add development time
@@ -196,7 +187,7 @@ type Middleware = (request: Request, response: Response) => Promise<void>;
  * configure behavior, and returns an express middleware.
  */
 export function graphqlHTTP(options: Options): Middleware {
-  devAssert(options != null, 'GraphQL middleware requires options.');
+  devAssertIsNonNullable(options, 'GraphQL middleware requires options.');
 
   return async function graphqlMiddleware(
     request: Request,
@@ -209,7 +200,6 @@ export function graphqlHTTP(options: Options): Middleware {
     let formatErrorFn = formatError;
     let pretty = false;
     let result: ExecutionResult;
-    let optionsData: OptionsData | undefined;
 
     try {
       // Parse the Request to get GraphQL request parameters.
@@ -218,7 +208,7 @@ export function graphqlHTTP(options: Options): Middleware {
       } catch (error: unknown) {
         // When we failed to parse the GraphQL parameters, we still need to get
         // the options object, so make an options call to resolve just that.
-        optionsData = await resolveOptions();
+        const optionsData = await resolveOptions();
         pretty = optionsData.pretty ?? false;
         formatErrorFn =
           optionsData.customFormatErrorFn ??
@@ -228,7 +218,7 @@ export function graphqlHTTP(options: Options): Middleware {
       }
 
       // Then, resolve the Options to get OptionsData.
-      optionsData = await resolveOptions(params);
+      const optionsData: OptionsData = await resolveOptions(params);
 
       // Collect information from the options data object.
       const schema = optionsData.schema;
@@ -249,9 +239,8 @@ export function graphqlHTTP(options: Options): Middleware {
         optionsData.formatError ??
         formatErrorFn;
 
-      // Assert that schema is required.
-      devAssert(
-        schema != null,
+      devAssertIsObject(
+        schema,
         'GraphQL middleware options must contain a schema.',
       );
 
@@ -398,22 +387,13 @@ export function graphqlHTTP(options: Options): Middleware {
       }
     }
 
-    if (result.errors != null || result.data == null) {
-      const handleRuntimeQueryErrorFn =
-        optionsData?.handleRuntimeQueryErrorFn ??
-        ((_result, _response) => {
-          // If no data was included in the result, that indicates a runtime query
-          // error, indicate as such with a generic status code.
-          // Note: Information about the error itself will still be contained in
-          // the resulting JSON payload.
-          // https://graphql.github.io/graphql-spec/#sec-Data
-
-          if (_response.statusCode === 200 && _result.data == null) {
-            _response.statusCode = 500;
-          }
-        });
-
-      handleRuntimeQueryErrorFn(result, response);
+    // If no data was included in the result, that indicates a runtime query
+    // error, indicate as such with a generic status code.
+    // Note: Information about the error itself will still be contained in
+    // the resulting JSON payload.
+    // https://graphql.github.io/graphql-spec/#sec-Data
+    if (response.statusCode === 200 && result.data == null) {
+      response.statusCode = 500;
     }
 
     // Format any encountered errors.
@@ -451,8 +431,8 @@ export function graphqlHTTP(options: Options): Middleware {
           : options,
       );
 
-      devAssert(
-        optionsResult != null && typeof optionsResult === 'object',
+      devAssertIsObject(
+        optionsResult,
         'GraphQL middleware option function must return an options object or a promise which will be resolved to an options object.',
       );
 
@@ -552,9 +532,17 @@ function sendResponse(response: Response, type: string, data: string): void {
   response.end(chunk);
 }
 
-function devAssert(condition: unknown, message: string): asserts condition {
+function devAssertIsObject(value: unknown, message: string): void {
+  devAssert(value != null && typeof value === 'object', message);
+}
+
+function devAssertIsNonNullable(value: unknown, message: string): void {
+  devAssert(value != null, message);
+}
+
+function devAssert(condition: unknown, message: string): void {
   const booleanCondition = Boolean(condition);
   if (!booleanCondition) {
-    throw new Error(message);
+    throw new TypeError(message);
   }
 }
