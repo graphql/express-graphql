@@ -163,7 +163,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -529,7 +529,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -555,7 +555,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -564,7 +564,7 @@ function runTests(server: Server) {
       expect(seenRequest).to.not.equal(null);
       expect(seenResponse).to.not.equal(null);
       expect(seenParams).to.deep.equal({
-        query: '{test}',
+        query: '{ test }',
         operationName: null,
         variables: null,
         raw: false,
@@ -583,7 +583,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -608,7 +608,7 @@ function runTests(server: Server) {
       const response = await app
         .request()
         .post(urlString())
-        .send({ query: '{test}' });
+        .send({ query: '{ test }' });
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
     });
@@ -642,7 +642,7 @@ function runTests(server: Server) {
       const response = await app
         .request()
         .post(urlString())
-        .send(stringifyURLParams({ query: '{test}' }));
+        .send(stringifyURLParams({ query: '{ test }' }));
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
     });
@@ -795,13 +795,13 @@ function runTests(server: Server) {
 
       const response = await app.request().post(urlString()).send({
         query: `
-            query helloYou { test(who: "You"), ...shared }
-            query helloWorld { test(who: "World"), ...shared }
-            query helloDolly { test(who: "Dolly"), ...shared }
-            fragment shared on QueryRoot {
-              shared: test(who: "Everyone")
-            }
-          `,
+          query helloYou { test(who: "You"), ...shared }
+          query helloWorld { test(who: "World"), ...shared }
+          query helloDolly { test(who: "Dolly"), ...shared }
+          fragment shared on QueryRoot {
+            shared: test(who: "Everyone")
+          }
+        `,
         operationName: 'helloWorld',
       });
 
@@ -958,8 +958,8 @@ function runTests(server: Server) {
         .field(
           'query',
           `mutation TestMutation {
-          uploadFile { originalname, mimetype }
-        }`,
+            uploadFile { originalname, mimetype }
+          }`,
         )
         .attach('file', Buffer.from('test'), 'test.txt');
 
@@ -1043,7 +1043,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -1074,7 +1074,7 @@ function runTests(server: Server) {
       pretty = undefined;
       const defaultResponse = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -1083,7 +1083,7 @@ function runTests(server: Server) {
       pretty = true;
       const prettyResponse = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
           pretty: '1',
         }),
       );
@@ -1102,7 +1102,7 @@ function runTests(server: Server) {
       pretty = false;
       const unprettyResponse = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
           pretty: '0',
         }),
       );
@@ -1126,7 +1126,7 @@ function runTests(server: Server) {
       }),
     );
 
-    await app.request().get(urlString({ query: '{test}' }));
+    await app.request().get(urlString({ query: '{ test }' }));
 
     expect(seenRequest).to.not.equal(undefined);
     expect(seenResponse).to.not.equal(undefined);
@@ -1145,7 +1145,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -1155,7 +1155,7 @@ function runTests(server: Server) {
         errors: [
           {
             message: 'Throws!',
-            locations: [{ line: 1, column: 2 }],
+            locations: [{ line: 1, column: 3 }],
             path: ['thrower'],
           },
         ],
@@ -1217,7 +1217,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -1279,7 +1279,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -1289,7 +1289,7 @@ function runTests(server: Server) {
         errors: [
           {
             message: 'Throws!',
-            locations: [{ line: 1, column: 2 }],
+            locations: [{ line: 1, column: 3 }],
             stack: 'Stack trace',
           },
         ],
@@ -1645,7 +1645,9 @@ function runTests(server: Server) {
 
       app.put(urlString(), graphqlHTTP({ schema: TestSchema }));
 
-      const response = await app.request().put(urlString({ query: '{test}' }));
+      const response = await app
+        .request()
+        .put(urlString({ query: '{ test }' }));
 
       expect(response.status).to.equal(405);
       expect(response.get('allow')).to.equal('GET, POST');
@@ -1663,7 +1665,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -1684,12 +1686,12 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
       expect(response.type).to.equal('text/html');
-      expect(response.text).to.include('{test}');
+      expect(response.text).to.include('{ test }');
       expect(response.text).to.include('graphiql.min.js');
     });
 
@@ -1729,7 +1731,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -1918,7 +1920,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html,application/json');
 
       expect(response.status).to.equal(200);
@@ -1939,7 +1941,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'application/json,text/html');
 
       expect(response.status).to.equal(200);
@@ -1960,7 +1962,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'unknown');
 
       expect(response.status).to.equal(200);
@@ -1981,7 +1983,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2061,7 +2063,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2085,7 +2087,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -2127,7 +2129,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -2166,7 +2168,9 @@ function runTests(server: Server) {
         })),
       );
 
-      const response = await app.request().get(urlString({ query: '{test}' }));
+      const response = await app
+        .request()
+        .get(urlString({ query: '{ test }' }));
 
       expect(response.text).to.equal(
         '{"data":{"test":"Hello World","test2":"Modification"}}',
@@ -2187,7 +2191,9 @@ function runTests(server: Server) {
         })),
       );
 
-      const response = await app.request().get(urlString({ query: '{test}' }));
+      const response = await app
+        .request()
+        .get(urlString({ query: '{ test }' }));
 
       expect(response.status).to.equal(400);
       expect(response.text).to.equal(
@@ -2208,7 +2214,7 @@ function runTests(server: Server) {
           schema: TestSchema,
           customParseFn(args) {
             seenParseArgs = args;
-            return parse(new Source('{test}', 'Custom parse function'));
+            return parse(new Source('{ test }', 'Custom parse function'));
           },
         })),
       );
@@ -2257,7 +2263,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2285,7 +2291,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -2299,7 +2305,7 @@ function runTests(server: Server) {
             errors: [
               {
                 message: 'Throws!',
-                locations: [{ line: 1, column: 2 }],
+                locations: [{ line: 1, column: 3 }],
                 path: ['thrower'],
               },
             ],
@@ -2324,7 +2330,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2348,7 +2354,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
