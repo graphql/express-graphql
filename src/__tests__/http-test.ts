@@ -1111,27 +1111,6 @@ function runTests(server: Server) {
     });
   });
 
-  it('will send request and response when using thunk', async () => {
-    const app = server();
-
-    let seenRequest;
-    let seenResponse;
-
-    app.get(
-      urlString(),
-      graphqlHTTP((req, res) => {
-        seenRequest = req;
-        seenResponse = res;
-        return { schema: TestSchema };
-      }),
-    );
-
-    await app.request().get(urlString({ query: '{ test }' }));
-
-    expect(seenRequest).to.not.equal(undefined);
-    expect(seenResponse).to.not.equal(undefined);
-  });
-
   describe('Error handling functionality', () => {
     it('handles field errors caught by GraphQL', async () => {
       const app = server();
@@ -2225,8 +2204,10 @@ function runTests(server: Server) {
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
       expect(seenParseArgs).property('body', '----');
     });
+
     it('can throw errors', async () => {
       const app = server();
+
       app.get(
         urlString(),
         graphqlHTTP(() => ({
