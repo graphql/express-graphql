@@ -561,8 +561,8 @@ function runTests(server: Server) {
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
 
-      expect(seenRequest).to.not.equal(null);
-      expect(seenResponse).to.not.equal(null);
+      expect(seenRequest).to.not.equal(undefined);
+      expect(seenResponse).to.not.equal(undefined);
       expect(seenParams).to.deep.equal({
         query: '{ test }',
         operationName: null,
@@ -2175,7 +2175,7 @@ function runTests(server: Server) {
       expect(response.text).to.equal(
         '{"data":{"test":"Hello World","test2":"Modification"}}',
       );
-      expect(seenExecuteArgs).to.not.equal(null);
+      expect(seenExecuteArgs).to.not.equal(undefined);
     });
 
     it('catches errors thrown from custom execute function', async () => {
