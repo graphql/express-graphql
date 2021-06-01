@@ -1,4 +1,6 @@
 import zlib from 'zlib';
+import http from 'http';
+import type { AddressInfo } from 'net';
 
 import type { Server as Restify } from 'restify';
 import connect from 'connect';
@@ -6,7 +8,11 @@ import express from 'express';
 import supertest from 'supertest';
 import bodyParser from 'body-parser';
 
-import type { ASTVisitor, ValidationContext } from 'graphql';
+import type {
+  ASTVisitor,
+  ValidationContext,
+  AsyncExecutionResult,
+} from 'graphql';
 import sinon from 'sinon';
 import multer from 'multer'; // cSpell:words mimetype originalname
 import { expect } from 'chai';
@@ -25,9 +31,13 @@ import {
 } from 'graphql';
 
 import { graphqlHTTP } from '../index';
+import { isAsyncIterable } from '../isAsyncIterable';
+
+import SimplePubSub from './simplePubSub';
 
 type Middleware = (req: any, res: any, next: () => void) => unknown;
 type Server = () => {
+  listener: http.Server | http.RequestListener;
   request: () => supertest.SuperTest<supertest.Test>;
   use: (middleware: Middleware) => unknown;
   get: (path: string, middleware: Middleware) => unknown;
@@ -80,6 +90,53 @@ function urlString(urlParams?: { [param: string]: string }): string {
   return string;
 }
 
+async function streamRequest(
+  server: Server,
+  customExecuteFn?: () => AsyncIterable<AsyncExecutionResult>,
+): Promise<{
+  req: http.ClientRequest;
+  responseStream: http.IncomingMessage;
+}> {
+  const app = server();
+  app.get(
+    urlString(),
+    graphqlHTTP(() => ({
+      schema: TestSchema,
+      customExecuteFn,
+    })),
+  );
+
+  let httpServer: http.Server;
+  if (typeof app.listener === 'function') {
+    httpServer = http.createServer(app.listener);
+  } else {
+    httpServer = app.listener;
+  }
+  await new Promise((resolve) => {
+    httpServer.listen(resolve);
+  });
+
+  const addr = httpServer.address() as AddressInfo;
+  const req = http.get({
+    method: 'GET',
+    path: urlString({ query: '{test}' }),
+    port: addr.port,
+  });
+
+  const res: http.IncomingMessage = await new Promise((resolve) => {
+    req.on('response', resolve);
+  });
+
+  req.on('close', () => {
+    httpServer.close();
+  });
+
+  return {
+    req,
+    responseStream: res,
+  };
+}
+
 describe('GraphQL-HTTP tests for connect', () => {
   runTests(() => {
     const app = connect();
@@ -91,6 +148,7 @@ describe('GraphQL-HTTP tests for connect', () => {
     });
 
     return {
+      listener: app,
       request: () => supertest(app),
       use: app.use.bind(app),
       // Connect only likes using app.use.
@@ -115,6 +173,7 @@ describe('GraphQL-HTTP tests for express', () => {
     });
 
     return {
+      listener: app,
       request: () => supertest(app),
       use: app.use.bind(app),
       get: app.get.bind(app),
@@ -140,6 +199,7 @@ describe('GraphQL-HTTP tests for restify', () => {
     });
 
     return {
+      listener: app.server,
       request: () => supertest(app),
       use: app.use.bind(app),
       get: app.get.bind(app),
@@ -1027,6 +1087,56 @@ function runTests(server: Server) {
         errors: [{ message: 'Must provide query string.' }],
       });
     });
+
+    it('allows for streaming results with @defer', async () => {
+      const app = server();
+      const fakeFlush = sinon.fake();
+
+      app.use((_, res, next) => {
+        res.flush = fakeFlush;
+        next();
+      });
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ ...frag @defer(label: "deferLabel") } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(fakeFlush.callCount).to.equal(2);
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{},"hasNext":true}',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"label":"deferLabel","hasNext":false}',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
   });
 
   describe('Pretty printing', () => {
@@ -1108,6 +1218,58 @@ function runTests(server: Server) {
       );
 
       expect(unprettyResponse.text).to.equal('{"data":{"test":"Hello World"}}');
+    });
+    it('supports pretty printing async iterable requests', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          pretty: true,
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          ['{', '  "data": {},', '  "hasNext": true', '}'].join('\n'),
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          [
+            '{',
+            '  "data": {',
+            '    "test": "Hello World"',
+            '  },',
+            '  "path": [],',
+            '  "hasNext": false',
+            '}',
+          ].join('\n'),
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
     });
   });
 
@@ -1258,6 +1420,100 @@ function runTests(server: Server) {
           },
         ],
       });
+    });
+
+    it('allows for custom error formatting in initial payload of async iterator', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          customFormatErrorFn(error) {
+            return { message: 'Custom error format: ' + error.message };
+          },
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ thrower, ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"errors":[{"message":"Custom error format: Throws!"}],"data":{"thrower":null},"hasNext":true}',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"hasNext":false}',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
+    it('allows for custom error formatting in subsequent payloads of async iterator', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          customFormatErrorFn(error) {
+            return { message: 'Custom error format: ' + error.message };
+          },
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ test(who: "World"), ...frag @defer } fragment frag on QueryRoot { thrower }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello World"},"hasNext":true}',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"thrower":null},"path":[],"errors":[{"message":"Custom error format: Throws!"}],"hasNext":false}',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
     });
 
     it('allows for custom error formatting to elaborate', async () => {
@@ -2127,6 +2383,10 @@ function runTests(server: Server) {
           async customExecuteFn(args) {
             seenExecuteArgs = args;
             const result = await Promise.resolve(execute(args));
+            // istanbul ignore if this test query will never return an async iterable
+            if (isAsyncIterable(result)) {
+              return result;
+            }
             return {
               ...result,
               data: {
@@ -2165,6 +2425,194 @@ function runTests(server: Server) {
       expect(response.text).to.equal(
         '{"errors":[{"message":"I did something wrong"}]}',
       );
+    });
+
+    it('catches first error thrown from custom execute function that returns an AsyncIterable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          customExecuteFn() {
+            return {
+              [Symbol.asyncIterator]: () => ({
+                next: () => Promise.reject(new Error('I did something wrong')),
+              }),
+            };
+          },
+        })),
+      );
+
+      const response = await app.request().get(urlString({ query: '{test}' }));
+      expect(response.status).to.equal(400);
+      expect(response.text).to.equal(
+        '{"errors":[{"message":"I did something wrong"}]}',
+      );
+    });
+
+    it('catches subsequent errors thrown from custom execute function that returns an AsyncIterable', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+          // eslint-disable-next-line @typescript-eslint/require-await
+          async *customExecuteFn() {
+            yield {
+              data: {
+                test2: 'Modification',
+              },
+              hasNext: true,
+            };
+            throw new Error('I did something wrong');
+          },
+        })),
+      );
+
+      const response = await app
+        .request()
+        .get(urlString({ query: '{test}' }))
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      expect(response.status).to.equal(200);
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test2":"Modification"},"hasNext":true}',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"errors":[{"message":"I did something wrong"}],"hasNext":false}',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
+    it('calls return on underlying async iterable when connection is closed', async () => {
+      const executePubSub = new SimplePubSub<AsyncExecutionResult>();
+      const executeIterable = executePubSub.getSubscriber();
+      const spy = sinon.spy(executeIterable[Symbol.asyncIterator](), 'return');
+      expect(
+        executePubSub.emit({ data: { test: 'Hello, World 1' }, hasNext: true }),
+      ).to.equal(true);
+
+      const { req, responseStream } = await streamRequest(
+        server,
+        () => executeIterable,
+      );
+      const iterator = responseStream[Symbol.asyncIterator]();
+
+      const { value: firstResponse } = await iterator.next();
+      expect(firstResponse.toString('utf8')).to.equal(
+        [
+          '\r\n---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello, World 1"},"hasNext":true}',
+          '---\r\n',
+        ].join('\r\n'),
+      );
+
+      expect(
+        executePubSub.emit({ data: { test: 'Hello, World 2' }, hasNext: true }),
+      ).to.equal(true);
+      const { value: secondResponse } = await iterator.next();
+      expect(secondResponse.toString('utf8')).to.equal(
+        [
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello, World 2"},"hasNext":true}',
+          '---\r\n',
+        ].join('\r\n'),
+      );
+
+      req.destroy();
+
+      // wait for server to call return on underlying iterable
+      await executeIterable.next();
+
+      expect(spy.calledOnce).to.equal(true);
+      // emit returns false because `return` cleaned up subscribers
+      expect(
+        executePubSub.emit({ data: { test: 'Hello, World 3' }, hasNext: true }),
+      ).to.equal(false);
+    });
+
+    it('handles return function on async iterable that throws', async () => {
+      const executePubSub = new SimplePubSub<AsyncExecutionResult>();
+      const executeIterable = executePubSub.getSubscriber();
+      const executeIterator = executeIterable[Symbol.asyncIterator]();
+      const originalReturn = executeIterator.return.bind(executeIterator);
+      const fake = sinon.fake(async () => {
+        await originalReturn();
+        throw new Error('Throws!');
+      });
+      sinon.replace(executeIterator, 'return', fake);
+      expect(
+        executePubSub.emit({
+          data: { test: 'Hello, World 1' },
+          hasNext: true,
+        }),
+      ).to.equal(true);
+
+      const { req, responseStream } = await streamRequest(
+        server,
+        () => executeIterable,
+      );
+      const iterator = responseStream[Symbol.asyncIterator]();
+
+      const { value: firstResponse } = await iterator.next();
+      expect(firstResponse.toString('utf8')).to.equal(
+        [
+          '\r\n---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello, World 1"},"hasNext":true}',
+          '---\r\n',
+        ].join('\r\n'),
+      );
+
+      expect(
+        executePubSub.emit({
+          data: { test: 'Hello, World 2' },
+          hasNext: true,
+        }),
+      ).to.equal(true);
+      const { value: secondResponse } = await iterator.next();
+      expect(secondResponse.toString('utf8')).to.equal(
+        [
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello, World 2"},"hasNext":true}',
+          '---\r\n',
+        ].join('\r\n'),
+      );
+      req.destroy();
+
+      // wait for server to call return on underlying iterable
+      await executeIterable.next();
+
+      expect(fake.calledOnce).to.equal(true);
+      // emit returns false because `return` cleaned up subscribers
+      expect(
+        executePubSub.emit({
+          data: { test: 'Hello, World 3' },
+          hasNext: true,
+        }),
+      ).to.equal(false);
     });
   });
 
@@ -2280,6 +2728,53 @@ function runTests(server: Server) {
       });
     });
 
+    it('allows for custom extensions in initial and subsequent payloads of async iterator', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          extensions({ result }) {
+            return { preservedResult: { ...result } };
+          },
+        }),
+      );
+
+      const req = app
+        .request()
+        .post(urlString())
+        .send({
+          query:
+            '{ hello: test(who: "Rob"), ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+        })
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
+
+      const response = await req;
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"hello":"Hello Rob"},"hasNext":true,"extensions":{"preservedResult":{"data":{"hello":"Hello Rob"},"hasNext":true}}}',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"hasNext":false,"extensions":{"preservedResult":{"data":{"test":"Hello World"},"path":[],"hasNext":false}}}',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
+    });
+
     it('extension function may be async', async () => {
       const app = server();
 
@@ -2320,12 +2815,40 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
-        .set('Accept', 'text/html');
+        .get(
+          urlString({
+            query:
+              '{ hello: test(who: "Rob"), ...frag @defer } fragment frag on QueryRoot { test(who: "World") }',
+            raw: '',
+          }),
+        )
+        .set('Accept', 'text/html')
+        .parse((res, cb) => {
+          res.on('data', (data) => {
+            res.text = `${res.text || ''}${data.toString('utf8') as string}`;
+          });
+          res.on('end', (err) => {
+            cb(err, null);
+          });
+        });
 
       expect(response.status).to.equal(200);
-      expect(response.type).to.equal('application/json');
-      expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
+      expect(response.type).to.equal('multipart/mixed');
+      expect(response.text).to.equal(
+        [
+          '',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"hello":"Hello Rob"},"hasNext":true}',
+          '---',
+          'Content-Type: application/json; charset=utf-8',
+          '',
+          '{"data":{"test":"Hello World"},"path":[],"hasNext":false}',
+          '-----',
+          '',
+        ].join('\r\n'),
+      );
     });
   });
 }
