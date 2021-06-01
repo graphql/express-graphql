@@ -163,7 +163,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -222,7 +222,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Reports validation errors', async () => {
+    it('reports validation errors', async () => {
       const app = server();
 
       app.get(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -248,7 +248,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Errors when missing operation name', async () => {
+    it('errors when missing operation name', async () => {
       const app = server();
 
       app.get(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -273,7 +273,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Errors when sending a mutation via GET', async () => {
+    it('errors when sending a mutation via GET', async () => {
       const app = server();
 
       app.get(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -295,7 +295,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Errors when selecting a mutation within a GET', async () => {
+    it('errors when selecting a mutation within a GET', async () => {
       const app = server();
 
       app.get(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -321,7 +321,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Allows a mutation to exist within a GET', async () => {
+    it('allows a mutation to exist within a GET', async () => {
       const app = server();
 
       app.get(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -344,7 +344,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Allows async resolvers', async () => {
+    it('allows async resolvers', async () => {
       const schema = new GraphQLSchema({
         query: new GraphQLObjectType({
           name: 'Query',
@@ -372,7 +372,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Allows passing in a context', async () => {
+    it('allows passing in a context', async () => {
       const schema = new GraphQLSchema({
         query: new GraphQLObjectType({
           name: 'Query',
@@ -408,7 +408,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Allows passing in a fieldResolver', async () => {
+    it('allows passing in a fieldResolver', async () => {
       const schema = buildSchema(`
         type Query {
           test: String
@@ -438,7 +438,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Allows passing in a typeResolver', async () => {
+    it('allows passing in a typeResolver', async () => {
       const schema = buildSchema(`
         type Foo {
           foo: String
@@ -479,7 +479,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Uses request as context by default', async () => {
+    it('uses request as context by default', async () => {
       const schema = new GraphQLSchema({
         query: new GraphQLObjectType({
           name: 'Query',
@@ -515,7 +515,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('Allows returning an options Promise', async () => {
+    it('allows returning an options Promise', async () => {
       const app = server();
 
       app.get(
@@ -529,14 +529,14 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
     });
 
-    it('Provides an options function with arguments', async () => {
+    it('provides an options function with arguments', async () => {
       const app = server();
 
       let seenRequest;
@@ -555,23 +555,23 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
 
-      expect(seenRequest).to.not.equal(null);
-      expect(seenResponse).to.not.equal(null);
+      expect(seenRequest).to.not.equal(undefined);
+      expect(seenResponse).to.not.equal(undefined);
       expect(seenParams).to.deep.equal({
-        query: '{test}',
+        query: '{ test }',
         operationName: null,
         variables: null,
         raw: false,
       });
     });
 
-    it('Catches errors thrown from options function', async () => {
+    it('catches errors thrown from options function', async () => {
       const app = server();
 
       app.get(
@@ -583,7 +583,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -608,12 +608,12 @@ function runTests(server: Server) {
       const response = await app
         .request()
         .post(urlString())
-        .send({ query: '{test}' });
+        .send({ query: '{ test }' });
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
     });
 
-    it('Allows sending a mutation via POST', async () => {
+    it('allows sending a mutation via POST', async () => {
       const app = server();
 
       app.post(urlString(), graphqlHTTP({ schema: TestSchema }));
@@ -642,7 +642,7 @@ function runTests(server: Server) {
       const response = await app
         .request()
         .post(urlString())
-        .send(stringifyURLParams({ query: '{test}' }));
+        .send(stringifyURLParams({ query: '{ test }' }));
 
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
     });
@@ -795,13 +795,13 @@ function runTests(server: Server) {
 
       const response = await app.request().post(urlString()).send({
         query: `
-            query helloYou { test(who: "You"), ...shared }
-            query helloWorld { test(who: "World"), ...shared }
-            query helloDolly { test(who: "Dolly"), ...shared }
-            fragment shared on QueryRoot {
-              shared: test(who: "Everyone")
-            }
-          `,
+          query helloYou { test(who: "You"), ...shared }
+          query helloWorld { test(who: "World"), ...shared }
+          query helloDolly { test(who: "Dolly"), ...shared }
+          fragment shared on QueryRoot {
+            shared: test(who: "Everyone")
+          }
+        `,
         operationName: 'helloWorld',
       });
 
@@ -958,8 +958,8 @@ function runTests(server: Server) {
         .field(
           'query',
           `mutation TestMutation {
-          uploadFile { originalname, mimetype }
-        }`,
+            uploadFile { originalname, mimetype }
+          }`,
         )
         .attach('file', Buffer.from('test'), 'test.txt');
 
@@ -1043,7 +1043,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -1074,7 +1074,7 @@ function runTests(server: Server) {
       pretty = undefined;
       const defaultResponse = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
         }),
       );
 
@@ -1083,7 +1083,7 @@ function runTests(server: Server) {
       pretty = true;
       const prettyResponse = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
           pretty: '1',
         }),
       );
@@ -1102,34 +1102,13 @@ function runTests(server: Server) {
       pretty = false;
       const unprettyResponse = await app.request().get(
         urlString({
-          query: '{test}',
+          query: '{ test }',
           pretty: '0',
         }),
       );
 
       expect(unprettyResponse.text).to.equal('{"data":{"test":"Hello World"}}');
     });
-  });
-
-  it('will send request and response when using thunk', async () => {
-    const app = server();
-
-    let seenRequest;
-    let seenResponse;
-
-    app.get(
-      urlString(),
-      graphqlHTTP((req, res) => {
-        seenRequest = req;
-        seenResponse = res;
-        return { schema: TestSchema };
-      }),
-    );
-
-    await app.request().get(urlString({ query: '{test}' }));
-
-    expect(seenRequest).to.not.equal(undefined);
-    expect(seenResponse).to.not.equal(undefined);
   });
 
   describe('Error handling functionality', () => {
@@ -1145,7 +1124,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -1155,7 +1134,7 @@ function runTests(server: Server) {
         errors: [
           {
             message: 'Throws!',
-            locations: [{ line: 1, column: 2 }],
+            locations: [{ line: 1, column: 3 }],
             path: ['thrower'],
           },
         ],
@@ -1217,7 +1196,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -1279,7 +1258,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -1289,7 +1268,7 @@ function runTests(server: Server) {
         errors: [
           {
             message: 'Throws!',
-            locations: [{ line: 1, column: 2 }],
+            locations: [{ line: 1, column: 3 }],
             stack: 'Stack trace',
           },
         ],
@@ -1645,7 +1624,9 @@ function runTests(server: Server) {
 
       app.put(urlString(), graphqlHTTP({ schema: TestSchema }));
 
-      const response = await app.request().put(urlString({ query: '{test}' }));
+      const response = await app
+        .request()
+        .put(urlString({ query: '{ test }' }));
 
       expect(response.status).to.equal(405);
       expect(response.get('allow')).to.equal('GET, POST');
@@ -1656,14 +1637,14 @@ function runTests(server: Server) {
   });
 
   describe('Built-in GraphiQL support', () => {
-    it('does not renders GraphiQL if no opt-in', async () => {
+    it('does not render GraphiQL if no opt-in', async () => {
       const app = server();
 
       app.get(urlString(), graphqlHTTP({ schema: TestSchema }));
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -1684,12 +1665,12 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
       expect(response.type).to.equal('text/html');
-      expect(response.text).to.include('{test}');
+      expect(response.text).to.include('{ test }');
       expect(response.text).to.include('graphiql.min.js');
     });
 
@@ -1729,7 +1710,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -1827,7 +1808,7 @@ function runTests(server: Server) {
       );
     });
 
-    it('GraphiQL renders provided variables', async () => {
+    it('renders provided variables within GraphiQL', async () => {
       const app = server();
 
       app.get(
@@ -1856,7 +1837,7 @@ function runTests(server: Server) {
       );
     });
 
-    it('GraphiQL accepts an empty query', async () => {
+    it('accepts an empty query when rendering GraphiQL', async () => {
       const app = server();
 
       app.get(
@@ -1877,7 +1858,7 @@ function runTests(server: Server) {
       expect(response.text).to.include('response: undefined');
     });
 
-    it('GraphiQL accepts a mutation query - does not execute it', async () => {
+    it('accepts a mutation query when rendering GraphiQL - does not execute it', async () => {
       const app = server();
 
       app.get(
@@ -1918,7 +1899,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'text/html,application/json');
 
       expect(response.status).to.equal(200);
@@ -1939,7 +1920,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'application/json,text/html');
 
       expect(response.status).to.equal(200);
@@ -1960,7 +1941,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}' }))
+        .get(urlString({ query: '{ test }' }))
         .set('Accept', 'unknown');
 
       expect(response.status).to.equal(200);
@@ -1981,7 +1962,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2061,7 +2042,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2085,7 +2066,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -2113,7 +2094,7 @@ function runTests(server: Server) {
       };
     };
 
-    it('Do not execute a query if it do not pass the custom validation.', async () => {
+    it('does not execute a query if the custom validation does not pass', async () => {
       const app = server();
 
       app.get(
@@ -2127,7 +2108,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -2142,8 +2123,8 @@ function runTests(server: Server) {
     });
   });
 
-  describe('Custom execute', () => {
-    it('allow to replace default execute', async () => {
+  describe('Custom execute function', () => {
+    it('allows to replace the default execute function', async () => {
       const app = server();
 
       let seenExecuteArgs;
@@ -2166,12 +2147,14 @@ function runTests(server: Server) {
         })),
       );
 
-      const response = await app.request().get(urlString({ query: '{test}' }));
+      const response = await app
+        .request()
+        .get(urlString({ query: '{ test }' }));
 
       expect(response.text).to.equal(
         '{"data":{"test":"Hello World","test2":"Modification"}}',
       );
-      expect(seenExecuteArgs).to.not.equal(null);
+      expect(seenExecuteArgs).to.not.equal(undefined);
     });
 
     it('catches errors thrown from custom execute function', async () => {
@@ -2187,7 +2170,9 @@ function runTests(server: Server) {
         })),
       );
 
-      const response = await app.request().get(urlString({ query: '{test}' }));
+      const response = await app
+        .request()
+        .get(urlString({ query: '{ test }' }));
 
       expect(response.status).to.equal(400);
       expect(response.text).to.equal(
@@ -2208,7 +2193,7 @@ function runTests(server: Server) {
           schema: TestSchema,
           customParseFn(args) {
             seenParseArgs = args;
-            return parse(new Source('{test}', 'Custom parse function'));
+            return parse(new Source('{ test }', 'Custom parse function'));
           },
         })),
       );
@@ -2219,8 +2204,10 @@ function runTests(server: Server) {
       expect(response.text).to.equal('{"data":{"test":"Hello World"}}');
       expect(seenParseArgs).property('body', '----');
     });
+
     it('can throw errors', async () => {
       const app = server();
+
       app.get(
         urlString(),
         graphqlHTTP(() => ({
@@ -2241,7 +2228,7 @@ function runTests(server: Server) {
   });
 
   describe('Custom result extensions', () => {
-    it('allows for adding extensions', async () => {
+    it('allows adding extensions', async () => {
       const app = server();
 
       app.get(
@@ -2257,7 +2244,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2267,7 +2254,7 @@ function runTests(server: Server) {
       );
     });
 
-    it('extensions have access to initial GraphQL result', async () => {
+    it('gives extensions access to the initial GraphQL result', async () => {
       const app = server();
 
       app.get(
@@ -2285,7 +2272,7 @@ function runTests(server: Server) {
 
       const response = await app.request().get(
         urlString({
-          query: '{thrower}',
+          query: '{ thrower }',
         }),
       );
 
@@ -2299,7 +2286,7 @@ function runTests(server: Server) {
             errors: [
               {
                 message: 'Throws!',
-                locations: [{ line: 1, column: 2 }],
+                locations: [{ line: 1, column: 3 }],
                 path: ['thrower'],
               },
             ],
@@ -2308,7 +2295,7 @@ function runTests(server: Server) {
       });
     });
 
-    it('extension function may be async', async () => {
+    it('allows the extensions function to be async', async () => {
       const app = server();
 
       app.get(
@@ -2324,7 +2311,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
@@ -2348,7 +2335,7 @@ function runTests(server: Server) {
 
       const response = await app
         .request()
-        .get(urlString({ query: '{test}', raw: '' }))
+        .get(urlString({ query: '{ test }', raw: '' }))
         .set('Accept', 'text/html');
 
       expect(response.status).to.equal(200);
