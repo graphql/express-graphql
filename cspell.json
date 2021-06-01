@@ -14,7 +14,10 @@
     "tsconfig.json"
   ],
   "words": [
+    "eval",
     "graphiql",
+    "graphiql's",
+    "middlewares",
     "unfetch",
     "noindex",
     "codecov",
