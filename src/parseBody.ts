@@ -3,7 +3,7 @@ import type { Inflate, Gunzip } from 'zlib';
 import zlib from 'zlib';
 import querystring from 'querystring';
 
-import getBody from 'raw-body';
+import getStream, { MaxBufferError } from 'get-stream';
 import httpError from 'http-errors';
 import contentType from 'content-type';
 import type { ParsedMediaType } from 'content-type';
@@ -83,7 +83,7 @@ async function readBody(
   const charset = typeInfo.parameters.charset?.toLowerCase() ?? 'utf-8';
 
   // Assert charset encoding per JSON RFC 7159 sec 8.1
-  if (!charset.startsWith('utf-')) {
+  if (charset !== 'utf8' && charset !== 'utf-8' && charset !== 'utf16le') {
     throw httpError(415, `Unsupported charset "${charset.toUpperCase()}".`);
   }
 
@@ -93,25 +93,22 @@ async function readBody(
     typeof contentEncoding === 'string'
       ? contentEncoding.toLowerCase()
       : 'identity';
-  const length = encoding === 'identity' ? req.headers['content-length'] : null;
-  const limit = 100 * 1024; // 100kb
+  const maxBuffer = 100 * 1024; // 100kb
   const stream = decompressed(req, encoding);
 
   // Read body from stream.
   try {
-    return await getBody(stream, { encoding: charset, length, limit });
+    const buffer = await getStream.buffer(stream, { maxBuffer });
+    return buffer.toString(charset);
   } catch (rawError: unknown) {
-    const error = httpError(
-      400,
-      /* istanbul ignore next: Thrown by underlying library. */
-      rawError instanceof Error ? rawError : String(rawError),
-    );
-
-    error.message =
-      error.type === 'encoding.unsupported'
-        ? `Unsupported charset "${charset.toUpperCase()}".`
-        : `Invalid body: ${error.message}.`;
-    throw error;
+    /* istanbul ignore else: Thrown by underlying library. */
+    if (rawError instanceof MaxBufferError) {
+      throw httpError(413, 'Invalid body: request entity too large.');
+    } else {
+      const message =
+        rawError instanceof Error ? rawError.message : String(rawError);
+      throw httpError(400, `Invalid body: ${message}.`);
+    }
   }
 }
 
