@@ -33,7 +33,8 @@ import { renderGraphiQL } from './renderGraphiQL';
 type Request = IncomingMessage & { url: string };
 
 type Response = ServerResponse & { json?: (data: unknown) => void };
-type MaybePromise<T> = Promise<T> | T;
+
+type PromiseOrValue<T> = Promise<T> | T;
 
 /**
  * Used to configure the graphqlHTTP middleware by providing a schema
@@ -47,8 +48,8 @@ export type Options =
       request: Request,
       response: Response,
       params?: GraphQLParams,
-    ) => MaybePromise<OptionsData>)
-  | MaybePromise<OptionsData>;
+    ) => PromiseOrValue<OptionsData>)
+  | PromiseOrValue<OptionsData>;
 
 export interface OptionsData {
   /**
@@ -91,7 +92,7 @@ export interface OptionsData {
    * An optional function which will be used to execute instead of default `execute`
    * from `graphql-js`.
    */
-  customExecuteFn?: (args: ExecutionArgs) => MaybePromise<ExecutionResult>;
+  customExecuteFn?: (args: ExecutionArgs) => PromiseOrValue<ExecutionResult>;
 
   /**
    * An optional function which will be used to format any errors produced by
@@ -124,7 +125,7 @@ export interface OptionsData {
    */
   extensions?: (
     info: RequestInfo,
-  ) => MaybePromise<undefined | { [key: string]: unknown }>;
+  ) => PromiseOrValue<undefined | { [key: string]: unknown }>;
 
   /**
    * A boolean to optionally enable GraphiQL mode.
