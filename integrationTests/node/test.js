@@ -12,10 +12,6 @@ const nodeVersions = Object.keys(dependencies)
 for (const version of nodeVersions) {
   console.log(`Testing on ${version} ...`);
 
-  if (version === 'node-12') {
-    process.env['http-parser'] = 'legacy';
-  }
-
   const nodePath = path.join(__dirname, 'node_modules', version, 'bin/node');
   childProcess.execSync(nodePath + ' index.js', { stdio: 'inherit' });
 }
