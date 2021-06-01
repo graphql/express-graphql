@@ -2015,6 +2015,34 @@ function runTests(server: Server) {
       // should contain the subscriptionEndpoint url
       expect(response.text).to.include('ws:\\/\\/localhost');
     });
+
+    it('contains subscriptionEndpoint within GraphiQL with websocketClient option', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP({
+          schema: TestSchema,
+          graphiql: {
+            subscriptionEndpoint: 'ws://localhost',
+            websocketClient: 'v1',
+          },
+        }),
+      );
+
+      const response = await app
+        .request()
+        .get(urlString())
+        .set('Accept', 'text/html');
+
+      expect(response.status).to.equal(200);
+      expect(response.type).to.equal('text/html');
+      // should contain graphql-ws browser client
+      expect(response.text).to.include('graphql-transport-ws');
+
+      // should contain the subscriptionEndpoint url
+      expect(response.text).to.include('ws:\\/\\/localhost');
+    });
   });
 
   describe('Custom validate function', () => {
