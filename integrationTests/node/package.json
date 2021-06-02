@@ -9,6 +9,6 @@
     "node-10": "npm:node@10.x.x",
     "node-12": "npm:node@12.x.x",
     "node-14": "npm:node@14.x.x",
-    "node-15": "npm:node@15.x.x"
+    "node-16": "npm:node@16.x.x"
   }
 }
