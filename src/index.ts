@@ -501,7 +501,7 @@ export async function getGraphQLParams(
   // Name of GraphQL operation to execute.
   let operationName =
     urlData.get('operationName') ?? (bodyData.operationName as string | null);
-  if (typeof operationName !== 'string') {
+  if (typeof operationName !== 'string' || operationName.length === 0) {
     operationName = null;
   }
 
