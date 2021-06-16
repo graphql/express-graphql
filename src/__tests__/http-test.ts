@@ -813,6 +813,35 @@ function runTests(server: Server) {
       });
     });
 
+    it('allows POST with empty operation name', async () => {
+      const app = server();
+
+      app.post(
+        urlString(),
+        graphqlHTTP(() => ({
+          schema: TestSchema,
+        })),
+      );
+
+      const response = await app.request().post(urlString()).send({
+        query: `
+            query { test(who: "World"), ...shared }
+            fragment shared on QueryRoot {
+              shared: test(who: "Everyone")
+            }
+          `,
+        operationName: '',
+      });
+
+      expect(JSON.parse(response.text)).to.deep.equal({
+        data: {
+          test: 'Hello World',
+          shared: 'Hello Everyone',
+        },
+      });
+    });
+
+
     it('allows POST with GET operation name', async () => {
       const app = server();
 
