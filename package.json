@@ -49,8 +49,7 @@
     "check:integrations": "mocha --full-trace integrationTests/*-test.js",
     "build:npm": "node resources/build-npm.js",
     "start": "node -r ./resources/register.js examples/index.ts",
-    "start:subscription": "node -r ./resources/register.js examples/index_subscription.ts",
-    "start:subscription_legacy": "node -r ./resources/register.js examples/index_subscription_legacy.ts"
+    "start:subscription": "node -r ./resources/register.js examples/index_subscription.ts"
   },
   "dependencies": {
     "accepts": "^1.3.7",
@@ -74,8 +73,8 @@
     "@types/sinon": "9.0.8",
     "@types/supertest": "2.0.10",
     "@types/ws": "5.1.2",
-    "@typescript-eslint/eslint-plugin": "4.8.1",
-    "@typescript-eslint/parser": "4.8.1",
+    "@typescript-eslint/eslint-plugin": "4.28.2",
+    "@typescript-eslint/parser": "4.28.2",
     "body-parser": "1.19.0",
     "chai": "4.2.0",
     "connect": "3.7.0",
@@ -88,9 +87,8 @@
     "eslint-plugin-node": "11.1.0",
     "express": "4.17.1",
     "graphiql": "^1.4.1",
-    "graphiql-subscriptions-fetcher": "0.0.2",
-    "graphql": "15.4.0",
-    "graphql-ws": "4.1.2",
+    "graphql": "15.5.0",
+    "graphql-ws": "4.1.3",
     "mocha": "8.2.1",
     "multer": "1.4.2",
     "nyc": "15.1.0",
@@ -100,14 +98,13 @@
     "react-dom": "16.14.0",
     "restify": "8.5.1",
     "sinon": "9.2.1",
-    "subscriptions-transport-ws": "0.9.18",
     "supertest": "6.0.1",
-    "ts-node": "9.0.0",
-    "typescript": "4.1.2",
+    "ts-node": "10.0.0",
+    "typescript": "4.3.2",
     "unfetch": "4.2.0",
-    "ws": "5.2.2"
+    "ws": "7.4.6"
   },
   "peerDependencies": {
-    "graphql": "^14.7.0 || ^15.3.0"
+    "graphql": "^14.7.0 || ^15.5.0"
   }
 }

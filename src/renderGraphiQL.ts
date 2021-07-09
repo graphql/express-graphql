@@ -64,7 +64,8 @@ export function renderGraphiQL(
   const defaultQuery = options?.defaultQuery;
   const headerEditorEnabled = options?.headerEditorEnabled;
   const subscriptionEndpoint = options?.subscriptionEndpoint;
-  const websocketClient = options?.websocketClient ?? 'v0';
+  // default to v1 because the legacy library is vulnerable
+  const websocketClient = options?.websocketClient ?? 'v1';
 
   let subscriptionScripts = '';
   if (subscriptionEndpoint != null) {
@@ -89,11 +90,6 @@ export function renderGraphiQL(
       <script>
         ${loadFileStaticallyFromNPM(
           'subscriptions-transport-ws/browser/client.js',
-        )}
-      </script>
-      <script>
-        ${loadFileStaticallyFromNPM(
-          'graphiql-subscriptions-fetcher/browser/client.js',
         )}
       </script>
       `;
