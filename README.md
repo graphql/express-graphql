@@ -138,7 +138,7 @@ The `graphqlHTTP` function accepts the following options:
 
   - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
 
-  - **`websocketClient`**: An optional GraphQL string for websocket client used for subscription, `v0`: subscriptions-transport-ws, `v1`: graphql-ws. Defaults to `v0` if not provided
+  - **`websocketClient`**: An optional GraphQL string for websocket client used for subscriptions, `v0`: `subscriptions-transport-ws`, `v1`: `graphql-ws`. Defaults to `v1` if not provided. You must install the matching library yourself. Note that `subscriptions-transport-ws` is there for legacy support, and currently depends on a vulnerable version of `ws` module. We **highly** recommend using `graphql-ws`. See the `graphql-ws` readme for instructions on how to introduce support for `graphql-ws` protocol to your chosen graphql server implementation.
 
 - **`rootValue`**: A value to pass as the `rootValue` to the `execute()`
   function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.js#L129).
