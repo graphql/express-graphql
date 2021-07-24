@@ -29,7 +29,7 @@ jobs:
       - name: Lint ESLint
         run: npm run lint
 
-      - name: Lint Flow
+      - name: Lint TypeScript
         run: npm run check
 
       - name: Lint Prettier
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version_to_setup: [10, 12, 14, 15]
+        node_version_to_setup: [10, 12, 14, 16]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
