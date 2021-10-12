@@ -3,16 +3,40 @@ import { buildSchema } from 'graphql';
 
 import { graphqlHTTP } from '../src';
 
+// Model
+class GraphQLDeferTest {
+  constructor() {}
+
+  // Child resolvers
+  async text() {
+    return "Peter Parker"
+  }
+
+  async defferedText() {
+    await sleep(5000)
+
+    return 'Took a long time, he?'
+  }
+}
+
+
 // Construct a schema, using GraphQL schema language
 const schema = buildSchema(`
   type Query {
     hello: String
+    deferTest: GraphQLDeferTest
+  }
+
+  type GraphQLDeferTest {
+    text: String
+    defferedText: String
   }
 `);
 
 // The root provides a resolver function for each API endpoint
 const rootValue = {
   hello: () => 'Hello world!',
+  deferTest: async () => new GraphQLDeferTest(),
 };
 
 const app = express();
