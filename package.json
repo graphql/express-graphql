@@ -105,7 +105,7 @@
     "ts-node": "9.0.0",
     "typescript": "4.1.2",
     "unfetch": "4.2.0",
-    "ws": "5.2.2"
+    "ws": "5.2.3"
   },
   "peerDependencies": {
     "graphql": "^14.7.0 || ^15.3.0"
