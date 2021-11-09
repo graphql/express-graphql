@@ -22,6 +22,13 @@ export interface GraphiQLOptions {
   headerEditorEnabled?: boolean;
 
   /**
+   * An optional boolean which enables headers to be saved to local
+   * storage when true.
+   * Defaults to false.
+   */
+  shouldPersistHeaders?: boolean;
+
+  /**
    * A websocket endpoint for subscription
    */
   subscriptionEndpoint?: string;
@@ -63,6 +70,7 @@ export function renderGraphiQL(
   const operationName = data.operationName;
   const defaultQuery = options?.defaultQuery;
   const headerEditorEnabled = options?.headerEditorEnabled;
+  const shouldPersistHeaders = options?.shouldPersistHeaders;
   const subscriptionEndpoint = options?.subscriptionEndpoint;
   const websocketClient = options?.websocketClient ?? 'v0';
 
@@ -262,6 +270,7 @@ add "&raw" to the end of the URL within a browser.
         operationName: ${safeSerialize(operationName)},
         defaultQuery: ${safeSerialize(defaultQuery)},
         headerEditorEnabled: ${safeSerialize(headerEditorEnabled)},
+        shouldPersistHeaders: ${safeSerialize(shouldPersistHeaders)}
       }),
       document.getElementById('graphiql')
     );
