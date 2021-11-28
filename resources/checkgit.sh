@@ -17,9 +17,9 @@ GIT_BRANCH=$(git branch -v 2> /dev/null | sed '/^[^*]/d');
 GIT_BRANCH_NAME=$(echo "$GIT_BRANCH" | sed 's/* \([A-Za-z0-9_\-]*\).*/\1/');
 GIT_BRANCH_SYNC=$(echo "$GIT_BRANCH" | sed 's/* [^[]*.\([^]]*\).*/\1/');
 
-# Check if master is checked out
-if [ "$GIT_BRANCH_NAME" != "master" ]; then
-  read -p "Git not on master but $GIT_BRANCH_NAME. Continue? (y|N) " yn;
+# Check if main is checked out
+if [ "$GIT_BRANCH_NAME" != "main" ]; then
+  read -p "Git not on main but $GIT_BRANCH_NAME. Continue? (y|N) " yn;
   if [ "$yn" != "y" ]; then exit 1; fi;
 fi;
 
