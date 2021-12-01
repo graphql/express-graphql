@@ -54,7 +54,7 @@
     "start:subscription_legacy": "node -r ./resources/register.js examples/index_subscription_legacy.ts",
     "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build:npm && npm run check:integrations",
     "testonly": "node_modules/.bin/mocha src/**/__tests__/**/*.ts --globals Generator",
-    "testonly:cover": "c8 --100 npm run testonly",
+    "testonly:cover": "c8 npm run testonly",
     "version": "npm test"
   },
   "dependencies": {

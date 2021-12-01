@@ -14,18 +14,15 @@
     "tsconfig.json"
   ],
   "words": [
-    "graphiql",
-    "unfetch",
-    "noindex",
+    "charsets",
     "codecov",
+    "downlevel",
+    "graphiql",
+    "noindex",
+    "originalname",
     "recognise",
     "serializable",
     "subcommand",
-    "charsets",
-    "downlevel",
-
-    // TODO: remove bellow words
-    "Graphi", // GraphiQL
-    "QL's" // GraphQL's
+    "unfetch"
   ]
 }

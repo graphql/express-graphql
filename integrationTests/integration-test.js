@@ -18,7 +18,9 @@ function exec(command, options = {}) {
 describe('Integration Tests', () => {
   let tmpDir;
 
-  before(() => {
+  before(function () {
+    // eslint-disable-next-line no-invalid-this
+    this.timeout(10000);
     tmpDir = path.join(os.tmpdir(), 'express-graphql-integrationTmp');
     fs.mkdirSync(tmpDir, { recursive: true });
     fs.rmSync(tmpDir, { recursive: true, force: true });

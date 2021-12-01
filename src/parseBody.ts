@@ -103,9 +103,10 @@ async function readBody(
   } catch (rawError: unknown) {
     if (rawError instanceof MaxBufferError) {
       throw httpError(413, 'Invalid body: request entity too large.');
-      /* c8 ignore next 4 */
+      /* c8 ignore next 5 */
     } else {
-      const message = rawError instanceof Error ? rawError.message : String(rawError);
+      const message =
+        rawError instanceof Error ? rawError.message : String(rawError);
       throw httpError(400, `Invalid body: ${message}.`);
     }
   }
