@@ -3,6 +3,7 @@
 const util = require('util');
 const https = require('https');
 
+// eslint-disable-next-line import/extensions
 const packageJSON = require('../package.json');
 
 const { exec } = require('./utils');
@@ -47,9 +48,10 @@ if (!packageJSON.repository || typeof packageJSON.repository.url !== 'string') {
   process.exit(1);
 }
 
-const repoURLMatch = /https:\/\/github.com\/(?<githubOrg>[^/]+)\/(?<githubRepo>[^/]+).git/.exec(
-  packageJSON.repository.url,
-);
+const repoURLMatch =
+  /https:\/\/github.com\/(?<githubOrg>[^/]+)\/(?<githubRepo>[^/]+).git/.exec(
+    packageJSON.repository.url,
+  );
 if (repoURLMatch == null) {
   console.error('Cannot extract organization and repo name from repo URL!');
   process.exit(1);

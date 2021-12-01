@@ -3,6 +3,7 @@
 const path = require('path');
 const childProcess = require('child_process');
 
+// eslint-disable-next-line import/extensions
 const { dependencies } = require('./package.json');
 
 const nodeVersions = Object.keys(dependencies)

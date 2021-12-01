@@ -19,7 +19,6 @@ import {
   parse,
   validate,
   execute,
-  formatError,
   validateSchema,
   getOperationAST,
   specifiedRules,
@@ -194,7 +193,8 @@ export function graphqlHTTP(options: Options): Middleware {
     let params: GraphQLParams | undefined;
     let showGraphiQL = false;
     let graphiqlOptions: GraphiQLOptions | undefined;
-    let formatErrorFn = formatError;
+    let formatErrorFn = (error: GraphQLError): GraphQLFormattedError =>
+      new GraphQLError(error.message);
     let pretty = false;
     let result: ExecutionResult;
 

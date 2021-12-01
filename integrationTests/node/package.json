@@ -5,10 +5,11 @@
   },
   "dependencies": {
     "express-graphql": "file:../express-graphql.tgz",
-    "graphql": "14.7.0",
-    "node-10": "npm:node@10.x.x",
+    "graphql": "16.0.1",
     "node-12": "npm:node@12.x.x",
     "node-14": "npm:node@14.x.x",
-    "node-15": "npm:node@15.x.x"
+    "node-15": "npm:node@15.x.x",
+    "node-16": "npm:node@16.x.x",
+    "node-17": "npm:node@17.x.x"
   }
 }

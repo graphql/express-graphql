@@ -16,16 +16,22 @@ function exec(command, options = {}) {
 }
 
 describe('Integration Tests', () => {
-  const tmpDir = path.join(os.tmpdir(), 'express-graphql-integrationTmp');
-  fs.rmdirSync(tmpDir, { recursive: true, force: true });
-  fs.mkdirSync(tmpDir);
+  let tmpDir;
 
-  const distDir = path.resolve('./npmDist');
-  const archiveName = exec(`npm --quiet pack ${distDir}`, { cwd: tmpDir });
-  fs.renameSync(
-    path.join(tmpDir, archiveName),
-    path.join(tmpDir, 'express-graphql.tgz'),
-  );
+  before(() => {
+    tmpDir = path.join(os.tmpdir(), 'express-graphql-integrationTmp');
+    fs.mkdirSync(tmpDir, { recursive: true });
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.mkdirSync(tmpDir, { recursive: true });
+
+    const distDir = path.resolve('./npmDist');
+    const archiveName = exec(`npm --quiet pack ${distDir}`, { cwd: tmpDir });
+
+    fs.renameSync(
+      path.join(tmpDir, archiveName),
+      path.join(tmpDir, 'express-graphql.tgz'),
+    );
+  });
 
   function testOnNodeProject(projectName) {
     exec(`cp -R ${path.join(__dirname, projectName)} ${tmpDir}`);

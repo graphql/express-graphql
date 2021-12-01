@@ -7,9 +7,14 @@
   "main": "index.js",
   "types": "index.d.ts",
   "typesVersions": {
-    "<3.8": {
+    ">=4.1.0": {
       "*": [
-        "ts3.4/*"
+        "*"
+      ]
+    },
+    "*": {
+      "*": [
+        "NotSupportedTSVersion.d.ts"
       ]
     }
   },
@@ -35,79 +40,80 @@
     "node": ">= 10.x"
   },
   "scripts": {
-    "preversion": ". ./resources/checkgit.sh && npm ci",
-    "version": "npm test",
+    "build:npm": "node resources/build-npm.js",
     "changelog": "node resources/gen-changelog.js",
-    "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build:npm && npm run check:integrations",
-    "lint": "eslint .",
     "check": "tsc --noEmit",
-    "testonly": "mocha src/**/__tests__/**/*.ts",
-    "testonly:cover": "nyc npm run testonly",
+    "check:integrations": "mocha --full-trace integrationTests/*-test.js",
+    "check:spelling": "cspell '**/*'",
+    "lint": "eslint .",
     "prettier": "prettier --write --list-different .",
     "prettier:check": "prettier --check .",
-    "check:spelling": "cspell '**/*'",
-    "check:integrations": "mocha --full-trace integrationTests/*-test.js",
-    "build:npm": "node resources/build-npm.js",
+    "preversion": ". ./resources/checkgit.sh && npm ci",
     "start": "node -r ./resources/register.js examples/index.ts",
     "start:subscription": "node -r ./resources/register.js examples/index_subscription.ts",
-    "start:subscription_legacy": "node -r ./resources/register.js examples/index_subscription_legacy.ts"
+    "start:subscription_legacy": "node -r ./resources/register.js examples/index_subscription_legacy.ts",
+    "test": "npm run lint && npm run check && npm run testonly:cover && npm run prettier:check && npm run check:spelling && npm run build:npm && npm run check:integrations",
+    "testonly": "mocha src/**/__tests__/**/*.ts --globals Generator",
+    "testonly:cover": "nyc npm run testonly",
+    "version": "npm test"
   },
   "dependencies": {
     "accepts": "^1.3.7",
     "content-type": "^1.0.4",
-    "get-stream": "^6.0.0",
-    "http-errors": "1.8.0"
+    "eslint-plugin-mocha": "^9.0.0",
+    "get-stream": "^6.0.1",
+    "http-errors": "1.8.1"
   },
   "devDependencies": {
-    "@graphiql/toolkit": "^0.1.0",
+    "@graphiql/toolkit": "^0.4.2",
     "@types/accepts": "1.3.5",
-    "@types/body-parser": "1.19.0",
-    "@types/chai": "4.2.14",
-    "@types/connect": "3.4.33",
-    "@types/content-type": "1.1.3",
-    "@types/express": "4.17.9",
-    "@types/http-errors": "1.8.0",
-    "@types/mocha": "8.0.4",
-    "@types/multer": "1.4.4",
-    "@types/node": "14.14.9",
-    "@types/restify": "8.4.2",
-    "@types/sinon": "9.0.8",
-    "@types/supertest": "2.0.10",
-    "@types/ws": "5.1.2",
-    "@typescript-eslint/eslint-plugin": "4.8.1",
-    "@typescript-eslint/parser": "4.8.1",
+    "@types/body-parser": "1.19.2",
+    "@types/chai": "4.2.22",
+    "@types/connect": "3.4.35",
+    "@types/content-type": "1.1.5",
+    "@types/express": "4.17.13",
+    "@types/http-errors": "1.8.1",
+    "@types/mocha": "9.0.0",
+    "@types/multer": "1.4.7",
+    "@types/node": "16.11.11",
+    "@types/restify": "8.5.4",
+    "@types/sinon": "10.0.6",
+    "@types/supertest": "2.0.11",
+    "@types/ws": "8.2.1",
+    "@typescript-eslint/eslint-plugin": "5.5.0",
+    "@typescript-eslint/parser": "5.5.0",
     "body-parser": "1.19.0",
-    "chai": "4.2.0",
+    "chai": "4.3.4",
     "connect": "3.7.0",
-    "cspell": "4.2.2",
+    "cspell": "5.13.1",
     "downlevel-dts": "0.7.0",
-    "eslint": "7.13.0",
-    "eslint-plugin-import": "2.22.1",
+    "eslint": "8.3.0",
+    "eslint-plugin-import": "2.25.3",
     "eslint-plugin-internal-rules": "file:./resources/eslint-internal-rules",
     "eslint-plugin-istanbul": "0.1.2",
     "eslint-plugin-node": "11.1.0",
     "express": "4.17.1",
-    "graphiql": "^1.4.7",
+    "graphiql": "^1.5.7",
     "graphiql-subscriptions-fetcher": "0.0.2",
-    "graphql": "15.4.0",
-    "graphql-ws": "4.1.2",
-    "mocha": "8.2.1",
-    "multer": "1.4.2",
+    "graphql": "16.0.1",
+    "graphql-ws": "5.5.5",
+    "mocha": "9.1.3",
+    "multer": "1.4.3",
     "nyc": "15.1.0",
-    "prettier": "2.2.0",
-    "promise-polyfill": "8.2.0",
-    "react": "16.14.0",
-    "react-dom": "16.14.0",
-    "restify": "8.5.1",
-    "sinon": "9.2.1",
-    "subscriptions-transport-ws": "0.9.18",
-    "supertest": "6.0.1",
-    "ts-node": "9.0.0",
-    "typescript": "4.1.2",
+    "prettier": "2.5.0",
+    "promise-polyfill": "8.2.1",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "restify": "8.6.0",
+    "sinon": "12.0.1",
+    "subscriptions-transport-ws": "0.11.0",
+    "supertest": "6.1.6",
+    "ts-node": "10.4.0",
+    "typescript": "4.5.2",
     "unfetch": "4.2.0",
-    "ws": "5.2.2"
+    "ws": "8.3.0"
   },
   "peerDependencies": {
-    "graphql": "^14.7.0 || ^15.3.0"
+    "graphql": "^15.5.0 || ^16.0.0"
   }
 }

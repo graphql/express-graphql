@@ -20,6 +20,7 @@ describe('Useful errors when incorrectly used', () => {
     app.use(
       '/graphql',
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       graphqlHTTP(() => null),
     );
 
@@ -42,6 +43,7 @@ describe('Useful errors when incorrectly used', () => {
     app.use(
       '/graphql',
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       graphqlHTTP(() => Promise.resolve(null)),
     );
 
@@ -64,6 +66,7 @@ describe('Useful errors when incorrectly used', () => {
     app.use(
       '/graphql',
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       graphqlHTTP(() => ({})),
     );
 
@@ -83,6 +86,7 @@ describe('Useful errors when incorrectly used', () => {
     app.use(
       '/graphql',
       // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       graphqlHTTP(() => Promise.resolve({})),
     );
 
@@ -104,6 +108,7 @@ describe('Useful errors when incorrectly used', () => {
 
     app.use(
       '/graphql',
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       graphqlHTTP(() => Promise.resolve({ schema })),
     );
 

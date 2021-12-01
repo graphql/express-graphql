@@ -15,6 +15,7 @@ const subscriptionEndpoint = `ws://localhost:${PORT}/subscriptions`;
 const app = express();
 app.use(
   '/graphql',
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   graphqlHTTP({
     schema,
     rootValue,
