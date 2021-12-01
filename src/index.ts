@@ -2,31 +2,31 @@ import type { IncomingMessage, ServerResponse } from 'http';
 
 import type {
   DocumentNode,
-  ValidationRule,
   ExecutionArgs,
   ExecutionResult,
   FormattedExecutionResult,
-  GraphQLSchema,
   GraphQLFieldResolver,
-  GraphQLTypeResolver,
   GraphQLFormattedError,
+  GraphQLSchema,
+  GraphQLTypeResolver,
+  ValidationRule,
+} from 'graphql';
+import {
+  execute,
+  getOperationAST,
+  GraphQLError,
+  parse,
+  Source,
+  specifiedRules,
+  validate,
+  validateSchema,
 } from 'graphql';
 import accepts from 'accepts';
 import httpError from 'http-errors';
-import {
-  Source,
-  GraphQLError,
-  parse,
-  validate,
-  execute,
-  validateSchema,
-  getOperationAST,
-  specifiedRules,
-} from 'graphql';
 
-import type { GraphiQLOptions, GraphiQLData } from './renderGraphiQL';
-import { parseBody } from './parseBody';
+import type { GraphiQLData, GraphiQLOptions } from './renderGraphiQL';
 import { renderGraphiQL } from './renderGraphiQL';
+import { parseBody } from './parseBody';
 
 // `url` is always defined for IncomingMessage coming from http.Server
 type Request = IncomingMessage & { url: string };
@@ -194,7 +194,15 @@ export function graphqlHTTP(options: Options): Middleware {
     let showGraphiQL = false;
     let graphiqlOptions: GraphiQLOptions | undefined;
     let formatErrorFn = (error: GraphQLError): GraphQLFormattedError =>
-      new GraphQLError(error.message);
+      new GraphQLError(
+        error.message,
+        error.nodes,
+        error.source,
+        error.positions,
+        error.path,
+        error.originalError,
+        error.extensions,
+      );
     let pretty = false;
     let result: ExecutionResult;
 

@@ -2190,7 +2190,7 @@ describe('GraphQL-HTTP tests for connect', () => {
         expect(seenExecuteArgs).to.not.equal(null);
       });
 
-      it.only('catches errors thrown from custom execute function', async () => {
+      it('catches errors thrown from custom execute function', async () => {
         const app = server();
 
         app.get(
