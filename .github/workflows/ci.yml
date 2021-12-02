@@ -67,8 +67,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION_USED_FOR_DEVELOPMENT }}
 
-      # We install bunch of packages during integration tests without locking them
-      # so we skip cache action to not pollute cache for other jobs.
+      # We install a bunch of packages during integration tests without locking them
+      # so skip the cache action to not pollute cache for other jobs.
       - name: Install Dependencies
         run: npm ci
 
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version_to_setup: [10, 12, 14, 15]
+        node_version_to_setup: [12, 14, 15, 16, 17]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

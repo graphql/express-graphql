@@ -101,9 +101,9 @@ async function readBody(
     const buffer = await getStream.buffer(stream, { maxBuffer });
     return buffer.toString(charset);
   } catch (rawError: unknown) {
+    /* istanbul ignore else: Thrown by underlying library. */
     if (rawError instanceof MaxBufferError) {
       throw httpError(413, 'Invalid body: request entity too large.');
-      /* c8 ignore next 5 */
     } else {
       const message =
         rawError instanceof Error ? rawError.message : String(rawError);

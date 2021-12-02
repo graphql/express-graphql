@@ -364,7 +364,7 @@ export function graphqlHTTP(options: Options): Middleware {
       // If an error was caught, report the httpError status, or 500.
       const error = httpError(
         500,
-        /* c8 ignore next */
+        /* istanbul ignore next: Thrown by underlying library. */
         rawError instanceof Error ? rawError : String(rawError),
       );
 
