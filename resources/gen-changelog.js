@@ -47,7 +47,7 @@ if (!packageJSON.repository || typeof packageJSON.repository.url !== 'string') {
   process.exit(1);
 }
 
-const repoURLMatch = /https:\/\/github.com\/(?<githubOrg>[^/]+)\/(?<githubRepo>[^/]+).git/.exec(
+const repoURLMatch = /https:\/\/github\.com\/(?<githubOrg>[^/]+)\/(?<githubRepo>[^/]+)\.git/.exec(
   packageJSON.repository.url,
 );
 if (repoURLMatch == null) {
