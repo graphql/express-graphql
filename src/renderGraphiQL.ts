@@ -29,6 +29,13 @@ export interface GraphiQLOptions {
   shouldPersistHeaders?: boolean;
 
   /**
+   * An optional string of initial state for the header editor. Only makes
+   * sense if headerEditorEnabled is true.
+   * Defaults to empty.
+   */
+  headers?: string;
+
+  /**
    * A websocket endpoint for subscription
    */
   subscriptionEndpoint?: string;
@@ -71,6 +78,7 @@ export function renderGraphiQL(
   const defaultQuery = options?.defaultQuery;
   const headerEditorEnabled = options?.headerEditorEnabled;
   const shouldPersistHeaders = options?.shouldPersistHeaders;
+  const headers = options?.headers;
   const subscriptionEndpoint = options?.subscriptionEndpoint;
   const websocketClient = options?.websocketClient ?? 'v0';
 
@@ -270,7 +278,8 @@ add "&raw" to the end of the URL within a browser.
         operationName: ${safeSerialize(operationName)},
         defaultQuery: ${safeSerialize(defaultQuery)},
         headerEditorEnabled: ${safeSerialize(headerEditorEnabled)},
-        shouldPersistHeaders: ${safeSerialize(shouldPersistHeaders)}
+        shouldPersistHeaders: ${safeSerialize(shouldPersistHeaders)},
+        headers: ${safeSerialize(headers)}
       }),
       document.getElementById('graphiql')
     );
