@@ -141,10 +141,10 @@ The `graphqlHTTP` function accepts the following options:
   - **`websocketClient`**: An optional GraphQL string for websocket client used for subscription, `v0`: subscriptions-transport-ws, `v1`: graphql-ws. Defaults to `v0` if not provided
 
 - **`rootValue`**: A value to pass as the `rootValue` to the `execute()`
-  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.js#L129).
+  function from [`GraphQL.js/src/execute.ts`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.ts#L148).
 
 - **`context`**: A value to pass as the `contextValue` to the `execute()`
-  function from [`GraphQL.js/src/execute.js`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.js#L130). If `context` is not provided, the
+  function from [`GraphQL.js/src/execute.ts`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.ts#L149). If `context` is not provided, the
   `request` object is passed as the context.
 
 - **`pretty`**: If `true`, any JSON response will be pretty-printed.
