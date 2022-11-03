@@ -7,6 +7,7 @@ const assert = require('assert');
 const ts = require('typescript');
 const { main: downlevel } = require('downlevel-dts');
 
+// eslint-disable-next-line import/extensions
 const tsConfig = require('../tsconfig.json');
 
 const {
@@ -46,6 +47,7 @@ if (require.main === module) {
 }
 
 function buildPackageJSON() {
+  // eslint-disable-next-line import/extensions
   const packageJSON = require('../package.json');
   delete packageJSON.private;
   delete packageJSON.scripts;

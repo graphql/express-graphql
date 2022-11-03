@@ -87,7 +87,7 @@ export function renderGraphiQL(
     if (websocketClient === 'v1') {
       subscriptionScripts = `
       <script>
-        ${loadFileStaticallyFromNPM('graphql-ws/umd/graphql-ws.js')}
+        ${loadFileStaticallyFromNPM('graphql-ws')}
       </script>
       <script>
       ${loadFileStaticallyFromNPM(

@@ -10,11 +10,16 @@ plugins:
   - node
   - istanbul
   - import
+  - mocha
+extends:
+  - 'plugin:mocha/recommended'
 settings:
   node:
     tryExtensions: ['.js', '.json', '.node', '.ts', '.d.ts']
 
 rules:
+  mocha/no-mocha-arrows: off
+
   ##############################################################################
   # Internal rules located in 'resources/eslint-internal-rules'.
   # See './resources/eslint-internal-rules/README.md'
