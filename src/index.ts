@@ -52,17 +52,17 @@ export type Options =
 
 export interface OptionsData {
   /**
-   * A GraphQL schema from graphql-js.
+   * A GraphQL schema from `graphql-js`.
    */
   schema: GraphQLSchema;
 
   /**
-   * A value to pass as the context to this middleware.
+   * A value to pass as the `contextValue` to the `execute` function.
    */
   context?: unknown;
 
   /**
-   * An object to pass as the rootValue to the graphql() function.
+   * An object to pass as the `rootValue` to the `execute` function.
    */
   rootValue?: unknown;
 
@@ -73,7 +73,7 @@ export interface OptionsData {
 
   /**
    * An optional array of validation rules that will be applied on the document
-   * in additional to those defined by the GraphQL spec.
+   * in addition to those defined by the GraphQL spec.
    */
   validationRules?: ReadonlyArray<ValidationRule>;
 
@@ -107,8 +107,8 @@ export interface OptionsData {
   customParseFn?: (source: Source) => DocumentNode;
 
   /**
-   * `formatError` is deprecated and replaced by `customFormatErrorFn`. It will
-   *  be removed in version 1.0.0.
+   * @deprecated `formatError` is deprecated and replaced by `customFormatErrorFn`.
+   * It will be removed in version 1.0.0.
    */
   formatError?: (error: GraphQLError) => GraphQLFormattedError;
 
@@ -172,7 +172,7 @@ export interface RequestInfo {
   result: FormattedExecutionResult;
 
   /**
-   * A value to pass as the context to the graphql() function.
+   * The value passed as the `contextValue` to the `execute` function.
    */
   context?: unknown;
 }
@@ -278,7 +278,7 @@ export function graphqlHTTP(options: Options): Middleware {
       try {
         documentAST = parseFn(new Source(query, 'GraphQL request'));
       } catch (syntaxError: unknown) {
-        // Return 400: Bad Request if any syntax errors errors exist.
+        // Return 400: Bad Request if any syntax errors exist.
         throw httpError(400, 'GraphQL syntax error.', {
           graphqlErrors: [syntaxError],
         });
