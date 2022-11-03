@@ -430,7 +430,7 @@ Each release of `express-graphql` will be accompanied by an experimental release
 Community feedback on this experimental release is much appreciated and can be provided on the [PR for the defer-stream branch](https://github.com/graphql/express-graphql/pull/726) or the [GraphQL.js issue for feedback](https://github.com/graphql/graphql-js/issues/2848).
 
 [`graphql.js`]: https://github.com/graphql/graphql-js
-[`formaterror`]: https://github.com/graphql/graphql-js/blob/main/src/error/formatError.js
+[`formaterror`]: https://github.com/graphql/graphql-js/blob/958ac6c9b27b7147b47fa4c36d792c01a8d341a3/src/error/GraphQLError.ts#L251-L253
 [graphiql]: https://github.com/graphql/graphiql
 [`multer`]: https://github.com/expressjs/multer
 [`express-session`]: https://github.com/expressjs/session
