@@ -175,6 +175,13 @@ The `graphqlHTTP` function accepts the following options:
   errors produced by fulfilling a GraphQL operation. If no function is
   provided, GraphQL's default spec-compliant [`formatError`][] function will be used.
 
+  Although the fields on the error provided to this function may vary (based on the error type), they will typically include:
+
+  - **message:** the error message
+  - **locations:** the location(s) in the Javascript code where the error ocurred
+  - **path:** the path within the returned results where the error occurred (eg. in a schema violation error, the path to the part of the results that violated the schema)
+  - **result:** the value which was returned by the resolver (if any)
+
 - **`customParseFn`**: An optional function which will be used to create a document
   instead of the default `parse` from `graphql-js`.
 
