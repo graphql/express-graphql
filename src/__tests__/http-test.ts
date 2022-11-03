@@ -248,6 +248,35 @@ function runTests(server: Server) {
       });
     });
 
+    it('Reports validation errors for dynamic schema', async () => {
+      const app = server();
+
+      app.get(
+        urlString(),
+        graphqlHTTP(() => Promise.resolve({ schema: TestSchema })),
+      );
+
+      const response = await app.request().get(
+        urlString({
+          query: '{ test, unknownOne, unknownTwo }',
+        }),
+      );
+
+      expect(response.status).to.equal(400);
+      expect(JSON.parse(response.text)).to.deep.equal({
+        errors: [
+          {
+            message: 'Cannot query field "unknownOne" on type "QueryRoot".',
+            locations: [{ line: 1, column: 9 }],
+          },
+          {
+            message: 'Cannot query field "unknownTwo" on type "QueryRoot".',
+            locations: [{ line: 1, column: 21 }],
+          },
+        ],
+      });
+    });
+
     it('Errors when missing operation name', async () => {
       const app = server();
 

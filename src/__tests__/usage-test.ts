@@ -117,4 +117,19 @@ describe('Useful errors when incorrectly used', () => {
       ],
     });
   });
+
+  it('requires a valid schema if static schema is defined in options', () => {
+    const options = () => ({
+      // @ts-expect-error
+      schema: new GraphQLSchema({ directives: [null] }),
+    });
+    const { schema } = options();
+    expect(() => {
+      graphqlHTTP({ schema });
+    }).to.throw('GraphQL schema validation failed');
+
+    expect(() => {
+      graphqlHTTP(options);
+    }).not.to.throw();
+  });
 });
