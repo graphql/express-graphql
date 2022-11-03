@@ -404,6 +404,41 @@ getGraphQLParams(request).then((params) => {
 });
 ```
 
+### Integration with other express middlewares
+
+#### [Helmet](https://helmetjs.github.io/)
+
+When using Helmet the default CSP of helmet blocks graphiql's inline scripts support. To enable graphiql with helmet you need to update the contentSecurityPolicies with graphiql's needs.
+The code snippet below makes use of Helmet's default CSP and adds what graphiql needs.
+
+```js
+app.use(
+  helmet({
+    /**
+     * Default helmet policy + own customizations - graphiql support
+     * - https://helmetjs.github.io/
+     */
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        ['default-src']: [
+          ...helmet.contentSecurityPolicy.getDefaultDirectives()['default-src'],
+          /** @by-us - adds graphiql support over helmet's default CSP */
+          "'unsafe-inline'",
+        ],
+        ['script-src']: [
+          ...helmet.contentSecurityPolicy.getDefaultDirectives()['script-src'],
+          /** @by-us - adds graphiql support over helmet's default CSP */
+          "'unsafe-inline'",
+          /** @by-us - adds graphiql support over helmet's default CSP */
+          "'unsafe-eval'",
+        ],
+      },
+    },
+  }),
+);
+```
+
 ## Debugging Tips
 
 During development, it's useful to get more information from errors, such as
