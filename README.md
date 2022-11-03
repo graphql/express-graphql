@@ -74,16 +74,8 @@ app.listen(4000);
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 
-const typeDefs = require('./schema');
-const resolvers = require('./resolvers');
-const { makeExecutableSchema } = require('graphql-tools');
-const schema = makeExecutableSchema({
-  typeDefs: typeDefs,
-  resolvers: resolvers,
-});
-
-const { execute, subscribe } = require('graphql');
 const { createServer } = require('http');
+const { execute, subscribe } = require('graphql');
 const { SubscriptionServer } = require('subscriptions-transport-ws');
 
 const PORT = 4000;
@@ -93,7 +85,7 @@ var app = express();
 app.use(
   '/graphql',
   graphqlHTTP({
-    schema: schema,
+    schema: MyGraphQLSchema,
     graphiql: { subscriptionEndpoint: `ws://localhost:${PORT}/subscriptions` },
   }),
 );
@@ -102,7 +94,7 @@ const ws = createServer(app);
 
 ws.listen(PORT, () => {
   // Set up the WebSocket for handling GraphQL subscriptions.
-  new SubscriptionServer(
+  SubscriptionServer.create(
     {
       execute,
       subscribe,
@@ -142,9 +134,9 @@ The `graphqlHTTP` function accepts the following options:
   - **`headers`**: An optional string of initial state for the header editor. Only makes sense if headerEditorEnabled is `true`.
     Defaults to empty.
 
-  - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
+  - **`subscriptionEndpoint`**: An optional string contains the WebSocket server url for subscription.
 
-  - **`websocketClient`**: An optional GraphQL string for websocket client used for subscription, `v0`: subscriptions-transport-ws, `v1`: graphql-ws. Defaults to `v0` if not provided
+  - **`websocketClient`**: An optional string for websocket client used for subscription, `v0`: subscriptions-transport-ws, `v1`: graphql-ws. Defaults to `v0` if not provided
 
 - **`rootValue`**: A value to pass as the `rootValue` to the `execute()`
   function from [`GraphQL.js/src/execute.ts`](https://github.com/graphql/graphql-js/blob/main/src/execution/execute.ts#L148).
