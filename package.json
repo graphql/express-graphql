@@ -91,7 +91,7 @@
     "graphiql-subscriptions-fetcher": "0.0.2",
     "graphql": "15.4.0",
     "graphql-ws": "4.1.2",
-    "mocha": "8.2.1",
+    "mocha": "10.1.0",
     "multer": "1.4.2",
     "nyc": "15.1.0",
     "prettier": "2.2.0",
