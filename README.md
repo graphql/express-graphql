@@ -136,6 +136,12 @@ The `graphqlHTTP` function accepts the following options:
   - **`headerEditorEnabled`**: An optional boolean which enables the header editor when `true`.
     Defaults to `false`.
 
+  - **`shouldPersistHeaders`**: An optional boolean which enables headers to be saved to local storage when `true`.
+    Defaults to `false`.
+
+  - **`headers`**: An optional string of initial state for the header editor. Only makes sense if headerEditorEnabled is `true`.
+    Defaults to empty.
+
   - **`subscriptionEndpoint`**: An optional GraphQL string contains the WebSocket server url for subscription.
 
   - **`websocketClient`**: An optional GraphQL string for websocket client used for subscription, `v0`: subscriptions-transport-ws, `v1`: graphql-ws. Defaults to `v0` if not provided
