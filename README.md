@@ -1,4 +1,6 @@
-# GraphQL HTTP Server Middleware
+# GraphQL HTTP Server Middleware [Deprecated]
+
+> This project is deprecated. [`graphql-http`](https://github.com/enisdenjo/graphql-http) is the official reference implementation of the GraphQL over HTTP specification. It is recommended to use that over this project.
 
 [![npm version](https://badge.fury.io/js/express-graphql.svg)](https://badge.fury.io/js/express-graphql)
 [![Build Status](https://github.com/graphql/express-graphql/workflows/CI/badge.svg?branch=master)](https://github.com/graphql/express-graphql/actions?query=branch%3Amaster)
