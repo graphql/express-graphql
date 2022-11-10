@@ -23,6 +23,7 @@
     "subcommand",
     "charsets",
     "downlevel",
+    "mercurius",
 
     // TODO: remove bellow words
     "Graphi", // GraphiQL
