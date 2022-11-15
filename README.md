@@ -22,6 +22,7 @@ In case you're seeking for a full-featured experience (with file uploads, @defer
 - [`postgraphile`](https://www.graphile.org/postgraphile/) ([compliant](https://github.com/graphql/graphql-http/tree/master/implementations/postgraphile))
 - [`apollo-server`](https://www.apollographql.com/docs/apollo-server/) ([compliant](https://github.com/graphql/graphql-http/tree/master/implementations/apollo-server))
 - [`mercurius`](https://mercurius.dev/) ([compliant](https://github.com/graphql/graphql-http/tree/master/implementations/mercurius))
+- _\*To add your JavaScript server here, please first add it to [graphql-http/implementations](https://github.com/enisdenjo/graphql-http/tree/master/implementations/)_
 
 ## For library authors
 
