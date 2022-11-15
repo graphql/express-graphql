@@ -8,28 +8,28 @@ The official [GraphQL over HTTP](https://github.com/graphql/graphql-over-http) w
 
 Please read the [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http) for detailed implementation information.
 
-## Say hello to [`graphql-http`](https://github.com/enisdenjo/graphql-http)
+## Say hello to [`graphql-http`](https://github.com/graphql/graphql-http)
 
-[`graphql-http`](https://github.com/enisdenjo/graphql-http) is now the GraphQL official reference implementation of the [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http).
+[`graphql-http`](https://github.com/graphql/graphql-http) is now the GraphQL official reference implementation of the [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http).
 
 ## For users
 
-As a reference implementation, [`graphql-http`](https://github.com/enisdenjo/graphql-http) implements exclusively the [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http/).
+As a reference implementation, [`graphql-http`](https://github.com/graphql/graphql-http) implements exclusively the [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http/).
 
 In case you're seeking for a full-featured experience (with file uploads, @defer/@stream directives, subscriptions, etc.), you're recommended to use some of the great JavaScript GraphQL server options:
 
-- [`graphql-yoga`](https://www.the-guild.dev/graphql/yoga-server) ([fully compliant](https://github.com/enisdenjo/graphql-http/tree/master/implementations/graphql-yoga), [migration guide](https://www.the-guild.dev/graphql/yoga-server/v3/migration/migration-from-express-graphql))
-- [`apollo-server`](https://www.apollographql.com/docs/apollo-server/) ([partially compliant](https://github.com/enisdenjo/graphql-http/tree/master/implementations/apollo-server))
-- [`mercurius`](https://mercurius.dev/) ([partially compliant](https://github.com/enisdenjo/graphql-http/tree/master/implementations/mercurius))
+- [`graphql-yoga`](https://www.the-guild.dev/graphql/yoga-server) ([fully compliant](https://github.com/graphql/graphql-http/tree/master/implementations/graphql-yoga), [migration guide](https://www.the-guild.dev/graphql/yoga-server/v3/migration/migration-from-express-graphql))
+- [`apollo-server`](https://www.apollographql.com/docs/apollo-server/) ([partially compliant](https://github.com/graphql/graphql-http/tree/master/implementations/apollo-server))
+- [`mercurius`](https://mercurius.dev/) ([partially compliant](https://github.com/graphql/graphql-http/tree/master/implementations/mercurius))
 
 ## For library authors
 
-Being the official [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http/) reference implementation, [`graphql-http`](https://github.com/enisdenjo/graphql-http) follows the specification strictly without any additional features (like file uploads, @stream/@defer directives and subscriptions).
+Being the official [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http/) reference implementation, [`graphql-http`](https://github.com/graphql/graphql-http) follows the specification strictly without any additional features (like file uploads, @stream/@defer directives and subscriptions).
 
-Having said this, [`graphql-http`](https://github.com/enisdenjo/graphql-http) is mostly aimed for library authors and simple server setups, where the requirements are exact to what the aforementioned spec offers.
+Having said this, [`graphql-http`](https://github.com/graphql/graphql-http) is mostly aimed for library authors and simple server setups, where the requirements are exact to what the aforementioned spec offers.
 
 ### Spec compliance audit suite
 
-Suite of tests used to audit an HTTP server for [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http) compliance is [available in `graphql-http`](https://github.com/enisdenjo/graphql-http/blob/master/src/audits/server.ts) and you can use it to check your own, or other, servers!
+Suite of tests used to audit an HTTP server for [GraphQL over HTTP spec](https://graphql.github.io/graphql-over-http) compliance is [available in `graphql-http`](https://github.com/graphql/graphql-http/blob/master/src/audits/server.ts) and you can use it to check your own, or other, servers!
 
-Additionally, `graphql-http` will maintain a list of GraphQL servers in the ecosystem and share their compliance results ([see them here](https://github.com/enisdenjo/graphql-http/tree/master/implementations)).
+Additionally, `graphql-http` will maintain a list of GraphQL servers in the ecosystem and share their compliance results ([see them here](https://github.com/graphql/graphql-http/tree/master/implementations)).
