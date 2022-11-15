@@ -24,6 +24,7 @@
     "charsets",
     "downlevel",
     "mercurius",
+    "postgraphile",
 
     // TODO: remove bellow words
     "Graphi", // GraphiQL
