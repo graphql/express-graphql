@@ -18,9 +18,10 @@ As a reference implementation, [`graphql-http`](https://github.com/graphql/graph
 
 In case you're seeking for a full-featured experience (with file uploads, @defer/@stream directives, subscriptions, etc.), you're recommended to use some of the great JavaScript GraphQL server options:
 
-- [`graphql-yoga`](https://www.the-guild.dev/graphql/yoga-server) ([fully compliant](https://github.com/graphql/graphql-http/tree/master/implementations/graphql-yoga), [migration guide](https://www.the-guild.dev/graphql/yoga-server/v3/migration/migration-from-express-graphql))
-- [`apollo-server`](https://www.apollographql.com/docs/apollo-server/) ([partially compliant](https://github.com/graphql/graphql-http/tree/master/implementations/apollo-server))
-- [`mercurius`](https://mercurius.dev/) ([partially compliant](https://github.com/graphql/graphql-http/tree/master/implementations/mercurius))
+- [`graphql-yoga`](https://www.the-guild.dev/graphql/yoga-server) ([compliant (0 warnings)](https://github.com/graphql/graphql-http/tree/master/implementations/graphql-yoga), [migration guide](https://www.the-guild.dev/graphql/yoga-server/v3/migration/migration-from-express-graphql))
+- [`postgraphile`](https://www.graphile.org/postgraphile/) ([compliant](https://github.com/graphql/graphql-http/tree/master/implementations/postgraphile))
+- [`apollo-server`](https://www.apollographql.com/docs/apollo-server/) ([compliant](https://github.com/graphql/graphql-http/tree/master/implementations/apollo-server))
+- [`mercurius`](https://mercurius.dev/) ([compliant](https://github.com/graphql/graphql-http/tree/master/implementations/mercurius))
 
 ## For library authors
 
